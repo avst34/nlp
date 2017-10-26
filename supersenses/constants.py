@@ -19,6 +19,7 @@ NOUN_SUPERSENSES = (
     'GROUP',
     'LOCATION',
     'MOTIVE',
+    'NATURAL OBJECT',
     'OBJECT',
     'OTHER',
     'PERSON',

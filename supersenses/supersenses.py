@@ -15,3 +15,10 @@ def get_supersense_type(supersense):
     else:
         print("WARNING: Unknown supersense:" + supersense)
     return ss_type
+
+
+def filter_non_supersense(maybe_supersense):
+    if not maybe_supersense or maybe_supersense[0] == '`' or maybe_supersense == '??':
+        return None
+    else:
+        return maybe_supersense
