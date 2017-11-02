@@ -24,16 +24,16 @@ class Vocabulary(object):
         return ind
 
     def get_word(self, ind):
-        n = self.get_vocabulary_size()
+        n = self.size()
         if ind >= n:
             raise Exception('Index %d is out of bounds, vocabulary size is %d' % (ind, n))
         return self._ind_to_word[ind]
 
-    def get_vocabulary_size(self):
+    def size(self):
         return len(self._ind_to_word)
 
     def __repr__(self):
-        return 'Vocabulary: "%s" with %d words' % (self.name, self.get_vocabulary_size())
+        return 'Vocabulary: "%s" with %d words' % (self.name, self.size())
 
 class VocabularyBuilder(object):
 

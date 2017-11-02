@@ -1,17 +1,23 @@
 import supersenses
 from datasets.steusle import streusle
-from ss_classifier_baseline.model import SupersensesClassifierBaselineModel, Sample, XTokenData, YTokenData
+from evaluators.samples_evaluator import ClassifierEvaluator
+from lstm_mlp_multiclass_model.model import LstmMlpMulticlassModel, Sample
+from simple_conditional_multiclass_model.model import SimpleConditionalMulticlassModel
 from vocabulary import Vocabulary
 
-def streusle_record_to_model_sample(record):
+def streusle_record_to_model_sample(record, ss_types):
     return Sample(
-        xs=[XTokenData(
-                token=tagged_token.token,
-                pos=tagged_token.pos
-            ) for tagged_token in record.tagged_tokens],
-        ys=[YTokenData(
-            supersense=tagged_token.supersense
-        ) for tagged_token in record.tagged_tokens],
+        xs=[{
+                "token": tagged_token.token,
+                "pos": tagged_token.pos
+            } for tagged_token in record.tagged_tokens],
+        ys=[
+            tagged_token.supersense \
+                if tagged_token.supersense is None \
+                   or supersenses.get_supersense_type(tagged_token.supersense) in ss_types \
+                else None
+            for tagged_token in record.tagged_tokens
+         ],
     )
 
 loader = streusle.StreusleLoader()
@@ -31,13 +37,26 @@ streusle.ssVocabularyBuilder.feed_records_to_vocab(records, ss_vocab)
 ss_vocab.add_word(None)
 print(ss_vocab)
 
-model = SupersensesClassifierBaselineModel(
-    token_vocab=token_vocab,
-    pos_vocab=pos_vocab,
-    ss_vocab=ss_vocab,
-    ss_types_to_predict=[supersenses.constants.TYPES.PREPOSITION_SUPERSENSE],
-    is_bilstm=False
-)
+samples = [streusle_record_to_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in records]
+samples = [s for s in samples if any(s.ys)]
+l = [token['token'].lower() for sample in samples for (token, y) in zip(sample.xs, sample.ys) if y]
 
-samples = [streusle_record_to_model_sample(r) for r in records]
-predictor = model.fit(samples, epochs=3)
+evaluator = ClassifierEvaluator()
+
+lstm_mlp_model = LstmMlpMulticlassModel(
+    input_vocabularies={
+        'token': token_vocab,
+        'pos': pos_vocab
+    },
+    output_vocabulary=ss_vocab,
+    is_bilstm=True
+)
+print('LSTM-MLP evaluation:')
+lstm_mlp_model.fit(samples, epochs=10, show_progress=False, show_epoch_eval=False, validation_split=0.5, evaluator=evaluator)
+
+print('')
+print('Simple conditional model evaluation:')
+scm = SimpleConditionalMulticlassModel()
+scm.fit(samples, validation_split=0.5, evaluator=evaluator)
+
+
