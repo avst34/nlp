@@ -149,10 +149,10 @@ class LstmMlpMulticlassModel(object):
 
         return self
 
-    def predict(self, sample_x, mask=None):
+    def predict(self, sample_xs, mask=None):
         if mask is None:
-            mask = [True] * len(sample_x)
-        outputs = self._build_network_for_input(sample_x)
+            mask = [True] * len(sample_xs)
+        outputs = self._build_network_for_input(sample_xs)
         ys = []
         for token_ind, out in enumerate(outputs):
             ind = np.argmax(out.npvalue())

@@ -1,5 +1,5 @@
 from utils import f1_score
-
+import random
 
 class ClassifierEvaluator:
 
@@ -25,7 +25,7 @@ class ClassifierEvaluator:
         samples = list(samples)
         random.shuffle(samples)
         for ind, sample in enumerate(samples):
-            predicted_ys = self.predictor.predict(sample.xs, [True if y else False for y in sample.ys])
+            predicted_ys = predictor.predict(sample.xs, [True if y else False for y in sample.ys])
             if ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
             for p, a in zip(predicted_ys, sample.ys):

@@ -51,12 +51,14 @@ lstm_mlp_model = LstmMlpMulticlassModel(
     output_vocabulary=ss_vocab,
     is_bilstm=True
 )
-print('LSTM-MLP evaluation:')
-lstm_mlp_model.fit(samples, epochs=10, show_progress=False, show_epoch_eval=False, validation_split=0.5, evaluator=evaluator)
 
-print('')
 print('Simple conditional model evaluation:')
 scm = SimpleConditionalMulticlassModel()
 scm.fit(samples, validation_split=0.5, evaluator=evaluator)
+
+print('')
+
+print('LSTM-MLP evaluation:')
+lstm_mlp_model.fit(samples, epochs=10, show_progress=False, show_epoch_eval=False, validation_split=0.5, evaluator=evaluator)
 
 

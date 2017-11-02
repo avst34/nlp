@@ -41,5 +41,7 @@ class SimpleConditionalMulticlassModel:
     def get_most_likely_y(self, sample_x):
         return self._most_likely_y.get(self.tuplize_x(sample_x))
 
-    def predict(self, sample_xs):
-        return [self.get_most_likely_y(x) for x in sample_xs]
+    def predict(self, sample_xs, mask=None):
+        if mask is None:
+            mask = [True] * len(sample_xs)
+        return [self.get_most_likely_y(x) if mask[ind] else None for ind, x in enumerate(sample_xs)]
