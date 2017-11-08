@@ -27,7 +27,8 @@ class LstmMlpMulticlassModel(object):
                  mlp_layer_size=10,
                  lstm_h_vec_size=10,
                  num_lstm_layers=2,
-                 is_bilstm=True):
+                 is_bilstm=True,
+                 mlp_dropout_p=0):
         self.input_vocabularies = input_vocabularies
         self.output_vocabulary = output_vocabulary
         if not input_embedding_sizes:
@@ -44,7 +45,7 @@ class LstmMlpMulticlassModel(object):
         self.lstm_h_vec_size = lstm_h_vec_size
         self.num_lstm_layers = num_lstm_layers
         self.is_bilstm = is_bilstm
-        self.mlp_dropout_p = 0
+        self.mlp_dropout_p = mlp_dropout_p
 
         self.lstm_cell_output_size = self.lstm_h_vec_size * (2 if self.is_bilstm else 1)
         self.embedded_input_vec_size = sum(input_embedding_sizes.values())
@@ -122,8 +123,7 @@ class LstmMlpMulticlassModel(object):
         return dy.esum(losses)
 
     def fit(self, samples, epochs=5, validation_split=0.2, show_progress=True, show_epoch_eval=True,
-            mlp_dropout_p=0, evaluator=None):
-        self.mlp_dropout_p = mlp_dropout_p
+            evaluator=None):
 
         test = samples[:int(len(samples)*validation_split)]
         train = samples[int(len(samples)*validation_split):]

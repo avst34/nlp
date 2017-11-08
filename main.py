@@ -64,8 +64,8 @@ print('')
 
 print('LSTM-MLP evaluation:')
 lstm_mlp_model.fit(samples,
-                   epochs=100,
-                   show_progress=False,
+                   epochs=50,
+                   show_progress=True,
                    show_epoch_eval=False,
                    validation_split=0.3,
                    evaluator=evaluator)
