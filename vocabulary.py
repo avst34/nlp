@@ -32,6 +32,9 @@ class Vocabulary(object):
     def size(self):
         return len(self._ind_to_word)
 
+    def all_words(self):
+        return self._word_to_ind.keys()
+
     def __repr__(self):
         return 'Vocabulary: "%s" with %d words' % (self.name, self.size())
 

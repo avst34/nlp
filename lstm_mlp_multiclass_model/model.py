@@ -21,6 +21,7 @@ class LstmMlpMulticlassModel(object):
                  input_vocabularies,
                  output_vocabulary,
                  input_embedding_sizes=None,
+                 input_embeddings=None,
                  input_embeddings_default_size=10,
                  mlp_layers=2,
                  mlp_layer_size=10,
@@ -30,8 +31,13 @@ class LstmMlpMulticlassModel(object):
         self.input_vocabularies = input_vocabularies
         self.output_vocabulary = output_vocabulary
         if not input_embedding_sizes:
-            input_embedding_sizes = {field: input_embeddings_default_size for field in self.input_vocabularies}
+            input_embedding_sizes = {
+                field: len(list(input_embeddings[field].values())[0]) if field in (input_embeddings or {}) and input_embeddings[field]
+                            else input_embeddings_default_size
+                for field in self.input_vocabularies
+            }
         self.input_embedding_sizes = input_embedding_sizes
+        self.input_embeddings = input_embeddings
 
         self.mlp_layers = mlp_layers
         self.mlp_layer_size = mlp_layer_size
@@ -69,6 +75,12 @@ class LstmMlpMulticlassModel(object):
                 b=pc.add_parameters((self.output_vocabulary.size(),))
             )
         )
+
+        for field, lookup_param in self.params.input_lookups.items():
+            embeddings = (self.input_embeddings or {}).get(field) or {}
+            for word, vector in embeddings.items():
+                lookup_param.init_row(self.input_vocabularies[field].get_index(word), vector)
+
         if self.is_bilstm:
             self.lstm_builder = dy.BiRNNBuilder(self.num_lstm_layers, self.embedded_input_vec_size, self.lstm_h_vec_size * 2, pc, dy.LSTMBuilder)
         else:

@@ -1,5 +1,5 @@
 import supersenses
-from datasets.steusle import streusle
+from datasets.streusle import streusle
 from evaluators.samples_evaluator import ClassifierEvaluator
 from lstm_mlp_multiclass_model.model import LstmMlpMulticlassModel, Sample
 from simple_conditional_multiclass_model.model import SimpleConditionalMulticlassModel
@@ -20,8 +20,8 @@ def streusle_record_to_model_sample(record, ss_types):
          ],
     )
 
-loader = streusle.StreusleLoader()
-records = loader.load()
+streusle_loader = streusle.StreusleLoader()
+records = streusle_loader.load()
 print('loaded %d records with %d tokens' % (len(records), sum([len(x.tagged_tokens) for x in records])))
 
 token_vocab = Vocabulary('Tokens')
@@ -48,17 +48,26 @@ lstm_mlp_model = LstmMlpMulticlassModel(
         'token': token_vocab,
         'pos': pos_vocab
     },
+    input_embeddings={
+        'token': streusle_loader.get_tokens_word2vec_model().as_dict()
+    },
+    input_embeddings_default_size=300,
     output_vocabulary=ss_vocab,
     is_bilstm=True
 )
 
 print('Simple conditional model evaluation:')
 scm = SimpleConditionalMulticlassModel()
-scm.fit(samples, validation_split=0.5, evaluator=evaluator)
+scm.fit(samples, validation_split=0.3, evaluator=evaluator)
 
 print('')
 
 print('LSTM-MLP evaluation:')
-lstm_mlp_model.fit(samples, epochs=10, show_progress=False, show_epoch_eval=False, validation_split=0.5, evaluator=evaluator)
+lstm_mlp_model.fit(samples,
+                   epochs=100,
+                   show_progress=False,
+                   show_epoch_eval=False,
+                   validation_split=0.3,
+                   evaluator=evaluator)
 
 
