@@ -1,7 +1,7 @@
 import supersenses
 from datasets.streusle import streusle
 from evaluators.samples_evaluator import ClassifierEvaluator
-from lstm_mlp_multiclass_model.model import LstmMlpMulticlassModel, Sample
+from lstm_mlp_multiclass_model import LstmMlpMulticlassModel, Sample, HyperParameters
 from simple_conditional_multiclass_model.model import SimpleConditionalMulticlassModel
 from vocabulary import Vocabulary
 
@@ -51,9 +51,8 @@ lstm_mlp_model = LstmMlpMulticlassModel(
     input_embeddings={
         'token': streusle_loader.get_tokens_word2vec_model().as_dict()
     },
-    input_embeddings_default_size=300,
     output_vocabulary=ss_vocab,
-    is_bilstm=True
+    hyperparameters=HyperParameters()
 )
 
 print('Simple conditional model evaluation:')
@@ -66,7 +65,7 @@ print('LSTM-MLP evaluation:')
 lstm_mlp_model.fit(samples,
                    epochs=50,
                    show_progress=True,
-                   show_epoch_eval=False,
+                   show_epoch_eval=True,
                    validation_split=0.3,
                    evaluator=evaluator)
 

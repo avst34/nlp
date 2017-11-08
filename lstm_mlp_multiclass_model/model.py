@@ -7,7 +7,34 @@ import numpy as np
 # There are more hidden parameters coming from the LSTMs
 Sample = namedtuple('Sample', ['xs', 'ys'])
 
-ModelOptimizedParams = namedtuple('ModelOptimizedParams',[
+class HyperParameters:
+
+    def __init__(self,
+            input_embedding_sizes=None,
+            input_embeddings_default_size=10,
+            mlp_layers=2,
+            mlp_layer_size=10,
+            lstm_h_vec_size=10,
+            num_lstm_layers=2,
+            is_bilstm=True,
+            mlp_dropout_p=0
+    ):
+        super().__setattr__('input_embedding_sizes', input_embedding_sizes)
+        super().__setattr__('input_embeddings_default_size', input_embeddings_default_size)
+        super().__setattr__('mlp_layers', mlp_layers)
+        super().__setattr__('mlp_layer_size', mlp_layer_size)
+        super().__setattr__('lstm_h_vec_size', lstm_h_vec_size)
+        super().__setattr__('num_lstm_layers', num_lstm_layers)
+        super().__setattr__('is_bilstm', is_bilstm)
+        super().__setattr__('mlp_dropout_p', mlp_dropout_p)
+
+    def __setattr__(self, *args):
+        raise TypeError
+
+    def __delattr__(self, *args):
+        raise TypeError
+
+ModelOptimizedParams = namedtuple('ModelOptimizedParams', [
     'input_lookups',
     'mlp',
     'softmax'
@@ -20,59 +47,55 @@ class LstmMlpMulticlassModel(object):
     def __init__(self,
                  input_vocabularies,
                  output_vocabulary,
-                 input_embedding_sizes=None,
                  input_embeddings=None,
-                 input_embeddings_default_size=10,
-                 mlp_layers=2,
-                 mlp_layer_size=10,
-                 lstm_h_vec_size=10,
-                 num_lstm_layers=2,
-                 is_bilstm=True,
-                 mlp_dropout_p=0):
+                 hyperparameters=HyperParameters()):
         self.input_vocabularies = input_vocabularies
         self.output_vocabulary = output_vocabulary
-        if not input_embedding_sizes:
-            input_embedding_sizes = {
-                field: len(list(input_embeddings[field].values())[0]) if field in (input_embeddings or {}) and input_embeddings[field]
-                            else input_embeddings_default_size
-                for field in self.input_vocabularies
-            }
-        self.input_embedding_sizes = input_embedding_sizes
-        self.input_embeddings = input_embeddings
+        self.input_embeddings = input_embeddings or {}
 
-        self.mlp_layers = mlp_layers
-        self.mlp_layer_size = mlp_layer_size
-        self.lstm_h_vec_size = lstm_h_vec_size
-        self.num_lstm_layers = num_lstm_layers
-        self.is_bilstm = is_bilstm
-        self.mlp_dropout_p = mlp_dropout_p
-
-        self.lstm_cell_output_size = self.lstm_h_vec_size * (2 if self.is_bilstm else 1)
-        self.embedded_input_vec_size = sum(input_embedding_sizes.values())
+        input_embeddings_sizes = {field: hyperparameters.input_embeddings_default_size for field in input_vocabularies}
+        input_embeddings_sizes.update(hyperparameters.input_embedding_sizes or {})
+        input_embeddings_sizes.update({
+            field: len(list(self.input_embeddings[field].values())[0])
+            for field in self.input_vocabularies
+            if self.input_embeddings.get(field)
+        })
+        self.hyperparameters = HyperParameters(
+            input_embedding_sizes=input_embeddings_sizes,
+            mlp_layers=hyperparameters.mlp_layers,
+            mlp_layer_size=hyperparameters.mlp_layer_size,
+            lstm_h_vec_size=hyperparameters.lstm_h_vec_size,
+            num_lstm_layers=hyperparameters.num_lstm_layers,
+            is_bilstm=hyperparameters.is_bilstm,
+            mlp_dropout_p=hyperparameters.mlp_dropout_p            
+        )
 
         self.validate_config()
 
     def validate_config(self):
-        if set(self.input_vocabularies.keys()) != set(self.input_embedding_sizes.keys()):
+        if set(self.input_vocabularies.keys()) != set(self.hyperparameters.input_embedding_sizes.keys()):
             raise Exception("Mismatch between input vocabularies and input_embedding_sizes")
 
     def _build_network_params(self):
         pc = dy.ParameterCollection()
-
+        
+        lstm_cell_output_size = self.hyperparameters.lstm_h_vec_size * (2 if self.hyperparameters.is_bilstm else 1)
+        embedded_input_vec_size = sum(self.hyperparameters.input_embedding_sizes.values())
+        
         self.params = ModelOptimizedParams(
             input_lookups={
-                field: pc.add_lookup_parameters((self.input_vocabularies[field].size(), self.input_embedding_sizes[field]))
+                field: pc.add_lookup_parameters((self.input_vocabularies[field].size(), self.hyperparameters.input_embedding_sizes[field]))
                 for field in self.input_vocabularies
             },
             mlp=[
                 MLPLayerParams(
-                    W=pc.add_parameters((self.mlp_layer_size, self.mlp_layer_size if i > 0 else self.lstm_cell_output_size)),
-                    b=pc.add_parameters((self.mlp_layer_size,))
+                    W=pc.add_parameters((self.hyperparameters.mlp_layer_size, self.hyperparameters.mlp_layer_size if i > 0 else lstm_cell_output_size)),
+                    b=pc.add_parameters((self.hyperparameters.mlp_layer_size,))
                 )
-                for i in range(self.mlp_layers)
+                for i in range(self.hyperparameters.mlp_layers)
             ],
             softmax=MLPLayerParams(
-                W=pc.add_parameters((self.output_vocabulary.size(), self.mlp_layer_size)),
+                W=pc.add_parameters((self.output_vocabulary.size(), self.hyperparameters.mlp_layer_size)),
                 b=pc.add_parameters((self.output_vocabulary.size(),))
             )
         )
@@ -82,16 +105,16 @@ class LstmMlpMulticlassModel(object):
             for word, vector in embeddings.items():
                 lookup_param.init_row(self.input_vocabularies[field].get_index(word), vector)
 
-        if self.is_bilstm:
-            self.lstm_builder = dy.BiRNNBuilder(self.num_lstm_layers, self.embedded_input_vec_size, self.lstm_h_vec_size * 2, pc, dy.LSTMBuilder)
+        if self.hyperparameters.is_bilstm:
+            self.lstm_builder = dy.BiRNNBuilder(self.hyperparameters.num_lstm_layers, embedded_input_vec_size, self.hyperparameters.lstm_h_vec_size * 2, pc, dy.LSTMBuilder)
         else:
-            self.lstm_builder = dy.LSTMBuilder(self.num_lstm_layers, self.embedded_input_vec_size, self.lstm_h_vec_size, pc)
+            self.lstm_builder = dy.LSTMBuilder(self.hyperparameters.num_lstm_layers, embedded_input_vec_size, self.hyperparameters.lstm_h_vec_size, pc)
 
         return pc
 
     def _build_network_for_input(self, inp):
         dy.renew_cg()
-        if not self.is_bilstm:
+        if not self.hyperparameters.is_bilstm:
             cur_lstm_state = self.lstm_builder.initial_state()
         else:
             cur_lstm_state = self.lstm_builder
@@ -107,7 +130,7 @@ class LstmMlpMulticlassModel(object):
         for lstm_out in lstm_outputs:
             cur_out = lstm_out
             for mlp_layer_params in self.params.mlp:
-                cur_out = dy.dropout(cur_out, self.mlp_dropout_p)
+                cur_out = dy.dropout(cur_out, self.hyperparameters.mlp_dropout_p)
                 cur_out = dy.tanh(dy.parameter(mlp_layer_params.W) * cur_out + dy.parameter(mlp_layer_params.b))
             cur_out = dy.softmax(dy.parameter(self.params.softmax.W) * cur_out + dy.parameter(self.params.softmax.b))
             outputs.append(cur_out)
