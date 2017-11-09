@@ -1,8 +1,8 @@
 from collections import namedtuple
 
-Sample = namedtuple('Sample', ['xs', 'ys'])
-
 class SimpleConditionalMulticlassModel:
+
+    Sample = namedtuple('Sample', ['xs', 'ys'])
 
     def __init__(self):
         self._cond_counts = {}

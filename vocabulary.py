@@ -29,6 +29,9 @@ class Vocabulary(object):
             raise Exception('Index %d is out of bounds, vocabulary size is %d' % (ind, n))
         return self._ind_to_word[ind]
 
+    def has_word(self, word):
+        return self.get_index_if_exists(word) is not None
+
     def size(self):
         return len(self._ind_to_word)
 
