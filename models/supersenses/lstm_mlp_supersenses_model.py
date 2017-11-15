@@ -28,16 +28,19 @@ class LstmMlpSupersensesModel(object):
             self.supersense = supersense
 
     class HyperParameters:
-
         def __init__(self,
                      use_token,
                      use_pos,
                      use_dep,
+                     update_token_embd,
+                     update_pos_embd,
+                     update_dep_embd,
                      token_embd_dim,
                      pos_embd_dim,
                      dep_embd_dim,
                      mlp_layers,
                      mlp_layer_dim,
+                     mlp_activation,
                      lstm_h_dim,
                      num_lstm_layers,
                      is_bilstm,
@@ -46,6 +49,10 @@ class LstmMlpSupersensesModel(object):
                      epochs,
                      validation_split
                      ):
+            self.mlp_activation = mlp_activation
+            self.update_token_embd = update_token_embd
+            self.update_pos_embd = update_pos_embd
+            self.update_dep_embd = update_dep_embd
             self.use_token = use_token
             self.use_pos = use_pos
             self.use_dep = use_dep
@@ -61,6 +68,7 @@ class LstmMlpSupersensesModel(object):
             self.mlp_dropout_p = mlp_dropout_p
             self.epochs = epochs
             self.validation_split = validation_split
+
 
     def __init__(self,
                  token_vocab=None,
@@ -117,13 +125,19 @@ class LstmMlpSupersensesModel(object):
                     self.hyperparameters.use_pos and "pos",
                     self.hyperparameters.use_dep and "dep"
                 ])),
+                'input_embeddings_to_update': {
+                    'token': hp.update_token_embd,
+                    'pos': hp.update_pos_embd,
+                    'dep': hp.update_dep_embd
+                },
                 'input_embeddings_default_dim': None,
                 'input_embedding_dims': {
                     'token': hp.token_embd_dim,
                     'pos': hp.pos_embd_dim,
                     'dep': hp.dep_embd_dim
                 }
-            }, del_keys=['use_token', 'use_pos', 'use_dep', 'token_embd_dim', 'pos_embd_dim', 'dep_embd_dim']))
+            }, del_keys=['use_token', 'use_pos', 'use_dep', 'token_embd_dim', 'pos_embd_dim', 'dep_embd_dim',
+                         'update_token_embd', 'update_pos_embd', 'update_dep_embd']))
         )
 
     def _sample_x_to_lowlevel(self, sample_x):

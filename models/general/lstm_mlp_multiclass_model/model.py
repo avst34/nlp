@@ -5,6 +5,7 @@ import dynet as dy
 import numpy as np
 
 # There are more hidden parameters coming from the LSTMs
+from dynet_utils import get_activation_function
 from utils import update_dict
 from vocabulary import Vocabulary
 
@@ -41,10 +42,12 @@ class LstmMlpMulticlassModel(object):
     class HyperParameters:
         def __init__(self,
                      input_fields,
+                     input_embeddings_to_update,
                      input_embedding_dims,
                      input_embeddings_default_dim,
                      mlp_layers,
                      mlp_layer_dim,
+                     mlp_activation,
                      lstm_h_dim,
                      num_lstm_layers,
                      is_bilstm,
@@ -54,11 +57,13 @@ class LstmMlpMulticlassModel(object):
                      validation_split
                      ):
             self.input_fields = input_fields
+            self.input_embeddings_to_update = input_embeddings_to_update
             self.input_embedding_dims = input_embedding_dims
             self.input_embeddings_default_dim = input_embeddings_default_dim
             self.mlp_layers = mlp_layers
             self.mlp_layer_dim = mlp_layer_dim
             self.lstm_h_dim = lstm_h_dim
+            self.mlp_activation = mlp_activation
             self.num_lstm_layers = num_lstm_layers
             self.is_bilstm = is_bilstm
             self.mlp_dropout_p = mlp_dropout_p
@@ -74,6 +79,7 @@ class LstmMlpMulticlassModel(object):
         hyperparameters = hyperparameters or LstmMlpMulticlassModel.HyperParameters(
             input_embedding_dims=None,
             input_embeddings_default_dim=10,
+            input_embeddings_to_update=None,
             mlp_layers=2,
             mlp_layer_dim=10,
             lstm_h_dim=40,
@@ -118,7 +124,7 @@ class LstmMlpMulticlassModel(object):
             mlp_input_dim = self.hyperparameters.lstm_h_dim
 
         embedded_input_dim = sum(self.hyperparameters.input_embedding_dims.values())
-        
+
         self.params = ModelOptimizedParams(
             input_lookups={
                 field: pc.add_lookup_parameters((self.input_vocabularies[field].size(), self.hyperparameters.input_embedding_dims[field]))
@@ -158,12 +164,13 @@ class LstmMlpMulticlassModel(object):
             cur_lstm_state = self.lstm_builder
         embeddings = [
             dy.concatenate([
-                dy.lookup(self.params.input_lookups[field], self.input_vocabularies[field].get_index(token_data[field]), update=not self.input_embeddings.get(field))
+                dy.lookup(self.params.input_lookups[field], self.input_vocabularies[field].get_index(token_data[field]), update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update[field])
                 for field in self.hyperparameters.input_fields
             ])
             for token_data in inp
         ]
         lstm_outputs = cur_lstm_state.transduce(embeddings)
+        mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         outputs = []
         for ind, lstm_out in enumerate(lstm_outputs):
             if self.hyperparameters.use_head:
@@ -175,7 +182,7 @@ class LstmMlpMulticlassModel(object):
                 cur_out = lstm_out
             for mlp_layer_params in self.params.mlp:
                 cur_out = dy.dropout(cur_out, self.hyperparameters.mlp_dropout_p)
-                cur_out = dy.tanh(dy.parameter(mlp_layer_params.W) * cur_out + dy.parameter(mlp_layer_params.b))
+                cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * cur_out + dy.parameter(mlp_layer_params.b))
             cur_out = dy.softmax(dy.parameter(self.params.softmax.W) * cur_out + dy.parameter(self.params.softmax.b))
             outputs.append(cur_out)
         return outputs
