@@ -3,6 +3,9 @@ from hyperparameters_tuner import HyperparametersTuner
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 import json
 
+from models.supersenses.tuner_domains import TUNER_DOMAINS
+
+
 def extract_classifier_evaluator_results(evaluation):
     return evaluation
 
@@ -75,27 +78,6 @@ class LstmMlpSupersensesModelHyperparametersTuner:
             'show_epoch_eval': show_epoch_eval,
             'evaluator': evaluator
         }
-        PS = HyperparametersTuner.ParamSettings
-        tuner = HyperparametersTuner([
-            PS(name='use_token', values=[True]),
-            PS(name='use_pos', values=[False]),
-            PS(name='use_dep', values=[True]),
-            PS(name='token_embd_dim', values=[300]),
-            PS(name='pos_embd_dim', values=[30]),
-            PS(name='dep_embd_dim', values=[30]),
-            PS(name='update_token_embd', values=[True]),
-            PS(name='update_pos_embd', values=[True]),
-            PS(name='update_dep_embd', values=[True]),
-            PS(name='mlp_layers', values=[2]),
-            PS(name='mlp_layer_dim', values=[30]),
-            PS(name='mlp_activation', values=['tanh']),
-            PS(name='lstm_h_dim', values=[30]),
-            PS(name='num_lstm_layers', values=[2]),
-            PS(name='is_bilstm', values=[True]),
-            PS(name='use_head', values=[True]),
-            PS(name='mlp_dropout_p', values=[0.1]),
-            PS(name='epochs', values=[1]),
-            PS(name='validation_split', values=[0.3]),
-        ], executor=self._execute, csv_row_builder=build_csv_row)
+        tuner = HyperparametersTuner(TUNER_DOMAINS, executor=self._execute, csv_row_builder=build_csv_row)
         best_params, best_results = tuner.tune(results_csv_path, n_executions)
         return best_params, best_results

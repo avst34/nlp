@@ -54,8 +54,10 @@ class LstmMlpMulticlassModel(object):
                      use_head,
                      mlp_dropout_p,
                      epochs,
-                     validation_split
+                     validation_split,
+                     learning_rate
                      ):
+            self.learning_rate = learning_rate
             self.input_fields = input_fields
             self.input_embeddings_to_update = input_embeddings_to_update
             self.input_embedding_dims = input_embedding_dims
@@ -218,7 +220,7 @@ class LstmMlpMulticlassModel(object):
         test = samples[:int(len(samples) * self.hyperparameters.validation_split)]
         train = samples[int(len(samples) * self.hyperparameters.validation_split):]
 
-        trainer = dy.SimpleSGDTrainer(pc)
+        trainer = dy.SimpleSGDTrainer(pc, learning_rate=self.hyperparameters.learning_rate)
         for epoch in range(1, self.hyperparameters.epochs + 1):
             train = list(train)
             random.shuffle(train)

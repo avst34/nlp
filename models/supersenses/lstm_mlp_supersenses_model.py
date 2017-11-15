@@ -47,8 +47,10 @@ class LstmMlpSupersensesModel(object):
                      use_head,
                      mlp_dropout_p,
                      epochs,
-                     validation_split
+                     validation_split,
+                     learning_rate
                      ):
+            self.learning_rate = learning_rate
             self.mlp_activation = mlp_activation
             self.update_token_embd = update_token_embd
             self.update_pos_embd = update_pos_embd
