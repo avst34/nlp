@@ -6,3 +6,9 @@ def clear_nones(obj):
 
 def f1_score(precision, recall):
     return 2 * (precision * recall) / (precision + recall)
+
+def update_dict(d, with_d, del_keys=None):
+    del_keys = del_keys or set()
+    d = {k: v for k, v in d.items() if k not in del_keys}
+    d.update(with_d)
+    return d

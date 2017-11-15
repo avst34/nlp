@@ -5,6 +5,7 @@ import dynet as dy
 import numpy as np
 
 from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel
+from utils import update_dict
 
 
 class LstmMlpSupersensesModel(object):
@@ -41,7 +42,9 @@ class LstmMlpSupersensesModel(object):
                      num_lstm_layers,
                      is_bilstm,
                      use_head,
-                     mlp_dropout_p
+                     mlp_dropout_p,
+                     epochs,
+                     validation_split
                      ):
             self.use_token = use_token
             self.use_pos = use_pos
@@ -56,6 +59,8 @@ class LstmMlpSupersensesModel(object):
             self.is_bilstm = is_bilstm
             self.use_head = use_head
             self.mlp_dropout_p = mlp_dropout_p
+            self.epochs = epochs
+            self.validation_split = validation_split
 
     def __init__(self,
                  token_vocab=None,
@@ -80,7 +85,10 @@ class LstmMlpSupersensesModel(object):
             num_lstm_layers=2,
             is_bilstm=True,
             use_head=True,
-            mlp_dropout_p=0)
+            mlp_dropout_p=0,
+            epochs=30,
+            validation_split=0.3
+        )
 
         self.token_vocab = token_vocab
         self.pos_vocab = pos_vocab
@@ -103,26 +111,19 @@ class LstmMlpSupersensesModel(object):
                 'dep': dep_embd,
             },
             output_vocabulary=ss_vocab,
-            hyperparameters=LstmMlpMulticlassModel.HyperParameters(
-                input_fields=list(filter(lambda x: x, [
+            hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
+                'input_fields': list(filter(lambda x: x, [
                     self.hyperparameters.use_token and "token",
                     self.hyperparameters.use_pos and "pos",
                     self.hyperparameters.use_dep and "dep"
                 ])),
-                input_embeddings_default_dim=None,
-                input_embedding_dims={
+                'input_embeddings_default_dim': None,
+                'input_embedding_dims': {
                     'token': hp.token_embd_dim,
                     'pos': hp.pos_embd_dim,
                     'dep': hp.dep_embd_dim
-                },
-                mlp_layers=hp.mlp_layers,
-                mlp_layer_dim=hp.mlp_layer_dim,
-                lstm_h_dim=hp.lstm_h_dim,
-                num_lstm_layers=hp.num_lstm_layers,
-                is_bilstm=hp.is_bilstm,
-                use_head=hp.use_head,
-                mlp_dropout_p=hp.mlp_dropout_p
-            )
+                }
+            }, del_keys=['use_token', 'use_pos', 'use_dep', 'token_embd_dim', 'pos_embd_dim', 'dep_embd_dim']))
         )
 
     def _sample_x_to_lowlevel(self, sample_x):
@@ -147,13 +148,21 @@ class LstmMlpSupersensesModel(object):
             ys=[self._sample_y_to_lowlevel(y) for y in sample.ys],
         )
 
-    def fit(self, samples, epochs=5, validation_split=0.2, show_progress=True, show_epoch_eval=True,
+    def fit(self, samples, show_progress=True, show_epoch_eval=True,
             evaluator=None):
         ll_samples = [self._sample_to_lowlevel(s) for s in samples]
-        self.model.fit(ll_samples, epochs, validation_split, show_progress, show_epoch_eval, evaluator)
+        self.model.fit(ll_samples, show_progress, show_epoch_eval, evaluator)
         return self
 
     def predict(self, sample_xs, mask=None):
         ll_ys = self.model.predict(sample_xs, mask=mask)
         ys = [self._lowlevel_to_sample_y(ll_s) for ll_s in ll_ys]
         return ys
+
+    @property
+    def test_set_evaluation(self):
+        return self.model.test_set_evaluation
+
+    @property
+    def train_set_evaluation(self):
+        return self.model.train_set_evaluation

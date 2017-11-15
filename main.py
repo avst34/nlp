@@ -1,9 +1,11 @@
 import supersenses
 from datasets.streusle import streusle
-from evaluators.samples_evaluator import ClassifierEvaluator
+from evaluators.classifier_evaluator import ClassifierEvaluator
 from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel
 from models.general.simple_conditional_multiclass_model.model import SimpleConditionalMulticlassModel
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
+from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
+    LstmMlpSupersensesModelHyperparametersTuner
 from vocabulary import Vocabulary
 
 
@@ -58,16 +60,25 @@ print('')
 samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in records]
 samples = [s for s in samples if any([y.supersense for y in s.ys])]
 
-print('LSTM-MLP evaluation:')
-lstm_mlp_model = LstmMlpSupersensesModel(
+# print('LSTM-MLP evaluation:')
+# lstm_mlp_model = LstmMlpSupersensesModel(
+#     token_embd=streusle_loader.get_tokens_word2vec_model().as_dict()
+# )
+#
+# lstm_mlp_model.fit(samples,
+#                    epochs=50,
+#                    show_progress=True,
+#                    show_epoch_eval=True,
+#                    validation_split=0.3,
+#                    evaluator=evaluator)
+#
+
+tuner = LstmMlpSupersensesModelHyperparametersTuner(
     token_embd=streusle_loader.get_tokens_word2vec_model().as_dict()
 )
-
-lstm_mlp_model.fit(samples,
-                   epochs=50,
-                   show_progress=True,
-                   show_epoch_eval=True,
-                   validation_split=0.3,
-                   evaluator=evaluator)
-
+tuner.tune(samples,
+           '/tmp/results.csv',
+           n_executions=1,
+           show_progress=True,
+           show_epoch_eval=True)
 

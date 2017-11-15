@@ -5,6 +5,7 @@ import dynet as dy
 import numpy as np
 
 # There are more hidden parameters coming from the LSTMs
+from utils import update_dict
 from vocabulary import Vocabulary
 
 ModelOptimizedParams = namedtuple('ModelOptimizedParams', [
@@ -48,7 +49,9 @@ class LstmMlpMulticlassModel(object):
                      num_lstm_layers,
                      is_bilstm,
                      use_head,
-                     mlp_dropout_p
+                     mlp_dropout_p,
+                     epochs,
+                     validation_split
                      ):
             self.input_fields = input_fields
             self.input_embedding_dims = input_embedding_dims
@@ -60,6 +63,8 @@ class LstmMlpMulticlassModel(object):
             self.is_bilstm = is_bilstm
             self.mlp_dropout_p = mlp_dropout_p
             self.use_head = use_head
+            self.epochs = epochs
+            self.validation_split = validation_split
 
     def __init__(self,
                  input_vocabularies=None,
@@ -83,24 +88,26 @@ class LstmMlpMulticlassModel(object):
         self.input_embeddings = input_embeddings or {}
 
         input_embeddings_dims = {field: hyperparameters.input_embeddings_default_dim for field in hyperparameters.input_fields}
-        input_embeddings_dims.update(hyperparameters.input_embedding_dims or {})
+        input_embeddings_dims.update({k: v for (k,v) in (hyperparameters.input_embedding_dims or {}).items() if k in hyperparameters.input_fields})
         input_embeddings_dims.update({
             field: len(list(self.input_embeddings[field].values())[0])
             for field in hyperparameters.input_fields
             if self.input_embeddings.get(field)
         })
-        self.hyperparameters = LstmMlpMulticlassModel.HyperParameters(
-            input_fields=hyperparameters.input_fields,
-            input_embeddings_default_dim=None,
-            input_embedding_dims=input_embeddings_dims,
-            mlp_layers=hyperparameters.mlp_layers,
-            mlp_layer_dim=hyperparameters.mlp_layer_dim,
-            lstm_h_dim=hyperparameters.lstm_h_dim,
-            num_lstm_layers=hyperparameters.num_lstm_layers,
-            is_bilstm=hyperparameters.is_bilstm,
-            mlp_dropout_p=hyperparameters.mlp_dropout_p,
-            use_head=hyperparameters.use_head
-        )
+        self.hyperparameters = LstmMlpMulticlassModel.HyperParameters(**update_dict(hyperparameters.__dict__, {'input_embedding_dims': input_embeddings_dims}))
+        self.test_set_evaluation = None
+        self.train_set_evaluation = None
+
+        self.validate_params()
+
+    def validate_params(self):
+        # Make sure input embedding dimensions fit embedding vectors size (if given)
+        for field in self.hyperparameters.input_fields:
+            if self.input_embeddings.get(field):
+                embd_vec_dim = len(list(self.input_embeddings[field].values())[0])
+                given_dim = self.hyperparameters.input_embedding_dims[field]
+                if embd_vec_dim != given_dim:
+                    raise Exception("Input field '%s': Mismatch between given embedding vector size (%d) and given embedding size (%d)" % (field, embd_vec_dim, given_dim))
 
     def _build_network_params(self):
         pc = dy.ParameterCollection()
@@ -115,7 +122,7 @@ class LstmMlpMulticlassModel(object):
         self.params = ModelOptimizedParams(
             input_lookups={
                 field: pc.add_lookup_parameters((self.input_vocabularies[field].size(), self.hyperparameters.input_embedding_dims[field]))
-                for field in self.input_vocabularies
+                for field in self.hyperparameters.input_fields
             },
             mlp=[
                 MLPLayerParams(
@@ -152,7 +159,7 @@ class LstmMlpMulticlassModel(object):
         embeddings = [
             dy.concatenate([
                 dy.lookup(self.params.input_lookups[field], self.input_vocabularies[field].get_index(token_data[field]), update=not self.input_embeddings.get(field))
-                for field in self.input_vocabularies
+                for field in self.hyperparameters.input_fields
             ])
             for token_data in inp
         ]
@@ -196,16 +203,16 @@ class LstmMlpMulticlassModel(object):
             vocab.add_words([y for s in samples for y in s.ys])
             self.output_vocabulary = vocab
 
-    def fit(self, samples, epochs=5, validation_split=0.2, show_progress=True, show_epoch_eval=True,
+    def fit(self, samples, show_progress=True, show_epoch_eval=True,
             evaluator=None):
         self._build_vocabularies(samples)
         pc = self._build_network_params()
 
-        test = samples[:int(len(samples) * validation_split)]
-        train = samples[int(len(samples) * validation_split):]
+        test = samples[:int(len(samples) * self.hyperparameters.validation_split)]
+        train = samples[int(len(samples) * self.hyperparameters.validation_split):]
 
         trainer = dy.SimpleSGDTrainer(pc)
-        for epoch in range(1, epochs + 1):
+        for epoch in range(1, self.hyperparameters.epochs + 1):
             train = list(train)
             random.shuffle(train)
             loss_sum = 0
@@ -226,12 +233,12 @@ class LstmMlpMulticlassModel(object):
                 evaluator.evaluate(test, examples_to_show=0, predictor=self)
 
         print('--------------------------------------------')
-        print('Training is complete (%d samples, %d epochs)' % (len(train), epochs))
+        print('Training is complete (%d samples, %d epochs)' % (len(train), self.hyperparameters.epochs))
         if evaluator:
             print('Test data evaluation:')
-            evaluator.evaluate(test, examples_to_show=0, predictor=self)
+            self.test_set_evaluation = evaluator.evaluate(test, examples_to_show=0, predictor=self)
             print('Training data evaluation:')
-            evaluator.evaluate(train, examples_to_show=0, predictor=self)
+            self.train_set_evaluation = evaluator.evaluate(train, examples_to_show=0, predictor=self)
         print('--------------------------------------------')
 
         return self
