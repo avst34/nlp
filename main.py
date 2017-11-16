@@ -78,7 +78,7 @@ tuner = LstmMlpSupersensesModelHyperparametersTuner(
 )
 tuner.tune(samples,
            '/tmp/results.csv',
-           n_executions=1,
+           n_executions=50,
            show_progress=True,
            show_epoch_eval=True)
 

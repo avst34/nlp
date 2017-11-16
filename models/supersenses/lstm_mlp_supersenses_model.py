@@ -1,11 +1,7 @@
 from collections import namedtuple
-
-import random
-import dynet as dy
-import numpy as np
-
+from pprint import pprint
 from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel
-from utils import update_dict
+from utils import update_dict, clear_nones
 
 
 class LstmMlpSupersensesModel(object):
@@ -48,8 +44,10 @@ class LstmMlpSupersensesModel(object):
                      mlp_dropout_p,
                      epochs,
                      validation_split,
-                     learning_rate
-                     ):
+                     learning_rate,
+                     learning_rate_decay
+                 ):
+            self.learning_rate_decay = learning_rate_decay
             self.learning_rate = learning_rate
             self.mlp_activation = mlp_activation
             self.update_token_embd = update_token_embd
@@ -82,24 +80,7 @@ class LstmMlpSupersensesModel(object):
                  pos_embd=None,
                  dep_embd=None,
                  hyperparameters=None):
-        hp = hyperparameters or LstmMlpSupersensesModel.HyperParameters(
-            use_token=True,
-            use_pos=True,
-            use_dep=True,
-            token_embd_dim=10,
-            pos_embd_dim=10,
-            dep_embd_dim=10,
-            mlp_layers=2,
-            mlp_layer_dim=10,
-            lstm_h_dim=40,
-            num_lstm_layers=2,
-            is_bilstm=True,
-            use_head=True,
-            mlp_dropout_p=0,
-            epochs=30,
-            validation_split=0.3
-        )
-
+        hp = hyperparameters
         self.token_vocab = token_vocab
         self.pos_vocab = pos_vocab
         self.dep_vocab = dep_vocab
@@ -109,22 +90,27 @@ class LstmMlpSupersensesModel(object):
         self.dep_embd = dep_embd
         self.hyperparameters = hp
 
+        print("LstmMlpSupersensesModel: Building model with the following hyperparameters:")
+        pprint(hp.__dict__)
+
         self.model = LstmMlpMulticlassModel(
-            input_vocabularies={
+            input_vocabularies=clear_nones({
                 'token': token_vocab,
                 'pos': pos_vocab,
                 'dep': dep_vocab
-            },
-            input_embeddings={
+            }),
+            input_embeddings=clear_nones({
                 'token': token_embd,
                 'pos': pos_embd,
                 'dep': dep_embd,
-            },
+            }),
             output_vocabulary=ss_vocab,
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
-                'input_fields': list(filter(lambda x: x, [
+                'lstm_input_fields': list(filter(lambda x: x, [
                     self.hyperparameters.use_token and "token",
-                    self.hyperparameters.use_pos and "pos",
+                    self.hyperparameters.use_pos and "pos"
+                ])),
+                'mlp_input_fields': list(filter(lambda x: x, [
                     self.hyperparameters.use_dep and "dep"
                 ])),
                 'input_embeddings_to_update': {
@@ -137,9 +123,10 @@ class LstmMlpSupersensesModel(object):
                     'token': hp.token_embd_dim,
                     'pos': hp.pos_embd_dim,
                     'dep': hp.dep_embd_dim
-                }
+                },
             }, del_keys=['use_token', 'use_pos', 'use_dep', 'token_embd_dim', 'pos_embd_dim', 'dep_embd_dim',
-                         'update_token_embd', 'update_pos_embd', 'update_dep_embd']))
+                         'update_token_embd', 'update_pos_embd', 'update_dep_embd'])
+           )
         )
 
     def _sample_x_to_lowlevel(self, sample_x):

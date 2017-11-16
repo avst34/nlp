@@ -1,7 +1,9 @@
+import hashlib
 import random
 import csv
 import threading
 import json
+import random
 from collections import OrderedDict
 
 
@@ -34,13 +36,14 @@ class HyperparametersTuner:
             self.score = score
             self.result_data = result_data
 
-    def __init__(self, params_settings, executor, csv_row_builder=build_csv_row):
+    def __init__(self, params_settings, executor, csv_row_builder=build_csv_row, shared_csv=False):
         assert all([isinstance(ps, HyperparametersTuner.ParamSettings) for ps in params_settings])
+        self.shared_csv = shared_csv
         self.params_settings = params_settings
         self.executor = executor
         self.csv_row_builder = csv_row_builder
         self.csv_lock = threading.Lock()
-        self.csv_writer = None
+        self.csv_file_path = None
         self.emitted_csv_rows = None
         self.emitted_results = None
 
@@ -61,26 +64,34 @@ class HyperparametersTuner:
         return mapper(lambda _: self.sample_execution(), range(n_executions))
 
     def tune(self, results_csv_path, n_executions=30, mapper=map):
-        with open(results_csv_path, 'w', newline='', buffering=1) as csv_f:
-            self.csv_writer = csv.writer(csv_f)
-            self.emitted_csv_rows = 0
-            self.emitted_results = 0
-            results = self.sample_executions(n_executions, mapper)
-            best_params, best_result = max(results, key=lambda result: result[1].score)
-            return best_params, best_result
+        self.csv_file_path = results_csv_path
+        self.emitted_csv_rows = 0
+        self.emitted_results = 0
+        results = self.sample_executions(n_executions, mapper)
+        best_params, best_result = max(results, key=lambda result: result[1].score)
+        return best_params, best_result
+
+    def gen_execution_id(self):
+        if self.shared_csv:
+            return hashlib.md5(str(random.random()).encode()).digest()[:8].hex()
+        else:
+            return self.emitted_results + 1
 
     def emit_result_to_csv(self, params, result):
         assert isinstance(result, HyperparametersTuner.ExecutionResult)
+        open_flags = 'a' if self.shared_csv or self.emitted_results > 0 else 'w'
         with self.csv_lock:
-            headers, rows = self.csv_row_builder(params, result)
-            headers = ['Execution ID'] + headers
-            rows = [
-                [self.emitted_results + 1] + row for row in rows
-            ]
-            if self.emitted_csv_rows == 0:
-                self.csv_writer.writerow(headers)
-                self.emitted_csv_rows += 1
-            for row in rows:
-                self.csv_writer.writerow(row)
-                self.emitted_csv_rows += 1
-            self.emitted_results += 1
+            with open(self.csv_file_path, open_flags) as csv_f:
+                csv_writer = csv.writer(csv_f)
+                headers, rows = self.csv_row_builder(params, result)
+                headers = ['Execution ID'] + headers
+                rows = [
+                    [self.gen_execution_id()] + row for row in rows
+                ]
+                if csv_f.tell() == 0:
+                    csv_writer.writerow(headers)
+                    self.emitted_csv_rows += 1
+                for row in rows:
+                    csv_writer.writerow(row)
+                    self.emitted_csv_rows += 1
+                self.emitted_results += 1

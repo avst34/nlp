@@ -41,10 +41,11 @@ class LstmMlpMulticlassModel(object):
 
     class HyperParameters:
         def __init__(self,
-                     input_fields,
+                     lstm_input_fields,
                      input_embeddings_to_update,
                      input_embedding_dims,
                      input_embeddings_default_dim,
+                     mlp_input_fields,
                      mlp_layers,
                      mlp_layer_dim,
                      mlp_activation,
@@ -55,10 +56,13 @@ class LstmMlpMulticlassModel(object):
                      mlp_dropout_p,
                      epochs,
                      validation_split,
-                     learning_rate
+                     learning_rate,
+                     learning_rate_decay
                      ):
+            self.mlp_input_fields = mlp_input_fields
+            self.learning_rate_decay = learning_rate_decay
             self.learning_rate = learning_rate
-            self.input_fields = input_fields
+            self.lstm_input_fields = lstm_input_fields
             self.input_embeddings_to_update = input_embeddings_to_update
             self.input_embedding_dims = input_embedding_dims
             self.input_embeddings_default_dim = input_embeddings_default_dim
@@ -78,44 +82,50 @@ class LstmMlpMulticlassModel(object):
                  output_vocabulary=None,
                  input_embeddings=None,
                  hyperparameters=None):
-        hyperparameters = hyperparameters or LstmMlpMulticlassModel.HyperParameters(
-            input_embedding_dims=None,
-            input_embeddings_default_dim=10,
-            input_embeddings_to_update=None,
-            mlp_layers=2,
-            mlp_layer_dim=10,
-            lstm_h_dim=40,
-            num_lstm_layers=2,
-            is_bilstm=True,
-            use_head=True,
-            mlp_dropout_p=0
-        )
 
         self.input_vocabularies = input_vocabularies
         self.output_vocabulary = output_vocabulary
         self.input_embeddings = input_embeddings or {}
 
-        input_embeddings_dims = {field: hyperparameters.input_embeddings_default_dim for field in hyperparameters.input_fields}
-        input_embeddings_dims.update({k: v for (k,v) in (hyperparameters.input_embedding_dims or {}).items() if k in hyperparameters.input_fields})
-        input_embeddings_dims.update({
-            field: len(list(self.input_embeddings[field].values())[0])
-            for field in hyperparameters.input_fields
-            if self.input_embeddings.get(field)
-        })
-        self.hyperparameters = LstmMlpMulticlassModel.HyperParameters(**update_dict(hyperparameters.__dict__, {'input_embedding_dims': input_embeddings_dims}))
+        # input_embeddings_dims = {field: hyperparameters.input_embeddings_default_dim for field in hyperparameters.lstm_input_fields}
+        # input_embeddings_dims.update({k: v for (k,v) in (hyperparameters.input_embedding_dims or {}).items() if k in hyperparameters.lstm_input_fields})
+        # input_embeddings_dims.update({
+        #     field: len(list(self.input_embeddings[field].values())[0])
+        #     for field in hyperparameters.lstm_input_fields
+        #     if self.input_embeddings.get(field)
+        # })
+        # self.hyperparameters = LstmMlpMulticlassModel.HyperParameters(**update_dict(hyperparameters.__dict__, {'input_embedding_dims': input_embeddings_dims}))
+        self.hyperparameters = hyperparameters
         self.test_set_evaluation = None
         self.train_set_evaluation = None
 
         self.validate_params()
 
+    @property
+    def all_input_fields(self):
+        return self.hyperparameters.lstm_input_fields + self.hyperparameters.mlp_input_fields
+
     def validate_params(self):
         # Make sure input embedding dimensions fit embedding vectors size (if given)
-        for field in self.hyperparameters.input_fields:
+        for field in self.all_input_fields:
             if self.input_embeddings.get(field):
                 embd_vec_dim = len(list(self.input_embeddings[field].values())[0])
                 given_dim = self.hyperparameters.input_embedding_dims[field]
                 if embd_vec_dim != given_dim:
                     raise Exception("Input field '%s': Mismatch between given embedding vector size (%d) and given embedding size (%d)" % (field, embd_vec_dim, given_dim))
+
+    def get_embd_dim(self, field):
+        dim = None
+        if self.input_embeddings.get(field):
+            for vec in self.input_embeddings[field].values():
+                dim = len(vec)
+                break
+        elif field in self.hyperparameters.input_embedding_dims:
+            dim = self.hyperparameters.input_embedding_dims[field]
+        else:
+            dim = self.hyperparameters.input_embeddings_default_dim
+        assert dim is not None, 'Unable to resolve embeddings dimensions for field: ' + field
+        return dim
 
     def _build_network_params(self):
         pc = dy.ParameterCollection()
@@ -124,13 +134,14 @@ class LstmMlpMulticlassModel(object):
             mlp_input_dim = 2 * self.hyperparameters.lstm_h_dim + 1
         else:
             mlp_input_dim = self.hyperparameters.lstm_h_dim
+        mlp_input_dim += sum([self.get_embd_dim(field) for field in self.hyperparameters.mlp_input_fields])
 
-        embedded_input_dim = sum(self.hyperparameters.input_embedding_dims.values())
+        embedded_input_dim = sum([self.get_embd_dim(field) for field in self.hyperparameters.lstm_input_fields])
 
         self.params = ModelOptimizedParams(
             input_lookups={
-                field: pc.add_lookup_parameters((self.input_vocabularies[field].size(), self.hyperparameters.input_embedding_dims[field]))
-                for field in self.hyperparameters.input_fields
+                field: pc.add_lookup_parameters((self.input_vocabularies[field].size(), self.get_embd_dim(field)))
+                for field in (self.hyperparameters.lstm_input_fields + self.hyperparameters.mlp_input_fields)
             },
             mlp=[
                 MLPLayerParams(
@@ -167,7 +178,7 @@ class LstmMlpMulticlassModel(object):
         embeddings = [
             dy.concatenate([
                 dy.lookup(self.params.input_lookups[field], self.input_vocabularies[field].get_index(token_data[field]), update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update[field])
-                for field in self.hyperparameters.input_fields
+                for field in self.hyperparameters.lstm_input_fields
             ])
             for token_data in inp
         ]
@@ -175,13 +186,20 @@ class LstmMlpMulticlassModel(object):
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         outputs = []
         for ind, lstm_out in enumerate(lstm_outputs):
+            inp_token = inp[ind]
             if self.hyperparameters.use_head:
                 if inp[ind].head_ind is not None:
-                    cur_out = dy.concatenate([lstm_out, dy.inputTensor([1]), lstm_outputs[inp[ind].head_ind]])
+                    cur_out = dy.concatenate([lstm_out, dy.inputTensor([1]), lstm_outputs[inp_token.head_ind]])
                 else:
                     cur_out = dy.concatenate([lstm_out, dy.inputTensor([0]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)])
             else:
                 cur_out = lstm_out
+            cur_out = dy.concatenate([cur_out] +
+                                     [dy.lookup(
+                                         self.params.input_lookups[field],
+                                         self.input_vocabularies[field].get_index(inp_token[field]),
+                                         update=self.hyperparameters.input_embeddings_to_update.get(field) or False
+                                     ) for field in self.hyperparameters.mlp_input_fields])
             for mlp_layer_params in self.params.mlp:
                 cur_out = dy.dropout(cur_out, self.hyperparameters.mlp_dropout_p)
                 cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * cur_out + dy.parameter(mlp_layer_params.b))
@@ -201,7 +219,7 @@ class LstmMlpMulticlassModel(object):
     def _build_vocabularies(self, samples):
         if not self.input_vocabularies:
             self.input_vocabularies = {}
-        for field in self.hyperparameters.input_fields:
+        for field in self.all_input_fields:
             if not self.input_vocabularies.get(field):
                 vocab = Vocabulary(field)
                 vocab.add_words([x.fields.get(field) for s in samples for x in s.xs])
@@ -236,6 +254,8 @@ class LstmMlpMulticlassModel(object):
                     if int((ind + 1) / len(train) * 100) > int(ind / len(train) * 100):
                         per = int((ind + 1) / len(train) * 100)
                         print('\r\rEpoch %3d (%d%%): |' % (epoch, per) + '#' * per + '-' * (100 - per) + '|',)
+            if self.hyperparameters.learning_rate_decay:
+                trainer.learning_rate /= (1 - self.hyperparameters.learning_rate_decay)
 
             if evaluator and show_epoch_eval:
                 print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
