@@ -42,9 +42,11 @@ def streusle_record_to_conditional_model_sample(record, ss_types):
     )
 
 streusle_loader = streusle.StreusleLoader()
-records = streusle_loader.load()
-print('loaded %d records with %d tokens (%d unique)' % (len(records), sum([len(x.tagged_tokens) for x in records]),
+records, test_records = streusle_loader.load()
+print('loaded %d train records with %d tokens (%d unique)' % (len(records), sum([len(x.tagged_tokens) for x in records]),
                                                         len(set([t.token for s in records for t in s.tagged_tokens]))))
+print('loaded %d test records with %d tokens (%d unique)' % (len(test_records), sum([len(x.tagged_tokens) for x in test_records]),
+                                                        len(set([t.token for s in test_records for t in s.tagged_tokens]))))
 
 samples = [streusle_record_to_conditional_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in records]
 samples = [s for s in samples if any(s.ys)]
@@ -73,8 +75,12 @@ samples = [s for s in samples if any([y.supersense for y in s.ys])]
 #                    evaluator=evaluator)
 #
 
+pp_vocab = Vocabulary('Prepositions')
+pp_vocab.add_words(set([x.token for s in samples for x, y in zip(s.xs, s.ys) if y.supersense]))
+
 tuner = LstmMlpSupersensesModelHyperparametersTuner(
-    token_embd=streusle_loader.get_tokens_word2vec_model().as_dict()
+    token_embd=streusle_loader.get_tokens_word2vec_model().as_dict(),
+    token_onehot_vocab=pp_vocab
 )
 tuner.tune(samples,
            '/tmp/results.csv',

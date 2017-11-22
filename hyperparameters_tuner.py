@@ -52,7 +52,6 @@ class HyperparametersTuner:
             (setting.name, setting.sample()) for setting in self.params_settings
         })
 
-
     def sample_execution(self, params=None):
         params = params or self.sample_params()
         result = self.executor(params)

@@ -1,14 +1,22 @@
 from collections import namedtuple
-
+import random
+import math
+import supersenses
 import spacy
 from spacy.tokens import Doc
+from numpy import dot
+from numpy.linalg import norm
 
 from datasets.streusle import streusle
 from word2vec import Word2VecModel
 import json
 
 loader = streusle.StreusleLoader()
-records = loader.load()
+records_list = loader.load()
+if len(records_list) == 2:
+    train_records, dev_records, test_records = records_list[0], [], records_list[1]
+elif len(records_list) == 3:
+    train_records, dev_records, test_records = records_list
 
 def enhance_word2vec():
     # collect word2vec vectors for words in the data
@@ -48,8 +56,101 @@ def enhance_dependency_trees():
         json.dump(trees, f, indent=2)
     print('Enhanced with spacy dep trees, %d trees in total' % (len(trees)))
 
+def enhance_dev_sentences():
+    def prod(vec1, vec2):
+        return dot(vec1, vec2)
+
+    ORDERED_PSS = list(supersenses.PREPOSITION_SUPERSENSES_SET)
+    def get_dist_vec(dist):
+        return [dist[pss] for pss in ORDERED_PSS]
+
+    records = train_records + dev_records
+    best_split_score = -1
+    best_split = None
+
+    for s_ind in range(200):
+        cand_dev = random.sample(records, len(test_records))
+        cand_train = [x for x in records if x not in cand_dev]
+        train_dist = streusle.StreusleLoader.get_dist(cand_train)
+        dev_dist = streusle.StreusleLoader.get_dist(cand_dev)
+        train_dist_vec = get_dist_vec(train_dist)
+        dev_dist_vec = get_dist_vec(dev_dist)
+        split_score = prod(train_dist_vec, dev_dist_vec)/norm(train_dist_vec)/norm(dev_dist_vec)
+        if best_split is None or split_score > best_split_score:
+            best_split = (cand_train, cand_dev)
+            best_split_score = split_score
+        print('sample:', s_ind, split_score)
+
+    print('best_score', best_split_score)
+    # with open(streusle.ENHANCEMENTS.DEV_SET_SENTIDS, 'w') as f:
+    #     f.write("\n".join([r.id for r in best_split[1]]))
+    #
+    # loader.dump_split_dist('/tmp/split.csv')
+
+    return best_split
+
+def enhance_dev_sentences_v2():
+    def prod(vec1, vec2):
+        return dot(vec1, vec2)
+
+    def dist_score(dist1_vec, dist2_vec):
+        return prod(dist1_vec, dist2_vec)/norm(dist1_vec)/norm(dist2_vec)
+
+    ORDERED_PSS = list(supersenses.PREPOSITION_SUPERSENSES_SET)
+    def get_dist_vec(dist):
+        return [dist[pss] for pss in ORDERED_PSS]
+
+    def update_dist(dist, add_record, remove_record):
+        dist = dict(dist)
+        for tok in add_record.pss_tokens:
+            if tok.supersense in dist:
+                dist[tok.supersense] += 1
+        for tok in remove_record.pss_tokens:
+            if tok.supersense in dist:
+                dist[tok.supersense] -= 1
+        return dist
+
+    # records = train_records + dev_records
+
+    cand_train, cand_dev = enhance_dev_sentences()
+    # cand_dev = random.sample(records, len(test_records))
+    # cand_train = [x for x in records if x not in cand_dev]
+
+    for s_ind in range(100):
+        dev_dist = streusle.StreusleLoader.get_dist(cand_dev)
+        train_dist = streusle.StreusleLoader.get_dist(cand_train)
+        dev_dist_vec = get_dist_vec(dev_dist)
+        train_dist_vec = get_dist_vec(train_dist)
+        current_score = dist_score(train_dist_vec, dev_dist_vec)
+        print('before switch %d:' % s_ind, current_score)
+        best_switch_score = -1
+        best_switch = None
+        for dind, dev_rec in enumerate(cand_dev):
+            # print(dind)
+            for train_rec in cand_train:
+                sw_train_dist = update_dist(train_dist, dev_rec, train_rec)
+                sw_dev_dist = update_dist(dev_dist, train_rec, dev_rec)
+                sw_train_dist_vec = get_dist_vec(sw_train_dist)
+                sw_dev_dist_vec = get_dist_vec(sw_dev_dist)
+                switch_score = dist_score(sw_dev_dist_vec, sw_train_dist_vec)
+                if (best_switch is None or switch_score > best_switch_score) and switch_score > current_score:
+                    best_switch = (train_rec, dev_rec)
+                    best_switch_score = switch_score
+        if best_switch is None:
+            print('All switches decrease score, breaking early')
+            break
+        train_rec, dev_rec = best_switch
+        cand_train = [x for x in cand_train if x != train_rec] + [dev_rec]
+        cand_dev = [x for x in cand_dev if x != dev_rec] + [train_rec]
+
+    with open(streusle.ENHANCEMENTS.DEV_SET_SENTIDS, 'w') as f:
+        f.write("\n".join([r.id for r in cand_dev]))
+
+    loader.dump_split_dist('/tmp/split.csv')
+
 if __name__ == '__main__':
     # enhance_dependency_trees()
-    enhance_word2vec()
+    # enhance_word2vec()
+    enhance_dev_sentences_v2()
 
 

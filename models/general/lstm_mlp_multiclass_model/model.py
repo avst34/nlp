@@ -169,7 +169,17 @@ class LstmMlpMulticlassModel(object):
 
         return pc
 
-    def _build_network_for_input(self, inp):
+    def build_mask(self, xs, external_mask=None):
+        external_mask = external_mask or [True for _ in xs]
+        mask = list(external_mask)
+        for ind, x in enumerate(xs):
+            for field in self.hyperparameters.mlp_input_fields:
+                if not self.input_vocabularies[field].has_word(x[field]):
+                    mask[ind] = False
+        return mask
+
+    def _build_network_for_input(self, xs, mask=None):
+        mask = self.build_mask(xs, external_mask=mask)
         dy.renew_cg()
         if not self.hyperparameters.is_bilstm:
             cur_lstm_state = self.lstm_builder.initial_state()
@@ -180,31 +190,35 @@ class LstmMlpMulticlassModel(object):
                 dy.lookup(self.params.input_lookups[field], self.input_vocabularies[field].get_index(token_data[field]), update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update[field])
                 for field in self.hyperparameters.lstm_input_fields
             ])
-            for token_data in inp
+            for token_data in xs
         ]
         lstm_outputs = cur_lstm_state.transduce(embeddings)
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         outputs = []
         for ind, lstm_out in enumerate(lstm_outputs):
-            inp_token = inp[ind]
-            if self.hyperparameters.use_head:
-                if inp[ind].head_ind is not None:
-                    cur_out = dy.concatenate([lstm_out, dy.inputTensor([1]), lstm_outputs[inp_token.head_ind]])
-                else:
-                    cur_out = dy.concatenate([lstm_out, dy.inputTensor([0]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)])
+            if mask and not mask[ind]:
+                output = None
             else:
-                cur_out = lstm_out
-            cur_out = dy.concatenate([cur_out] +
-                                     [dy.lookup(
-                                         self.params.input_lookups[field],
-                                         self.input_vocabularies[field].get_index(inp_token[field]),
-                                         update=self.hyperparameters.input_embeddings_to_update.get(field) or False
-                                     ) for field in self.hyperparameters.mlp_input_fields])
-            for mlp_layer_params in self.params.mlp:
-                cur_out = dy.dropout(cur_out, self.hyperparameters.mlp_dropout_p)
-                cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * cur_out + dy.parameter(mlp_layer_params.b))
-            cur_out = dy.softmax(dy.parameter(self.params.softmax.W) * cur_out + dy.parameter(self.params.softmax.b))
-            outputs.append(cur_out)
+                inp_token = xs[ind]
+                if self.hyperparameters.use_head:
+                    if xs[ind].head_ind is not None:
+                        cur_out = dy.concatenate([lstm_out, dy.inputTensor([1]), lstm_outputs[inp_token.head_ind]])
+                    else:
+                        cur_out = dy.concatenate([lstm_out, dy.inputTensor([0]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)])
+                else:
+                    cur_out = lstm_out
+                cur_out = dy.concatenate([cur_out] +
+                                         [dy.lookup(
+                                             self.params.input_lookups[field],
+                                             self.input_vocabularies[field].get_index(inp_token[field]),
+                                             update=self.hyperparameters.input_embeddings_to_update.get(field) or False
+                                         ) for field in self.hyperparameters.mlp_input_fields])
+                for mlp_layer_params in self.params.mlp:
+                    cur_out = dy.dropout(cur_out, self.hyperparameters.mlp_dropout_p)
+                    cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * cur_out + dy.parameter(mlp_layer_params.b))
+                cur_out = dy.softmax(dy.parameter(self.params.softmax.W) * cur_out + dy.parameter(self.params.softmax.b))
+                output = cur_out
+            outputs.append(output)
         return outputs
 
     def _build_loss(self, outputs, ys):
@@ -244,7 +258,8 @@ class LstmMlpMulticlassModel(object):
             random.shuffle(train)
             loss_sum = 0
             for ind, sample in enumerate(train):
-                outputs = self._build_network_for_input(sample.xs)
+                mask = [not not klass for klass in sample.ys]
+                outputs = self._build_network_for_input(sample.xs, mask=mask)
                 loss = self._build_loss(outputs, sample.ys)
                 loss.forward()
                 loss_sum += loss.value()
@@ -278,7 +293,10 @@ class LstmMlpMulticlassModel(object):
         outputs = self._build_network_for_input(sample_xs)
         ys = []
         for token_ind, out in enumerate(outputs):
-            ind = np.argmax(out.npvalue())
-            predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
+            if out is None or not mask[token_ind]:
+                predicted = None
+            else:
+                ind = np.argmax(out.npvalue())
+                predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
             ys.append(predicted)
         return ys
