@@ -181,10 +181,13 @@ class LstmMlpSupersensesModel(object):
             ys=[self._sample_y_to_lowlevel(y) for y in sample.ys],
         )
 
-    def fit(self, samples, show_progress=True, show_epoch_eval=True,
+    def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
         ll_samples = [self._sample_to_lowlevel(s) for s in samples]
-        self.model.fit(ll_samples, show_progress, show_epoch_eval, evaluator)
+        ll_validation_samples = [self._sample_to_lowlevel(s) for s in validation_samples] if validation_samples else None
+        self.model.fit(ll_samples, show_progress=show_progress,
+                       show_epoch_eval=show_epoch_eval, evaluator=evaluator,
+                       validation_samples=ll_validation_samples)
         return self
 
     def predict(self, sample_xs, mask=None):

@@ -73,7 +73,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
             score=self.tuner_score_getter(lstm_mlp_model.test_set_evaluation)
         )
 
-    def tune(self, samples, results_csv_path, n_executions=30, show_progress=True, show_epoch_eval=True,
+    def tune(self, samples, results_csv_path, validation_samples=None, n_executions=30, show_progress=True, show_epoch_eval=True,
              evaluator=ClassifierEvaluator(), tuner_score_getter=lambda evaluation: evaluation['f1'],
              tuner_results_getter=extract_classifier_evaluator_results):
         assert evaluator is not None
@@ -81,10 +81,13 @@ class LstmMlpSupersensesModelHyperparametersTuner:
         self.tuner_score_getter = tuner_score_getter
         self.fit_kwargs = {
             'samples': samples,
+            'validation_samples': validation_samples,
             'show_progress': show_progress,
             'show_epoch_eval': show_epoch_eval,
             'evaluator': evaluator
         }
-        tuner = HyperparametersTuner(TUNER_DOMAINS, executor=self._execute, csv_row_builder=build_csv_rows)
+        tuner = HyperparametersTuner(TUNER_DOMAINS, executor=self._execute,
+                                     csv_row_builder=build_csv_rows, shared_csv=True,
+                                     lock_file_path=results_csv_path + '.lock')
         best_params, best_results = tuner.tune(results_csv_path, n_executions)
         return best_params, best_results

@@ -5,6 +5,7 @@ import threading
 import json
 import random
 from collections import OrderedDict
+from lockfile import Lockfile
 
 
 def build_csv_row(params, result):
@@ -36,16 +37,20 @@ class HyperparametersTuner:
             self.score = score
             self.result_data = result_data
 
-    def __init__(self, params_settings, executor, csv_row_builder=build_csv_row, shared_csv=False):
+    def __init__(self, params_settings, executor, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None):
         assert all([isinstance(ps, HyperparametersTuner.ParamSettings) for ps in params_settings])
         self.shared_csv = shared_csv
+        if shared_csv:
+            assert lock_file_path is not None
+            self.csv_lock = Lockfile(lock_file_path)
+        else:
+            self.csv_lock = threading.Lock()
         self.params_settings = params_settings
         self.executor = executor
         self.csv_row_builder = csv_row_builder
-        self.csv_lock = threading.Lock()
         self.csv_file_path = None
         self.emitted_csv_rows = None
-        self.emitted_results = None
+        self.emitted_result1s = None
 
     def sample_params(self):
         return OrderedDict({

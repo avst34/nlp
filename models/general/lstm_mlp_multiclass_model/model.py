@@ -244,13 +244,17 @@ class LstmMlpMulticlassModel(object):
             vocab.add_words([y for s in samples for y in s.ys])
             self.output_vocabulary = vocab
 
-    def fit(self, samples, show_progress=True, show_epoch_eval=True,
+    def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
-        self._build_vocabularies(samples)
+        self._build_vocabularies(samples + validation_samples or [])
         pc = self._build_network_params()
 
-        test = samples[:int(len(samples) * self.hyperparameters.validation_split)]
-        train = samples[int(len(samples) * self.hyperparameters.validation_split):]
+        if validation_samples:
+            test = validation_samples
+            train = samples
+        else:
+            test = samples[:int(len(samples) * self.hyperparameters.validation_split)]
+            train = samples[int(len(samples) * self.hyperparameters.validation_split):]
 
         trainer = dy.SimpleSGDTrainer(pc, learning_rate=self.hyperparameters.learning_rate)
         for epoch in range(1, self.hyperparameters.epochs + 1):

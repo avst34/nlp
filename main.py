@@ -42,25 +42,36 @@ def streusle_record_to_conditional_model_sample(record, ss_types):
     )
 
 streusle_loader = streusle.StreusleLoader()
-records, test_records = streusle_loader.load()
-print('loaded %d train records with %d tokens (%d unique)' % (len(records), sum([len(x.tagged_tokens) for x in records]),
-                                                        len(set([t.token for s in records for t in s.tagged_tokens]))))
+train_records, dev_records, test_records = streusle_loader.load()
+print('loaded %d train records with %d tokens (%d unique)' % (len(train_records), sum([len(x.tagged_tokens) for x in train_records]),
+                                                        len(set([t.token for s in train_records for t in s.tagged_tokens]))))
+print('loaded %d test dev records with %d tokens (%d unique)' % (len(dev_records), sum([len(x.tagged_tokens) for x in dev_records]),
+                                                        len(set([t.token for s in dev_records for t in s.tagged_tokens]))))
 print('loaded %d test records with %d tokens (%d unique)' % (len(test_records), sum([len(x.tagged_tokens) for x in test_records]),
                                                         len(set([t.token for s in test_records for t in s.tagged_tokens]))))
 
-samples = [streusle_record_to_conditional_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in records]
-samples = [s for s in samples if any(s.ys)]
+train_samples = [streusle_record_to_conditional_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in train_records]
+train_samples = [s for s in train_samples if any(s.ys)]
+
+dev_samples = [streusle_record_to_conditional_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in dev_records]
+dev_samples = [s for s in dev_samples if any(s.ys)]
 
 evaluator = ClassifierEvaluator()
 
 print('Simple conditional model evaluation:')
 scm = SimpleConditionalMulticlassModel()
-scm.fit(samples, validation_split=0.3, evaluator=evaluator)
+scm.fit(train_samples, validation_samples=dev_samples, evaluator=evaluator)
 
 print('')
 
-samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in records]
-samples = [s for s in samples if any([y.supersense for y in s.ys])]
+train_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in train_records]
+train_samples = [s for s in train_samples if any([y.supersense for y in s.ys])]
+
+dev_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in dev_records]
+dev_samples = [s for s in dev_samples if any([y.supersense for y in s.ys])]
+
+test_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in test_records]
+test_samples = [s for s in test_samples if any([y.supersense for y in s.ys])]
 
 # print('LSTM-MLP evaluation:')
 # lstm_mlp_model = LstmMlpSupersensesModel(
@@ -76,14 +87,15 @@ samples = [s for s in samples if any([y.supersense for y in s.ys])]
 #
 
 pp_vocab = Vocabulary('Prepositions')
-pp_vocab.add_words(set([x.token for s in samples for x, y in zip(s.xs, s.ys) if y.supersense]))
+pp_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys) if y.supersense]))
 
 tuner = LstmMlpSupersensesModelHyperparametersTuner(
     token_embd=streusle_loader.get_tokens_word2vec_model().as_dict(),
     token_onehot_vocab=pp_vocab
 )
-tuner.tune(samples,
+tuner.tune(train_samples,
            '/tmp/results.csv',
+           validation_samples=dev_samples,
            n_executions=50,
            show_progress=True,
            show_epoch_eval=True)

@@ -11,9 +11,13 @@ class SimpleConditionalMulticlassModel:
     def tuplize_x(self, x):
         return tuple([x[k] for k in sorted(x.keys())])
 
-    def fit(self, samples, validation_split=0.2, evaluator=None):
-        test = samples[:int(len(samples)*validation_split)]
-        train = samples[int(len(samples)*validation_split):]
+    def fit(self, samples, validation_split=0.2, validation_samples=None, evaluator=None):
+        if not validation_samples:
+            test = samples[:int(len(samples)*validation_split)]
+            train = samples[int(len(samples)*validation_split):]
+        else:
+            test = validation_samples
+            train = samples
 
         self._cond_counts = {}
         for sample in train:
