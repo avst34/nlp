@@ -42,10 +42,8 @@ TUNER_DOMAINS_TESTING = [
     PS(name='token_internal_embd_dim', values=range(20, 101)),
     PS(name='token_embd_dim', values=[300]),
     PS(name='pos_embd_dim', values=range(20, 101)),
-    PS(name='dep_embd_dim', values=range(20, 101)),
     PS(name='update_token_embd', values=[True]),
     PS(name='update_pos_embd', values=[True]),
-    PS(name='update_dep_embd', values=[True]),
     PS(name='mlp_layers', values=[1,2,3]),
     PS(name='mlp_layer_dim', values=range(20, 101)),
     PS(name='mlp_activation', values=['tanh', 'cube', 'relu']),
@@ -60,5 +58,11 @@ TUNER_DOMAINS_TESTING = [
     PS(name='learning_rate_decay', values=np.r_[0, np.logspace(-5, -1, 9)])
 ]
 
-# TUNER_DOMAINS = TUNER_DOMAINS_TESTING
-TUNER_DOMAINS = TUNER_DOMAINS_TUNING
+TUNER_DOMAINS = TUNER_DOMAINS_TESTING
+# TUNER_DOMAINS = TUNER_DOMAINS_TUNING
+
+if __name__ == '__main__':
+    total_variations = 1
+    for domain in TUNER_DOMAINS_TUNING:
+        total_variations *= len(domain.values)
+    print('Total variations:', total_variations)

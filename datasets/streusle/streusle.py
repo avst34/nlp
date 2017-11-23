@@ -35,9 +35,25 @@ class TaggedToken(namedtuple('TokenData_', ['token', 'token_word2vec', 'pos', 's
         super().__init__()
         self.supersense_type = supersenses.get_supersense_type(self.supersense) if self.supersense else None
 
-class StreusleRecord(namedtuple('StreusleRecord_', ['id', 'sentence', 'data', 'spacy_dep_tree'])):
-    def __init__(self, *args, **kwargs):
+class StreusleRecord:
+
+    def __init__(self,
+                 id,
+                 sentence,
+                 data,
+                 spacy_dep_tree,
+                 only_supersenses=None):
         super().__init__()
+        self.id = id
+        self.sentence = sentence
+        self.data = data
+        self.spacy_dep_tree = spacy_dep_tree
+
+        if not only_supersenses:
+            only_supersenses = supersenses.SUPERSENSES_SET
+
+        filter_supersense = lambda ss: ss if ss in only_supersenses else None
+
         self.tagged_tokens = [
             TaggedToken(
                 token=tok_data[0],
@@ -45,7 +61,7 @@ class StreusleRecord(namedtuple('StreusleRecord_', ['id', 'sentence', 'data', 's
                 pos=tok_data[1],
                 head_ind=self.spacy_dep_tree[i].head_ind if self.spacy_dep_tree else None,
                 dep=self.spacy_dep_tree[i].dep if self.spacy_dep_tree else None,
-                supersense=supersenses.filter_non_supersense(self.data['labels'].get(str(i + 1), [None, None])[1]),
+                supersense=filter_supersense(self.data['labels'].get(str(i + 1), [None, None])[1]),
             ) for i, tok_data in enumerate(self.data['words'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense in supersenses.PREPOSITION_SUPERSENSES_SET]
@@ -55,7 +71,7 @@ class StreusleLoader(object):
     def __init__(self):
         pass
 
-    def load(self):
+    def load(self, only_with_supersenses=supersenses.PREPOSITION_SUPERSENSES_SET):
         with open(os.path.join(STREUSLE_DIR, 'streusle.sst')) as f:
             records = []
             while True:
@@ -63,22 +79,30 @@ class StreusleLoader(object):
                 if line == '':
                     break
                 line = line.split('\t')
-                records.append(StreusleRecord(id=line[0], sentence=line[1], data=json.loads(line[2]), spacy_dep_tree=SPACY_DEP_TREES.get(line[0])))
-            test_sentids = self._load_test_senids()
-            dev_sentids = self._load_dev_senids()
+                record = StreusleRecord(id=line[0],
+                                        sentence=line[1],
+                                        data=json.loads(line[2]),
+                                        spacy_dep_tree=SPACY_DEP_TREES.get(line[0]),
+                                        only_supersenses=only_with_supersenses)
+                if only_with_supersenses:
+                    record_supersenses = [token.supersense for token in record.tagged_tokens if token.supersense]
+                    if not any([ss for ss in record_supersenses if ss in only_with_supersenses]):
+                        continue
+                records.append(record)
+            test_sentids = self._load_test_sentids()
+            dev_sentids = self._load_dev_sentids()
             test_records = [r for r in records if r.id in test_sentids]
             dev_records = [r for r in records if r.id in dev_sentids]
             train_records = [r for r in records if r.id not in test_sentids and r.id not in dev_sentids]
             return train_records, dev_records, test_records
 
-    def _load_test_senids(self):
+    def _load_test_sentids(self):
         with open(os.path.join(STREUSLE_DIR, 'splits', 'psst-test.sentids'), 'r') as f:
             return set([x.strip() for x in f.readlines()])
 
-    def _load_dev_senids(self):
+    def _load_dev_sentids(self):
         with open(os.path.join(ENHANCEMENTS.DEV_SET_SENTIDS), 'r') as f:
             return set([x.strip() for x in f.readlines()])
-
 
     @staticmethod
     def get_dist(records, all_supersenses=supersenses.PREPOSITION_SUPERSENSES_SET):

@@ -38,25 +38,22 @@ def build_csv_rows(params, result):
 
 class LstmMlpSupersensesModelHyperparametersTuner:
 
-    def __init__(self, token_vocab=None,
+    def __init__(self,
+                 token_vocab=None,
                  pos_vocab=None,
                  dep_vocab=None,
-                 ss_vocab=None,
                  token_onehot_vocab=None,
                  supersense_vocab=None,
                  token_embd=None,
-                 pos_embd=None,
-                 dep_embd=None):
+                 pos_embd=None):
         self.init_kwargs = {
-            'ss_vocab': ss_vocab,
             'token_vocab': token_vocab,
             'pos_vocab': pos_vocab,
             'dep_vocab': dep_vocab,
             'token_onehot_vocab': token_onehot_vocab,
             'supersense_vocab': supersense_vocab,
             'token_embd': token_embd,
-            'pos_embd': pos_embd,
-            'dep_embd': dep_embd
+            'pos_embd': pos_embd
         }
         self.fit_kwargs = None
         self.tuner_results_getter = None

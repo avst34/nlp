@@ -230,23 +230,23 @@ class LstmMlpMulticlassModel(object):
                 losses.append(loss)
         return dy.esum(losses)
 
-    def _build_vocabularies(self, samples):
-        if not self.input_vocabularies:
-            self.input_vocabularies = {}
-        for field in self.all_input_fields:
-            if not self.input_vocabularies.get(field):
-                vocab = Vocabulary(field)
-                vocab.add_words([x.fields.get(field) for s in samples for x in s.xs])
-                self.input_vocabularies[field] = vocab
-
-        if not self.output_vocabulary:
-            vocab = Vocabulary('output')
-            vocab.add_words([y for s in samples for y in s.ys])
-            self.output_vocabulary = vocab
-
+    # def _build_vocabularies(self, samples):
+    #     if not self.input_vocabularies:
+    #         self.input_vocabularies = {}
+    #     for field in self.all_input_fields:
+    #         if not self.input_vocabularies.get(field):
+    #             vocab = Vocabulary(field)
+    #             vocab.add_words([x.fields.get(field) for s in samples for x in s.xs])
+    #             self.input_vocabularies[field] = vocab
+    #
+    #     if not self.output_vocabulary:
+    #         vocab = Vocabulary('output')
+    #         vocab.add_words([y for s in samples for y in s.ys])
+    #         self.output_vocabulary = vocab
+    #
     def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
-        self._build_vocabularies(samples + validation_samples or [])
+        # self._build_vocabularies(samples + validation_samples or [])
         pc = self._build_network_params()
 
         if validation_samples:

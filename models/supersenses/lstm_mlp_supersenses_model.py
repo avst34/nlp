@@ -32,11 +32,9 @@ class LstmMlpSupersensesModel(object):
                      use_token_internal,
                      update_token_embd,
                      update_pos_embd,
-                     update_dep_embd,
                      token_embd_dim,
                      token_internal_embd_dim,
                      pos_embd_dim,
-                     dep_embd_dim,
                      mlp_layers,
                      mlp_layer_dim,
                      mlp_activation,
@@ -58,13 +56,11 @@ class LstmMlpSupersensesModel(object):
             self.mlp_activation = mlp_activation
             self.update_token_embd = update_token_embd
             self.update_pos_embd = update_pos_embd
-            self.update_dep_embd = update_dep_embd
             self.use_token = use_token
             self.use_pos = use_pos
             self.use_dep = use_dep
             self.token_embd_dim = token_embd_dim
             self.pos_embd_dim = pos_embd_dim
-            self.dep_embd_dim = dep_embd_dim
             self.mlp_layers = mlp_layers
             self.mlp_layer_dim = mlp_layer_dim
             self.lstm_h_dim = lstm_h_dim
@@ -77,15 +73,13 @@ class LstmMlpSupersensesModel(object):
 
 
     def __init__(self,
-                 token_vocab=None,
-                 pos_vocab=None,
-                 dep_vocab=None,
-                 ss_vocab=None,
-                 token_onehot_vocab=None,
-                 supersense_vocab=None,
+                 token_vocab,
+                 pos_vocab,
+                 dep_vocab,
+                 token_onehot_vocab,
+                 supersense_vocab,
                  token_embd=None,
                  pos_embd=None,
-                 dep_embd=None,
                  hyperparameters=None):
         hp = hyperparameters
         self.token_vocab = token_vocab
@@ -95,7 +89,6 @@ class LstmMlpSupersensesModel(object):
         self.supersense_vocab = supersense_vocab
         self.token_embd = token_embd
         self.pos_embd = pos_embd
-        self.dep_embd = dep_embd
         self.hyperparameters = hp
 
         print("LstmMlpSupersensesModel: Building model with the following hyperparameters:")
@@ -112,10 +105,10 @@ class LstmMlpSupersensesModel(object):
             input_embeddings=clear_nones({
                 'token': token_embd,
                 'pos': pos_embd,
-                'dep': dep_embd,
-                'token_onehot': self._build_token_onehot_embd()
+                'dep': self._build_vocab_onehot_embd(self.dep_vocab),
+                'token_onehot': self._build_vocab_onehot_embd(self.token_onehot_vocab)
             }),
-            output_vocabulary=ss_vocab,
+            output_vocabulary=supersense_vocab,
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
                 'lstm_input_fields': list(filter(lambda x: x, [
                     self.hyperparameters.use_token and "token",
@@ -129,32 +122,29 @@ class LstmMlpSupersensesModel(object):
                 'input_embeddings_to_update': {
                     'token': hp.update_token_embd,
                     'pos': hp.update_pos_embd,
-                    'dep': hp.update_dep_embd,
                     'token_onehot': False
                 },
                 'input_embeddings_default_dim': None,
                 'input_embedding_dims': {
                     'token': hp.token_embd_dim,
                     'pos': hp.pos_embd_dim,
-                    'dep': hp.dep_embd_dim,
+                    'dep': self.dep_vocab.size() if self.dep_vocab else 0,
                     'token_onehot': self.token_onehot_vocab.size() if self.token_onehot_vocab else 0,
                     'token_internal': hp.token_internal_embd_dim
                 },
-            }, del_keys=['use_token', 'use_pos', 'use_dep', 'token_embd_dim', 'pos_embd_dim', 'dep_embd_dim', 'token_internal_embd_dim',
-                         'update_token_embd', 'update_pos_embd', 'update_dep_embd', 'use_token_onehot', 'use_token_internal'])
+            }, del_keys=['use_token', 'use_pos', 'use_dep', 'token_embd_dim', 'pos_embd_dim', 'token_internal_embd_dim',
+                         'update_token_embd', 'update_pos_embd', 'use_token_onehot', 'use_token_internal'])
            )
         )
 
-    def _build_token_onehot_embd(self):
-        embeddings = None
-        if self.token_onehot_vocab:
-            n_words = self.token_onehot_vocab.size()
-            embeddings = {}
-            for word in self.token_onehot_vocab.all_words():
-                word_ind = self.token_onehot_vocab.get_index(word)
-                vec = [0] * n_words
-                vec[word_ind] = 1
-                embeddings[word] = vec
+    def _build_vocab_onehot_embd(self, vocab):
+        n_words = vocab.size()
+        embeddings = {}
+        for word in vocab.all_words():
+            word_ind = vocab.get_index(word)
+            vec = [0] * n_words
+            vec[word_ind] = 1
+            embeddings[word] = vec
         return embeddings
 
     def _sample_x_to_lowlevel(self, sample_x):
