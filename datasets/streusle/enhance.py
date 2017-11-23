@@ -56,7 +56,7 @@ def enhance_dependency_trees():
         json.dump(trees, f, indent=2)
     print('Enhanced with spacy dep trees, %d trees in total' % (len(trees)))
 
-def enhance_dev_sentences():
+def enhance_dev_sentences_old():
     def prod(vec1, vec2):
         return dot(vec1, vec2)
 
@@ -135,6 +135,13 @@ def enhance_dev_sentences():
         f.write("\n".join([r.id for r in cand_dev]))
 
     loader.dump_split_dist('/tmp/split.csv')
+
+
+def enhance_dev_sentences():
+    records = train_records + dev_records
+    dev = random.sample(records, len(test_records))
+    with open(streusle.ENHANCEMENTS.DEV_SET_SENTIDS, 'w') as f:
+        f.write("\n".join([r.id for r in dev]))
 
 if __name__ == '__main__':
     # enhance_dependency_trees()

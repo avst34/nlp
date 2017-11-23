@@ -256,8 +256,14 @@ class LstmMlpMulticlassModel(object):
             test = samples[:int(len(samples) * self.hyperparameters.validation_split)]
             train = samples[int(len(samples) * self.hyperparameters.validation_split):]
 
+        self.test_set_evaluation = []
+        self.train_set_evaluation = []
+
         trainer = dy.SimpleSGDTrainer(pc, learning_rate=self.hyperparameters.learning_rate)
         for epoch in range(1, self.hyperparameters.epochs + 1):
+            if np.isinf(trainer.learning_rate):
+                break
+
             train = list(train)
             random.shuffle(train)
             loss_sum = 0
@@ -277,16 +283,18 @@ class LstmMlpMulticlassModel(object):
                 trainer.learning_rate /= (1 - self.hyperparameters.learning_rate_decay)
 
             if evaluator and show_epoch_eval:
+                print('--------------------------------------------')
                 print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
-                evaluator.evaluate(test, examples_to_show=0, predictor=self)
+                print('Test data evaluation:')
+                epoch_test_eval = evaluator.evaluate(test, examples_to_show=0, predictor=self)
+                self.test_set_evaluation.append(epoch_test_eval)
+                print('Training data evaluation:')
+                epoch_train_eval = evaluator.evaluate(train, examples_to_show=0, predictor=self)
+                self.train_set_evaluation.append(epoch_train_eval)
+                print('--------------------------------------------')
 
         print('--------------------------------------------')
         print('Training is complete (%d samples, %d epochs)' % (len(train), self.hyperparameters.epochs))
-        if evaluator:
-            print('Test data evaluation:')
-            self.test_set_evaluation = evaluator.evaluate(test, examples_to_show=0, predictor=self)
-            print('Training data evaluation:')
-            self.train_set_evaluation = evaluator.evaluate(train, examples_to_show=0, predictor=self)
         print('--------------------------------------------')
 
         return self

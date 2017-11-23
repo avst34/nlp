@@ -6,6 +6,7 @@ from models.general.simple_conditional_multiclass_model.model import SimpleCondi
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
+from models.supersenses.tuner_domains import PS
 from vocabulary import Vocabulary
 
 
@@ -114,7 +115,10 @@ tuner = LstmMlpSupersensesModelHyperparametersTuner(
 tuner.tune(train_samples,
            '/tmp/results.csv',
            validation_samples=dev_samples,
-           n_executions=50,
+           n_executions=1,
            show_progress=True,
-           show_epoch_eval=True)
+           show_epoch_eval=True,
+           tuner_domains_override=[
+               PS(name='epochs', values=[100])
+           ])
 

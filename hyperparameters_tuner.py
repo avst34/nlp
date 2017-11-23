@@ -1,4 +1,5 @@
 import hashlib
+import time
 import random
 import csv
 import threading
@@ -42,7 +43,7 @@ class HyperparametersTuner:
         self.shared_csv = shared_csv
         if shared_csv:
             assert lock_file_path is not None
-            self.csv_lock = Lockfile(lock_file_path)
+            self.csv_lock = Lockfile(lock_file_path, verbose=True)
         else:
             self.csv_lock = threading.Lock()
         self.params_settings = params_settings
@@ -51,6 +52,7 @@ class HyperparametersTuner:
         self.csv_file_path = None
         self.emitted_csv_rows = None
         self.emitted_result1s = None
+        self.executor_id = self.gen_id()
 
     def sample_params(self):
         return OrderedDict({
@@ -75,22 +77,26 @@ class HyperparametersTuner:
         best_params, best_result = max(results, key=lambda result: result[1].score)
         return best_params, best_result
 
+    def gen_id(self):
+        return hashlib.md5(str(random.random()).encode()).digest()[:8].hex()
+
     def gen_execution_id(self):
         if self.shared_csv:
-            return hashlib.md5(str(random.random()).encode()).digest()[:8].hex()
+            return self.gen_id()
         else:
             return self.emitted_results + 1
 
     def emit_result_to_csv(self, params, result):
         assert isinstance(result, HyperparametersTuner.ExecutionResult)
+        execution_id = self.gen_execution_id()
         open_flags = 'a' if self.shared_csv or self.emitted_results > 0 else 'w'
         with self.csv_lock:
             with open(self.csv_file_path, open_flags) as csv_f:
                 csv_writer = csv.writer(csv_f)
                 headers, rows = self.csv_row_builder(params, result)
-                headers = ['Execution ID'] + headers
+                headers = ['Time', 'Executor ID', 'Execution ID'] + headers
                 rows = [
-                    [self.gen_execution_id()] + row for row in rows
+                    [time.strftime("%Y-%m-%d %H:%M:%S"), self.executor_id, execution_id] + row for row in rows
                 ]
                 if csv_f.tell() == 0:
                     csv_writer.writerow(headers)
