@@ -119,6 +119,6 @@ tuner.tune(train_samples,
            show_progress=True,
            show_epoch_eval=True,
            tuner_domains_override=[
-               PS(name='epochs', values=[100])
+               PS(name='epochs', values=[1])
            ])
 

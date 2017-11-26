@@ -3,6 +3,7 @@ from collections import namedtuple
 import random
 import dynet as dy
 import numpy as np
+import math
 
 # There are more hidden parameters coming from the LSTMs
 from dynet_utils import get_activation_function
@@ -180,7 +181,6 @@ class LstmMlpMulticlassModel(object):
 
     def _build_network_for_input(self, xs, mask=None):
         mask = self.build_mask(xs, external_mask=mask)
-        dy.renew_cg()
         if not self.hyperparameters.is_bilstm:
             cur_lstm_state = self.lstm_builder.initial_state()
         else:
@@ -267,17 +267,25 @@ class LstmMlpMulticlassModel(object):
             train = list(train)
             random.shuffle(train)
             loss_sum = 0
-            for ind, sample in enumerate(train):
-                mask = [not not klass for klass in sample.ys]
-                outputs = self._build_network_for_input(sample.xs, mask=mask)
-                loss = self._build_loss(outputs, sample.ys)
-                loss.forward()
-                loss_sum += loss.value()
-                loss.backward()
+
+            BATCH_SIZE = 4
+            batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
+            for batch_ind, batch in enumerate(batches):
+                dy.renew_cg()
+                losses = []
+                for sample in batch:
+                    mask = [not not klass for klass in sample.ys]
+                    outputs = self._build_network_for_input(sample.xs, mask=mask)
+                    sample_loss = self._build_loss(outputs, sample.ys)
+                    losses.append(sample_loss)
+                batch_loss = dy.esum(losses)
+                batch_loss.forward()
+                batch_loss.backward()
+                loss_sum += batch_loss.value()
                 trainer.update()
                 if show_progress:
-                    if int((ind + 1) / len(train) * 100) > int(ind / len(train) * 100):
-                        per = int((ind + 1) / len(train) * 100)
+                    if int((batch_ind + 1) / len(batches) * 100) > int(batch_ind / len(batches) * 100):
+                        per = int((batch_ind + 1) / len(batches) * 100)
                         print('\r\rEpoch %3d (%d%%): |' % (epoch, per) + '#' * per + '-' * (100 - per) + '|',)
             if self.hyperparameters.learning_rate_decay:
                 trainer.learning_rate /= (1 - self.hyperparameters.learning_rate_decay)

@@ -1,5 +1,5 @@
 import hashlib
-import time
+import time, datetime
 import random
 import csv
 import threading
@@ -61,10 +61,12 @@ class HyperparametersTuner:
 
     def sample_execution(self, params=None):
         params = params or self.sample_params()
+        start_time = time.time()
         result = self.executor(params)
+        execution_time = time.time() - start_time
         assert isinstance(result, HyperparametersTuner.ExecutionResult)
-        self.emit_result_to_csv(params, result)
-        return params, result
+        self.emit_result_to_csv(params, result, execution_time)
+        return params, result,
 
     def sample_executions(self, n_executions, mapper=map):
         return mapper(lambda _: self.sample_execution(), range(n_executions))
@@ -86,7 +88,7 @@ class HyperparametersTuner:
         else:
             return self.emitted_results + 1
 
-    def emit_result_to_csv(self, params, result):
+    def emit_result_to_csv(self, params, result, execution_time_secs):
         assert isinstance(result, HyperparametersTuner.ExecutionResult)
         execution_id = self.gen_execution_id()
         open_flags = 'a' if self.shared_csv or self.emitted_results > 0 else 'w'
@@ -94,9 +96,14 @@ class HyperparametersTuner:
             with open(self.csv_file_path, open_flags) as csv_f:
                 csv_writer = csv.writer(csv_f)
                 headers, rows = self.csv_row_builder(params, result)
-                headers = ['Time', 'Executor ID', 'Execution ID'] + headers
+                headers = ['Time', 'Total Execution Time', 'Executor ID', 'Execution ID'] + headers
                 rows = [
-                    [time.strftime("%Y-%m-%d %H:%M:%S"), self.executor_id, execution_id] + row for row in rows
+                    [time.strftime("%Y-%m-%d %H:%M:%S"), "%02dd%02dh%02dm%02ds" % (int(execution_time_secs / (24*60*60)),
+                                                                               int(execution_time_secs % (24*60*60) / (60*60)),
+                                                                               int(execution_time_secs % (60*60) / 60),
+                                                                               int(execution_time_secs % 60),
+                                                                               ),
+                     self.executor_id, execution_id] + row for row in rows
                 ]
                 if csv_f.tell() == 0:
                     csv_writer.writerow(headers)
