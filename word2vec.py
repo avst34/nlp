@@ -1,4 +1,3 @@
-import gensim
 import pickle
 
 class Word2VecModel:
@@ -8,6 +7,7 @@ class Word2VecModel:
 
     @staticmethod
     def load_google_model(trained_model_bin_path='/cs/labs/oabend/aviramstern/word2vec/GoogleNews-vectors-negative300.bin'):
+        import gensim
         model = gensim.models.KeyedVectors.load_word2vec_format(trained_model_bin_path, binary=True)
         return Word2VecModel(model)
 

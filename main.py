@@ -65,11 +65,12 @@ dev_samples = [s for s in dev_samples if any(s.ys)]
 
 evaluator = ClassifierEvaluator()
 
-print('Simple conditional model evaluation:')
-scm = SimpleConditionalMulticlassModel()
-scm.fit(train_samples, validation_samples=dev_samples, evaluator=evaluator)
+if False:
+    print('Simple conditional model evaluation:')
+    scm = SimpleConditionalMulticlassModel()
+    scm.fit(train_samples, validation_samples=dev_samples, evaluator=evaluator)
 
-print('')
+# print('')
 
 train_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in train_records]
 dev_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in dev_records]
@@ -113,12 +114,12 @@ tuner = LstmMlpSupersensesModelHyperparametersTuner(
 
 )
 tuner.tune(train_samples,
-           '/tmp/results.csv',
+           '/cs/labs/oabend/aviramstern/results.csv',
            validation_samples=dev_samples,
            n_executions=1,
            show_progress=True,
            show_epoch_eval=True,
            tuner_domains_override=[
-               PS(name='epochs', values=[1])
+               # PS(name='epochs', values=[1])
            ])
 

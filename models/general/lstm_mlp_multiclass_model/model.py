@@ -268,7 +268,7 @@ class LstmMlpMulticlassModel(object):
             random.shuffle(train)
             loss_sum = 0
 
-            BATCH_SIZE = 4
+            BATCH_SIZE = 20
             batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
             for batch_ind, batch in enumerate(batches):
                 dy.renew_cg()

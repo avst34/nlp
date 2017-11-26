@@ -1,10 +1,15 @@
 #!/bin/bash
-#_SBATCH --mem=400m
-#_SBATCH -c4
-#_SBATCH --time=2:0:0
-#_SBATCH --gres=gpu:3
+#SBATCH --mem=4096m
+#SBATCH -c2
+#SBATCH --time=2-0
+#SBATCH --gres=gpu:1
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+source /cs/usr/aviramstern/venvs/bin/activate.csh
 
-#python3 $DIR/../main.py > ~/baseline.out 2>~/baseline.err
-python3 $DIR/../main.py --dynet-gpu
+# DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+while true; do
+    #    #python3 $DIR/../main.py > ~/baseline.out
+    #python3 $DIR/../main.py --dynet-gpu --dynet-autobatch > ~/baseline.out
+    python3 /cs/usr/aviramstern/nlp/main.py
+done
