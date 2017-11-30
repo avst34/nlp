@@ -20,7 +20,7 @@ def get_supersense_type(supersense):
 
 
 def filter_non_supersense(maybe_supersense):
-    if not maybe_supersense or maybe_supersense[0] == '`' or maybe_supersense == '??':
-        return None
-    else:
+    if maybe_supersense in SUPERSENSES_SET:
         return maybe_supersense
+    else:
+        return None

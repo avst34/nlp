@@ -4,7 +4,7 @@
 #SBATCH --time=2-0
 #SBATCH --gres=gpu:1
 
-source /cs/usr/aviramstern/venvs/bin/activate.csh
+source /cs/usr/aviramstern/venvs/cortex/bin/activate.csh
 
 # DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 

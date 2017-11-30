@@ -40,33 +40,34 @@ class ClassifierEvaluator:
             predicted_ys = predictor.predict(sample.xs, [True if y else False for y in sample.ys])
             if ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
-            for p, a in zip(predicted_ys, sample.ys):
-                counts[a] = counts.get(a, {
-                    'p_none_a_none': 0,
-                    'p_none_a_value': 0,
-                    'p_value_a_none': 0,
-                    'p_value_a_value_eq': 0,
-                    'p_value_a_value_neq': 0,
-                    'total': 0
-                })
-                if p is None and a is None:
-                    counts[a]['p_none_a_none'] += 1
-                    counts[ALL_CLASSES]['p_none_a_none'] += 1
-                else:
-                    counts[a]['total'] += 1
-                    counts[ALL_CLASSES]['total'] += 1
-                    if p is None and a is not None:
-                        counts[a]['p_none_a_value'] += 1
-                        counts[ALL_CLASSES]['p_none_a_value'] += 1
-                    elif p is not None and a is None:
-                        counts[a]['p_value_a_none'] += 1
-                        counts[ALL_CLASSES]['p_value_a_none'] += 1
-                    elif p == a:
-                        counts[a]['p_value_a_value_eq'] += 1
-                        counts[ALL_CLASSES]['p_value_a_value_eq'] += 1
+            for ps, _as in zip(predicted_ys, sample.ys):
+                for p, a in zip(ps, _as):
+                    counts[a] = counts.get(a, {
+                        'p_none_a_none': 0,
+                        'p_none_a_value': 0,
+                        'p_value_a_none': 0,
+                        'p_value_a_value_eq': 0,
+                        'p_value_a_value_neq': 0,
+                        'total': 0
+                    })
+                    if p is None and a is None:
+                        counts[a]['p_none_a_none'] += 1
+                        counts[ALL_CLASSES]['p_none_a_none'] += 1
                     else:
-                        counts[a]['p_value_a_value_neq'] += 1
-                        counts[ALL_CLASSES]['p_value_a_value_neq'] += 1
+                        counts[a]['total'] += 1
+                        counts[ALL_CLASSES]['total'] += 1
+                        if p is None and a is not None:
+                            counts[a]['p_none_a_value'] += 1
+                            counts[ALL_CLASSES]['p_none_a_value'] += 1
+                        elif p is not None and a is None:
+                            counts[a]['p_value_a_none'] += 1
+                            counts[ALL_CLASSES]['p_value_a_none'] += 1
+                        elif p == a:
+                            counts[a]['p_value_a_value_eq'] += 1
+                            counts[ALL_CLASSES]['p_value_a_value_eq'] += 1
+                        else:
+                            counts[a]['p_value_a_value_neq'] += 1
+                            counts[ALL_CLASSES]['p_value_a_value_neq'] += 1
 
         for klass, class_counts in counts.items():
             if class_counts['total'] != 0:

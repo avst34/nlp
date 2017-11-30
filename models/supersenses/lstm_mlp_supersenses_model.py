@@ -20,8 +20,9 @@ class LstmMlpSupersensesModel(object):
             self.head_ind = head_ind
 
     class SampleY:
-        def __init__(self, supersense):
-            self.supersense = supersense
+        def __init__(self, supersense_role, supersense_func):
+            self.supersense_role = supersense_role
+            self.supersense_func = supersense_func
 
     class HyperParameters:
         def __init__(self,
@@ -132,6 +133,7 @@ class LstmMlpSupersensesModel(object):
                     'token_onehot': self.token_onehot_vocab.size() if self.token_onehot_vocab else 0,
                     'token_internal': hp.token_internal_embd_dim
                 },
+                'n_labels_to_predict': 2
             }, del_keys=['use_token', 'use_pos', 'use_dep', 'token_embd_dim', 'pos_embd_dim', 'token_internal_embd_dim',
                          'update_token_embd', 'update_pos_embd', 'use_token_onehot', 'use_token_internal'])
            )
@@ -147,7 +149,8 @@ class LstmMlpSupersensesModel(object):
             embeddings[word] = vec
         return embeddings
 
-    def _sample_x_to_lowlevel(self, sample_x):
+    @staticmethod
+    def sample_x_to_lowlevel(sample_x):
         return LstmMlpMulticlassModel.SampleX(
             fields={
                 'token': sample_x.token,
@@ -159,30 +162,34 @@ class LstmMlpSupersensesModel(object):
             head_ind=sample_x.head_ind
         )
 
-    def _sample_y_to_lowlevel(self, sample_y):
-        return sample_y.supersense
+    @staticmethod
+    def sample_y_to_lowlevel(sample_y):
+        return [sample_y.supersense_role, sample_y.supersense_func]
 
-    def _lowlevel_to_sample_y(self, ll_sample_y):
-        return LstmMlpSupersensesModel.SampleY(supersense=ll_sample_y)
+    @staticmethod
+    def lowlevel_to_sample_y(ll_sample_y):
+        return LstmMlpSupersensesModel.SampleY(supersense_role=ll_sample_y[0], supersense_func=ll_sample_y[1])
 
-    def _sample_to_lowlevel(self, sample):
+    @staticmethod
+    def sample_to_lowlevel(sample):
         return LstmMlpMulticlassModel.Sample(
-            xs=[self._sample_x_to_lowlevel(x) for x in sample.xs],
-            ys=[self._sample_y_to_lowlevel(y) for y in sample.ys],
+            xs=[LstmMlpSupersensesModel.sample_x_to_lowlevel(x) for x in sample.xs],
+            ys=[LstmMlpSupersensesModel.sample_y_to_lowlevel(y) for y in sample.ys],
         )
 
     def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
-        ll_samples = [self._sample_to_lowlevel(s) for s in samples]
-        ll_validation_samples = [self._sample_to_lowlevel(s) for s in validation_samples] if validation_samples else None
+        ll_samples = [self.sample_to_lowlevel(s) for s in samples]
+        ll_validation_samples = [self.sample_to_lowlevel(s) for s in validation_samples] if validation_samples else None
         self.model.fit(ll_samples, show_progress=show_progress,
                        show_epoch_eval=show_epoch_eval, evaluator=evaluator,
                        validation_samples=ll_validation_samples)
         return self
 
     def predict(self, sample_xs, mask=None):
-        ll_ys = self.model.predict(sample_xs, mask=mask)
-        ys = [self._lowlevel_to_sample_y(ll_s) for ll_s in ll_ys]
+        ll_xs = [self.sample_x_to_lowlevel(x) for x in sample_xs]
+        ll_ys = self.model.predict(ll_xs, mask=mask)
+        ys = [self.lowlevel_to_sample_y(ll_s) for ll_s in ll_ys]
         return ys
 
     @property

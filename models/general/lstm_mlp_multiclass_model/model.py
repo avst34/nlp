@@ -12,8 +12,8 @@ from vocabulary import Vocabulary
 
 ModelOptimizedParams = namedtuple('ModelOptimizedParams', [
     'input_lookups',
-    'mlp',
-    'softmax'
+    'mlps',
+    'softmaxes'
 ])
 
 MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
@@ -39,6 +39,7 @@ class LstmMlpMulticlassModel(object):
         def keys(self):
             return self.fields.keys()
 
+    # SampleY - List of labels
 
     class HyperParameters:
         def __init__(self,
@@ -58,8 +59,10 @@ class LstmMlpMulticlassModel(object):
                      epochs,
                      validation_split,
                      learning_rate,
-                     learning_rate_decay
+                     learning_rate_decay,
+                     n_labels_to_predict
                      ):
+            self.n_labels_to_predict = n_labels_to_predict
             self.mlp_input_fields = mlp_input_fields
             self.learning_rate_decay = learning_rate_decay
             self.learning_rate = learning_rate
@@ -144,17 +147,23 @@ class LstmMlpMulticlassModel(object):
                 field: pc.add_lookup_parameters((self.input_vocabularies[field].size(), self.get_embd_dim(field)))
                 for field in (self.hyperparameters.lstm_input_fields + self.hyperparameters.mlp_input_fields)
             },
-            mlp=[
-                MLPLayerParams(
-                    W=pc.add_parameters((self.hyperparameters.mlp_layer_dim, self.hyperparameters.mlp_layer_dim if i > 0 else mlp_input_dim)),
-                    b=pc.add_parameters((self.hyperparameters.mlp_layer_dim,))
-                )
-                for i in range(self.hyperparameters.mlp_layers)
+            mlps=[
+                [
+                    MLPLayerParams(
+                        W=pc.add_parameters((self.hyperparameters.mlp_layer_dim, self.hyperparameters.mlp_layer_dim if i > 0 else mlp_input_dim)),
+                        b=pc.add_parameters((self.hyperparameters.mlp_layer_dim,))
+                    )
+                    for i in range(self.hyperparameters.mlp_layers)
+                ]
+                for _ in range(self.hyperparameters.n_labels_to_predict)
             ],
-            softmax=MLPLayerParams(
-                W=pc.add_parameters((self.output_vocabulary.size(), self.hyperparameters.mlp_layer_dim)),
-                b=pc.add_parameters((self.output_vocabulary.size(),))
-            )
+            softmaxes=[
+                MLPLayerParams(
+                        W=pc.add_parameters((self.output_vocabulary.size(), self.hyperparameters.mlp_layer_dim)),
+                        b=pc.add_parameters((self.output_vocabulary.size(),))
+                )
+                for _ in range(self.hyperparameters.n_labels_to_predict)
+            ]
         )
 
         for field, lookup_param in self.params.input_lookups.items():
@@ -197,7 +206,7 @@ class LstmMlpMulticlassModel(object):
         outputs = []
         for ind, lstm_out in enumerate(lstm_outputs):
             if mask and not mask[ind]:
-                output = None
+                output = [None] * self.hyperparameters.n_labels_to_predict
             else:
                 inp_token = xs[ind]
                 if self.hyperparameters.use_head:
@@ -213,21 +222,25 @@ class LstmMlpMulticlassModel(object):
                                              self.input_vocabularies[field].get_index(inp_token[field]),
                                              update=self.hyperparameters.input_embeddings_to_update.get(field) or False
                                          ) for field in self.hyperparameters.mlp_input_fields])
-                for mlp_layer_params in self.params.mlp:
-                    cur_out = dy.dropout(cur_out, self.hyperparameters.mlp_dropout_p)
-                    cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * cur_out + dy.parameter(mlp_layer_params.b))
-                cur_out = dy.softmax(dy.parameter(self.params.softmax.W) * cur_out + dy.parameter(self.params.softmax.b))
-                output = cur_out
+                output = []
+                for mlp_params, softmax_params in zip(self.params.mlps, self.params.softmaxes):
+                    for mlp_layer_params in mlp_params:
+                        cur_out = dy.dropout(cur_out, self.hyperparameters.mlp_dropout_p)
+                        cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * cur_out + dy.parameter(mlp_layer_params.b))
+                    cur_out = dy.softmax(dy.parameter(softmax_params.W) * cur_out + dy.parameter(softmax_params.b))
+                    output.append(cur_out)
             outputs.append(output)
         return outputs
 
     def _build_loss(self, outputs, ys):
         losses = []
         for out, y in zip(outputs, ys):
-            if y is not None:
-                ss_ind = self.output_vocabulary.get_index(y)
-                loss = -dy.log(dy.pick(out, ss_ind))
-                losses.append(loss)
+            assert len(set([y is None for y in ys])) == 1, "Got a sample with partial None labels"
+            for label_out, label_y in zip(out, y):
+                if label_y is not None:
+                    ss_ind = self.output_vocabulary.get_index(y)
+                    loss = -dy.log(dy.pick(out, ss_ind))
+                    losses.append(loss)
         return dy.esum(losses)
 
     # def _build_vocabularies(self, samples):
@@ -274,7 +287,7 @@ class LstmMlpMulticlassModel(object):
                 dy.renew_cg()
                 losses = []
                 for sample in batch:
-                    mask = [not not klass for klass in sample.ys]
+                    mask = [any(klasses) for klasses in sample.ys]
                     outputs = self._build_network_for_input(sample.xs, mask=mask)
                     sample_loss = self._build_loss(outputs, sample.ys)
                     losses.append(sample_loss)
@@ -308,15 +321,19 @@ class LstmMlpMulticlassModel(object):
         return self
 
     def predict(self, sample_xs, mask=None):
+        dy.renew_cg()
         if mask is None:
             mask = [True] * len(sample_xs)
         outputs = self._build_network_for_input(sample_xs)
         ys = []
         for token_ind, out in enumerate(outputs):
-            if out is None or not mask[token_ind]:
+            if not all(out) or not mask[token_ind]:
                 predicted = None
             else:
-                ind = np.argmax(out.npvalue())
-                predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
+                predictions = []
+                for klass_out in out:
+                    ind = np.argmax(klass_out.npvalue())
+                    predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
+                predictions.append(predicted)
             ys.append(predicted)
         return ys

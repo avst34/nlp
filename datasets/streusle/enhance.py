@@ -144,8 +144,8 @@ def enhance_dev_sentences():
         f.write("\n".join([r.id for r in dev]))
 
 if __name__ == '__main__':
-    # enhance_dependency_trees()
-    # enhance_word2vec()
+    enhance_dependency_trees()
+    enhance_word2vec()
     enhance_dev_sentences()
 
 
