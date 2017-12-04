@@ -20,6 +20,28 @@ class ClassifierEvaluator:
                     if y_true else ''
             )
 
+    def update_counts(self, counts, klass, predicted, actual):
+        counts[klass] = counts.get(klass, {
+            'p_none_a_none': 0,
+            'p_none_a_value': 0,
+            'p_value_a_none': 0,
+            'p_value_a_value_eq': 0,
+            'p_value_a_value_neq': 0,
+            'total': 0
+        })
+        if predicted is None and actual is None:
+            counts[klass]['p_none_a_none'] += 1
+        else:
+            counts[klass]['total'] += 1
+            if predicted is None and actual is not None:
+                counts[klass]['p_none_a_value'] += 1
+            elif predicted is not None and actual is None:
+                counts[klass]['p_value_a_none'] += 1
+            elif predicted == actual:
+                counts[klass]['p_value_a_value_eq'] += 1
+            else:
+                counts[klass]['p_value_a_value_neq'] += 1
+
     def evaluate(self, samples, examples_to_show=3, predictor=None):
         ALL_CLASSES = ClassifierEvaluator.ALL_CLASSES
         predictor = predictor or self.predictor
@@ -40,34 +62,13 @@ class ClassifierEvaluator:
             predicted_ys = predictor.predict(sample.xs, [True if y else False for y in sample.ys])
             if ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
-            for ps, _as in zip(predicted_ys, sample.ys):
-                for p, a in zip(ps, _as):
-                    counts[a] = counts.get(a, {
-                        'p_none_a_none': 0,
-                        'p_none_a_value': 0,
-                        'p_value_a_none': 0,
-                        'p_value_a_value_eq': 0,
-                        'p_value_a_value_neq': 0,
-                        'total': 0
-                    })
-                    if p is None and a is None:
-                        counts[a]['p_none_a_none'] += 1
-                        counts[ALL_CLASSES]['p_none_a_none'] += 1
-                    else:
-                        counts[a]['total'] += 1
-                        counts[ALL_CLASSES]['total'] += 1
-                        if p is None and a is not None:
-                            counts[a]['p_none_a_value'] += 1
-                            counts[ALL_CLASSES]['p_none_a_value'] += 1
-                        elif p is not None and a is None:
-                            counts[a]['p_value_a_none'] += 1
-                            counts[ALL_CLASSES]['p_value_a_none'] += 1
-                        elif p == a:
-                            counts[a]['p_value_a_value_eq'] += 1
-                            counts[ALL_CLASSES]['p_value_a_value_eq'] += 1
-                        else:
-                            counts[a]['p_value_a_value_neq'] += 1
-                            counts[ALL_CLASSES]['p_value_a_value_neq'] += 1
+            for p, a in zip(predicted_ys, sample.ys):
+                self.update_counts(counts, a, p, a)
+                self.update_counts(counts, ALL_CLASSES, p, a)
+                if a is not None and len(a) > 1:
+                    for ind, klass in enumerate(a):
+                        cklass = tuple([klass if i == ind else '*' for i in range(len(klass))])
+                        self.update_counts(counts, cklass, p[ind], klass)
 
         for klass, class_counts in counts.items():
             if class_counts['total'] != 0:

@@ -5,6 +5,11 @@ PS = HyperparametersTuner.ParamSettings
 
 # For tuning
 TUNER_DOMAINS_TUNING = [
+    PS(name='labels_to_predict', values=[
+        ('supersense_role', 'supersense_func'),
+        ('supersense_role',),
+        ('supersense_func',)
+    ]),
     PS(name='use_token', values=[True]),
     PS(name='use_token_internal', values=[True, False]),
     PS(name='use_pos', values=[False]),

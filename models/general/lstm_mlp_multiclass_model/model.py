@@ -206,7 +206,7 @@ class LstmMlpMulticlassModel(object):
         outputs = []
         for ind, lstm_out in enumerate(lstm_outputs):
             if mask and not mask[ind]:
-                output = [None] * self.hyperparameters.n_labels_to_predict
+                output = None
             else:
                 inp_token = xs[ind]
                 if self.hyperparameters.use_head:
@@ -224,22 +224,23 @@ class LstmMlpMulticlassModel(object):
                                          ) for field in self.hyperparameters.mlp_input_fields])
                 output = []
                 for mlp_params, softmax_params in zip(self.params.mlps, self.params.softmaxes):
+                    mlp_cur_out = cur_out
                     for mlp_layer_params in mlp_params:
-                        cur_out = dy.dropout(cur_out, self.hyperparameters.mlp_dropout_p)
-                        cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * cur_out + dy.parameter(mlp_layer_params.b))
-                    cur_out = dy.softmax(dy.parameter(softmax_params.W) * cur_out + dy.parameter(softmax_params.b))
-                    output.append(cur_out)
+                        mlp_cur_out = dy.dropout(mlp_cur_out, self.hyperparameters.mlp_dropout_p)
+                        mlp_cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * mlp_cur_out + dy.parameter(mlp_layer_params.b))
+                    mlp_cur_out = dy.softmax(dy.parameter(softmax_params.W) * mlp_cur_out + dy.parameter(softmax_params.b))
+                    output.append(mlp_cur_out)
             outputs.append(output)
         return outputs
 
     def _build_loss(self, outputs, ys):
         losses = []
         for out, y in zip(outputs, ys):
-            assert len(set([y is None for y in ys])) == 1, "Got a sample with partial None labels"
-            for label_out, label_y in zip(out, y):
-                if label_y is not None:
-                    ss_ind = self.output_vocabulary.get_index(y)
-                    loss = -dy.log(dy.pick(out, ss_ind))
+            if y is not None:
+                assert len([label_y is None for label_y in y]) in [0, len(y)], "Got a sample with partial None labels"
+                for label_out, label_y in zip(out, y):
+                    ss_ind = self.output_vocabulary.get_index(label_y)
+                    loss = -dy.log(dy.pick(label_out, ss_ind))
                     losses.append(loss)
         return dy.esum(losses)
 
@@ -287,7 +288,7 @@ class LstmMlpMulticlassModel(object):
                 dy.renew_cg()
                 losses = []
                 for sample in batch:
-                    mask = [any(klasses) for klasses in sample.ys]
+                    mask = [klasses is not None for klasses in sample.ys]
                     outputs = self._build_network_for_input(sample.xs, mask=mask)
                     sample_loss = self._build_loss(outputs, sample.ys)
                     losses.append(sample_loss)

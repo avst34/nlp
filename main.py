@@ -95,7 +95,7 @@ dev_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TY
 test_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in test_records]
 
 pp_vocab = Vocabulary('Prepositions')
-pp_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys) if y.supersense]))
+pp_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys) if any([y.supersense_role, y.supersense_func])]))
 
 dep_vocab = Vocabulary('Dependencies')
 dep_vocab.add_words(set([x.dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
@@ -109,40 +109,41 @@ token_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_s
 pss_vocab = Vocabulary('PrepositionalSupersenses')
 pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
 
-# tuner = LstmMlpSupersensesModelHyperparametersTuner(
-#     token_embd=streusle_loader.get_tokens_word2vec_model().as_dict(),
-#     token_vocab=token_vocab,
-#     token_onehot_vocab=pp_vocab,
-#     pos_vocab=pos_vocab,
-#     dep_vocab=dep_vocab,
-#     supersense_vocab=pss_vocab,
-#
-# )
-# tuner.tune(train_samples,
-#            '/cs/labs/oabend/aviramstern/results.csv',
-#            validation_samples=dev_samples,
-#            n_executions=1,
-#            show_progress=True,
-#            show_epoch_eval=True,
-#            tuner_domains_override=[
-#                # PS(name='epochs', values=[1])
-#            ])
-
-print('LSTM-MLP evaluation:')
-lstm_mlp_model = LstmMlpSupersensesModel(
+tuner = LstmMlpSupersensesModelHyperparametersTuner(
     token_embd=streusle_loader.get_tokens_word2vec_model().as_dict(),
     token_vocab=token_vocab,
     token_onehot_vocab=pp_vocab,
     pos_vocab=pos_vocab,
     dep_vocab=dep_vocab,
     supersense_vocab=pss_vocab,
-    hyperparameters=LstmMlpSupersensesModel.HyperParameters(**json.loads("""{"use_head": true, "lstm_h_dim": 74, "epochs": 100, "mlp_layer_dim": 62, "mlp_layers": 2, "num_lstm_layers": 2, "use_token_onehot": true, "update_token_embd": false, "learning_rate": 0.1, "use_token": true, "use_pos": false, "token_internal_embd_dim": 27, "use_token_internal": false, "use_dep": true, "validation_split": 0.3, "token_embd_dim": 300, "pos_embd_dim": 80, "mlp_dropout_p": 0.05, "is_bilstm": true, "mlp_activation": "tanh", "update_pos_embd": true, "learning_rate_decay": 0.00031622776601683794}"""))
+
 )
+tuner.tune(train_samples,
+           # '/cs/labs/oabend/aviramstern/results.csv',
+           '/tmp/results.csv',
+           validation_samples=dev_samples,
+           n_executions=1,
+           show_progress=True,
+           show_epoch_eval=True,
+           tuner_domains_override=[
+               # PS(name='epochs', values=[1])
+           ])
 
-lstm_mlp_model.fit(train_samples,
-                   dev_samples,
-                   evaluator=evaluator)
-
-evaluator = ClassifierEvaluator(predictor=lstm_mlp_model.model)
-ll_samples = [LstmMlpSupersensesModel.sample_to_lowlevel(x) for x in test_samples]
-evaluator.evaluate(ll_samples, examples_to_show=5)
+# print('LSTM-MLP evaluation:')
+# lstm_mlp_model = LstmMlpSupersensesModel(
+#     token_embd=streusle_loader.get_tokens_word2vec_model().as_dict(),
+#     token_vocab=token_vocab,
+#     token_onehot_vocab=pp_vocab,
+#     pos_vocab=pos_vocab,
+#     dep_vocab=dep_vocab,
+#     supersense_vocab=pss_vocab,
+#     hyperparameters=LstmMlpSupersensesModel.HyperParameters(**json.loads("""{"use_head": true, "lstm_h_dim": 74, "epochs": 100, "mlp_layer_dim": 62, "mlp_layers": 2, "num_lstm_layers": 2, "use_token_onehot": true, "update_token_embd": false, "learning_rate": 0.1, "use_token": true, "use_pos": false, "token_internal_embd_dim": 27, "use_token_internal": false, "use_dep": true, "validation_split": 0.3, "token_embd_dim": 300, "pos_embd_dim": 80, "mlp_dropout_p": 0.05, "is_bilstm": true, "mlp_activation": "tanh", "update_pos_embd": true, "learning_rate_decay": 0.00031622776601683794}"""))
+# )
+#
+# lstm_mlp_model.fit(train_samples,
+#                    dev_samples,
+#                    evaluator=evaluator)
+#
+# evaluator = ClassifierEvaluator(predictor=lstm_mlp_model.model)
+# ll_samples = [LstmMlpSupersensesModel.sample_to_lowlevel(x) for x in test_samples]
+# evaluator.evaluate(ll_samples, examples_to_show=5)
