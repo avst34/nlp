@@ -9,10 +9,11 @@ from word2vec import Word2VecModel
 
 STREUSLE_DIR = os.path.join(os.path.dirname(__file__), 'streusle-3.0-v2')
 
-ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT'])(
+ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES'])(
     WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'word2vec.pickle'),
     WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'word2vec_missing.json'),
     SPACY_DEP_TREES=os.path.join(STREUSLE_DIR, 'spacy_dep_trees.json'),
+    UD_DEP_TREES=os.path.join(STREUSLE_DIR, 'ud_dep_trees.json'),
     DEV_SET_SENTIDS=os.path.join(STREUSLE_DIR, 'splits/psst-dev.sentids'),
     DEV_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'splits/psst-dev-ud-split.sentids')
 )
@@ -22,16 +23,21 @@ if os.path.exists(ENHANCEMENTS.WORD2VEC_PATH):
     with open(ENHANCEMENTS.WORD2VEC_PATH, 'rb')as f:
         W2V = Word2VecModel.load(f)
 
-SPACY_DEP_TREES = {}
 TreeNode = namedtuple('TreeNode', ['head_ind', 'dep'])
-if os.path.exists(ENHANCEMENTS.SPACY_DEP_TREES):
-    with open(ENHANCEMENTS.SPACY_DEP_TREES, 'r')as f:
-        SPACY_DEP_TREES = {
-            rec_id: [TreeNode(head_ind=node[0], dep=node[1]) for node in tree_nodes]
-            for rec_id, tree_nodes in json.load(f).items()
-        }
+def load_dep_tree(tree_json_path):
+    if os.path.exists(tree_json_path):
+        with open(tree_json_path, 'r') as f:
+            return {
+                rec_id: [TreeNode(head_ind=node[0], dep=node[1]) for node in tree_nodes]
+                for rec_id, tree_nodes in json.load(f).items()
+            }
+    else:
+        return {}
 
-class TaggedToken(namedtuple('TokenData_', ['token', 'token_word2vec', 'pos', 'supersense_role', 'supersense_func', 'head_ind', 'dep'])):
+SPACY_DEP_TREES = load_dep_tree(ENHANCEMENTS.SPACY_DEP_TREES)
+UD_DEP_TREES = load_dep_tree(ENHANCEMENTS.UD_DEP_TREES)
+
+class TaggedToken(namedtuple('TokenData_', ['token', 'token_word2vec', 'pos', 'supersense_role', 'supersense_func', 'spacy_head_ind', 'spacy_dep', 'ud_head_ind', 'ud_dep', 'part_of_mwe'])):
     def __init__(self, *args, **kwargs):
         super().__init__()
 
@@ -52,12 +58,14 @@ class StreusleRecord:
                  sentence,
                  data,
                  spacy_dep_tree,
+                 ud_dep_tree,
                  only_supersenses=None):
         super().__init__()
         self.id = id
         self.sentence = sentence
         self.data = data
         self.spacy_dep_tree = spacy_dep_tree
+        self.ud_dep_tree = ud_dep_tree
         self.ignored_supersenses = []
 
         if not only_supersenses:
@@ -67,6 +75,8 @@ class StreusleRecord:
             if ss in only_supersenses:
                 return ss
             if ss is not None:
+                if 'circum' in ss.lower():
+                    print("asdf")
                 self.ignored_supersenses.append(ss)
             return None
 
@@ -93,11 +103,14 @@ class StreusleRecord:
                 token=tok_data[0],
                 token_word2vec=W2V.get(tok_data[0]),
                 pos=tok_data[1],
-                head_ind=self.spacy_dep_tree[i].head_ind if self.spacy_dep_tree else None,
-                dep=self.spacy_dep_tree[i].dep if self.spacy_dep_tree else None,
+                spacy_head_ind=self.spacy_dep_tree[i].head_ind if self.spacy_dep_tree else None,
+                spacy_dep=self.spacy_dep_tree[i].dep if self.spacy_dep_tree else None,
+                ud_head_ind=self.ud_dep_tree[i].head_ind if self.ud_dep_tree else None,
+                ud_dep=self.ud_dep_tree[i].dep if self.ud_dep_tree else None,
                 # supersense=filter_supersense(self.data['labels'].get(str(i + 1), [None, None])[1]),
                 supersense_role=extract_supersense_pair(self.data['labels'].get(str(i + 1), [None, None])[1])[0],
-                supersense_func=extract_supersense_pair(self.data['labels'].get(str(i + 1), [None, None])[1])[1]
+                supersense_func=extract_supersense_pair(self.data['labels'].get(str(i + 1), [None, None])[1])[1],
+                part_of_mwe=any([i+1 in mwe_inds for mwe_inds in self.data['_']])
             ) for i, tok_data in enumerate(self.data['words'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
@@ -121,6 +134,7 @@ class StreusleLoader(object):
                                         sentence=line[1],
                                         data=json.loads(line[2]),
                                         spacy_dep_tree=SPACY_DEP_TREES.get(line[0]),
+                                        ud_dep_tree=UD_DEP_TREES.get(line[0]),
                                         only_supersenses=only_with_supersenses)
                 if only_with_supersenses:
                     if not any([token.combined_supersense for token in record.tagged_tokens]):

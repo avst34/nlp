@@ -11,13 +11,17 @@ from models.supersenses.tuner_domains import PS
 from vocabulary import Vocabulary
 
 
-def streusle_record_to_lstm_model_sample(record, ss_types):
+def streusle_record_to_lstm_model_sample(record,
+                                         ss_types,
+                                         deps_from # 'ud' or 'spacy'
+                                         ):
+    assert deps_from in ['ud', 'spacy']
     return LstmMlpSupersensesModel.Sample(
         xs=[LstmMlpSupersensesModel.SampleX(
                 token=tagged_token.token,
                 pos=tagged_token.pos,
-                dep=tagged_token.dep,
-                head_ind=tagged_token.head_ind,
+                dep=tagged_token.spacy_dep if deps_from == 'spacy' else tagged_token.ud_dep,
+                head_ind=tagged_token.spacy_head_ind if deps_from == 'spacy' else tagged_token.ud_head_ind,
             ) for tagged_token in record.tagged_tokens],
         ys=[LstmMlpSupersensesModel.SampleY(
                 supersense_role=tagged_token.supersense_role \
@@ -75,6 +79,21 @@ print('And after splitting:')
 for ss in sorted(set(unfamiliar_ss_after_splitting)):
     print("%s (%d appearances)" % (ss, unfamiliar_ss_after_splitting.count(ss)))
 
+all_prepositions = set([t.token.lower() for rec in all_records for t in rec.tagged_tokens if t.combined_supersense])
+print("All prepositions:", len(all_prepositions))
+print("----------------")
+for p in sorted(all_prepositions):
+    print(p)
+print("---")
+
+all_mwe_prepositions = [t.token.lower() for rec in all_records for t in rec.tagged_tokens if t.combined_supersense and t.part_of_mwe]
+print("All mwe prepositions:", len(set(all_mwe_prepositions)))
+print("----------------")
+for p in sorted(set(all_mwe_prepositions)):
+    print(p)
+print("---")
+
+
 train_samples = [streusle_record_to_conditional_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in train_records]
 train_samples = [s for s in train_samples if any(s.ys)]
 
@@ -88,11 +107,10 @@ if False:
     scm = SimpleConditionalMulticlassModel()
     scm.fit(train_samples, validation_samples=dev_samples, evaluator=evaluator)
 
-# print('')
-
-train_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in train_records]
-dev_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in dev_records]
-test_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in test_records]
+deps_from='ud'
+train_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE], deps_from=deps_from) for r in train_records]
+dev_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE], deps_from=deps_from) for r in dev_records]
+test_samples = [streusle_record_to_lstm_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE], deps_from=deps_from) for r in test_records]
 
 pp_vocab = Vocabulary('Prepositions')
 pp_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys) if any([y.supersense_role, y.supersense_func])]))
@@ -126,7 +144,9 @@ tuner.tune(train_samples,
            show_progress=True,
            show_epoch_eval=True,
            tuner_domains_override=[
-               # PS(name='epochs', values=[1])
+               PS(name='labels_to_predict', values=[
+                   ('supersense_role', 'supersense_func'),
+               ]),
            ])
 
 # print('LSTM-MLP evaluation:')

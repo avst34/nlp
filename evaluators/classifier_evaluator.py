@@ -8,19 +8,20 @@ to_precentage = lambda s: int(s * 10000) / 100 if s is not None else None
 class ClassifierEvaluator:
 
     ALL_CLASSES = '___ALL_CLASSES__'
+    ALL_CLASSES_STRICT = '___ALL_CLASSES_STRICT__'
 
     def __init__(self, predictor=None):
         self.predictor = predictor
 
     def print_prediction(self, sample, predicted_ys):
+        print("Sample:")
+        print("------")
         for x, y_true, y_predicted in zip(sample.xs, sample.ys, predicted_ys):
-            print(
-                [x[f] for f in sorted(x.keys())],
-                'correct: %s, predicted: %s    --- %s' % (y_true, y_predicted, 'X' if y_true != y_predicted else 'V') \
-                    if y_true else ''
-            )
+            print(''.join(['{:<30}'.format("[%s] %s" % (f, x[f])) for f in sorted(x.keys())]))
+            print('^ [%s]  ACTUAL: %10s  PREDICTED: %10s' % ('X' if y_true != y_predicted else 'V', y_true, y_predicted) \
+                    if y_true else ' ')
 
-    def update_counts(self, counts, klass, predicted, actual):
+    def update_counts(self, counts, klass, predicted, actual, strict=True):
         counts[klass] = counts.get(klass, {
             'p_none_a_none': 0,
             'p_none_a_value': 0,
@@ -29,24 +30,49 @@ class ClassifierEvaluator:
             'p_value_a_value_neq': 0,
             'total': 0
         })
-        if predicted is None and actual is None:
-            counts[klass]['p_none_a_none'] += 1
+
+        if strict:
+            p, a = [predicted], [actual]
         else:
-            counts[klass]['total'] += 1
-            if predicted is None and actual is not None:
-                counts[klass]['p_none_a_value'] += 1
-            elif predicted is not None and actual is None:
-                counts[klass]['p_value_a_none'] += 1
-            elif predicted == actual:
-                counts[klass]['p_value_a_value_eq'] += 1
+            p, a = [predicted, actual]
+
+        if any([p, a]):
+            if p is None:
+                p = [None for _ in a]
+            elif a is None:
+                a = [None for _ in p]
+        else:
+            p, a = [[None], [None]]
+
+        for predicted, actual in zip(p, a):
+            c = 1 / len(p)
+            if predicted is None and actual is None:
+                counts[klass]['p_none_a_none'] += c
             else:
-                counts[klass]['p_value_a_value_neq'] += 1
+                counts[klass]['total'] += c
+                if predicted is None and actual is not None:
+                    counts[klass]['p_none_a_value'] += c
+                elif predicted is not None and actual is None:
+                    counts[klass]['p_value_a_none'] += c
+                elif predicted == actual:
+                    counts[klass]['p_value_a_value_eq'] += c
+                else:
+                    counts[klass]['p_value_a_value_neq'] += c
 
     def evaluate(self, samples, examples_to_show=3, predictor=None):
         ALL_CLASSES = ClassifierEvaluator.ALL_CLASSES
+        ALL_CLASSES_STRICT = ClassifierEvaluator.ALL_CLASSES_STRICT
         predictor = predictor or self.predictor
         counts = {
             ALL_CLASSES: {
+                'p_none_a_none': 0,
+                'p_none_a_value': 0,
+                'p_value_a_none': 0,
+                'p_value_a_value_eq': 0,
+                'p_value_a_value_neq': 0,
+                'total': 0
+            },
+            ALL_CLASSES_STRICT: {
                 'p_none_a_none': 0,
                 'p_none_a_value': 0,
                 'p_value_a_none': 0,
@@ -64,7 +90,8 @@ class ClassifierEvaluator:
                 self.print_prediction(sample, predicted_ys)
             for p, a in zip(predicted_ys, sample.ys):
                 self.update_counts(counts, a, p, a)
-                self.update_counts(counts, ALL_CLASSES, p, a)
+                self.update_counts(counts, ALL_CLASSES, p, a, strict=False)
+                self.update_counts(counts, ALL_CLASSES_STRICT, p, a)
                 if a is not None and len(a) > 1:
                     for ind, klass in enumerate(a):
                         cklass = tuple([klass if i == ind else '*' for i in range(len(klass))])
@@ -100,7 +127,8 @@ class ClassifierEvaluator:
         )
         print(' - precision: %2.2f' % total_precision)
         print(' - recall:    %2.2f' % total_recall)
-        print(' - f1 score:  %2.2f' % total_f1)
+        if total_f1 is not None:
+            print(' - f1 score:  %2.2f' % total_f1)
 
         return {
             'precision': total_precision,

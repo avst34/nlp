@@ -1,15 +1,20 @@
 from collections import namedtuple
 import random
 import math
+
+import re
+
 import supersenses
-import spacy
-from spacy.tokens import Doc
+# import spacy
+# from spacy.tokens import Doc
 from numpy import dot
 from numpy.linalg import norm
 
 from datasets.streusle import streusle
 from word2vec import Word2VecModel
 import json
+
+import conllu_parser
 
 loader = streusle.StreusleLoader()
 records_list = loader.load()
@@ -43,7 +48,7 @@ def apply_spacy_pipeline(tokens):
     return doc
 
 TreeNode = namedtuple('TreeNode', ['head_ind', 'dep'])
-def enhance_dependency_trees():
+def enhance_spacy_dependency_trees():
     trees = {}
     for ind, rec in enumerate(records):
         doc = apply_spacy_pipeline([tt.token for tt in rec.tagged_tokens])
@@ -143,9 +148,40 @@ def enhance_dev_sentences():
     with open(streusle.ENHANCEMENTS.DEV_SET_SENTIDS, 'w') as f:
         f.write("\n".join([r.id for r in dev]))
 
+def enhance_ud_dependency_trees():
+    UD_FILES = [
+        '/cs/labs/oabend/aviramstern/ud/UD_English/en-ud-dev.conllu',
+        '/cs/labs/oabend/aviramstern/ud/UD_English/en-ud-test.conllu',
+        '/cs/labs/oabend/aviramstern/ud/UD_English/en-ud-train.conllu'
+    ]
+    sents = {}
+    for f_path in UD_FILES:
+        with open(f_path, 'r') as f:
+            sents.update(conllu_parser.parse(f.read()))
+
+    trees = {}
+    ID_PATTERN = re.compile(r'# sent_id \= reviews-(\d+)-0+(\d+)')
+    for ind, (sent_id, sent) in enumerate(sents.items()):
+        match = ID_PATTERN.match(sent_id)
+        if match:
+            assert(all([tok['id'] is not None for tok in sent]))
+            streusle_id = "ewtb.r." + match.group(1) + '.' + match.group(2)
+            tok_id_to_ind = {tok['id']: ind for ind, tok in enumerate(sent)}
+            print(streusle_id)
+            trees[streusle_id] = [
+                TreeNode(head_ind=tok_id_to_ind[token['head']] if token['head'] else tok_id_to_ind[token['id']], dep=token['deprel'])
+                for token in sent
+            ]
+        print('enhance_dependency_trees: %d/%d' % (ind + 1, len(sents)))
+    with open(streusle.ENHANCEMENTS.UD_DEP_TREES, 'w') as f:
+        json.dump(trees, f, indent=2)
+    print('Enhanced with spacy dep trees, %d trees in total' % (len(trees)))
+
+
 if __name__ == '__main__':
-    enhance_dependency_trees()
-    enhance_word2vec()
-    enhance_dev_sentences()
+    # enhance_spacy_dependency_trees()
+    # enhance_word2vec()
+    # enhance_dev_sentences()
+    enhance_ud_dependency_trees()
 
 

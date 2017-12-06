@@ -308,10 +308,10 @@ class LstmMlpMulticlassModel(object):
                 print('--------------------------------------------')
                 print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
                 print('Test data evaluation:')
-                epoch_test_eval = evaluator.evaluate(test, examples_to_show=0, predictor=self)
+                epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self)
                 self.test_set_evaluation.append(epoch_test_eval)
                 print('Training data evaluation:')
-                epoch_train_eval = evaluator.evaluate(train, examples_to_show=0, predictor=self)
+                epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self)
                 self.train_set_evaluation.append(epoch_train_eval)
                 print('--------------------------------------------')
 
@@ -328,13 +328,15 @@ class LstmMlpMulticlassModel(object):
         outputs = self._build_network_for_input(sample_xs)
         ys = []
         for token_ind, out in enumerate(outputs):
-            if not all(out) or not mask[token_ind]:
-                predicted = None
+            if not mask[token_ind] or out is None:
+                predictions = None
             else:
                 predictions = []
                 for klass_out in out:
                     ind = np.argmax(klass_out.npvalue())
                     predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
-                predictions.append(predicted)
-            ys.append(predicted)
+                    predictions.append(predicted)
+                predictions = tuple(predictions)
+            ys.append(predictions)
+        assert all([y is None or type(y) is tuple and len(y) == self.hyperparameters.n_labels_to_predict for y in ys])
         return ys

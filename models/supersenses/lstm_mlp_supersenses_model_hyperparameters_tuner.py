@@ -17,7 +17,7 @@ def build_csv_rows(params, result):
     for scope, scope_data in result_data.items():
         for epoch, epoch_data in enumerate(scope_data):
             class_scores = epoch_data['class_scores']
-            classes_ordered = sorted(class_scores.keys())
+            classes_ordered = sorted(class_scores.keys(), key=lambda k: str(k))
             if ClassifierEvaluator.ALL_CLASSES in classes_ordered:
                 classes_ordered.remove(ClassifierEvaluator.ALL_CLASSES)
                 classes_ordered = [ClassifierEvaluator.ALL_CLASSES] + classes_ordered
@@ -28,6 +28,8 @@ def build_csv_rows(params, result):
                 scores = class_scores[klass]
                 if klass == ClassifierEvaluator.ALL_CLASSES:
                     klass = '-- All Classes --'
+                elif klass == ClassifierEvaluator.ALL_CLASSES_STRICT:
+                    klass = '-- All Classes (strict) --'
                 else:
                     if not is_best_epoch and not is_last_epoch:
                         continue
@@ -82,7 +84,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
         )
 
     def tune(self, samples, results_csv_path, validation_samples=None, n_executions=30, show_progress=True, show_epoch_eval=True,
-             evaluator=ClassifierEvaluator(), tuner_score_getter=lambda evaluations: max([e['f1'] for e in evaluations]),
+             evaluator=ClassifierEvaluator(), tuner_score_getter=lambda evaluations: max([e['f1'] or 0 for e in evaluations]),
              tuner_results_getter=extract_classifier_evaluator_results, tuner_domains_override=None):
         assert evaluator is not None
         tuner_domains_override = tuner_domains_override or []
