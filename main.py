@@ -143,21 +143,21 @@ tuner = LstmMlpSupersensesModelHyperparametersTuner(
 
 )
 tuner.tune(train_samples,
-           # '/cs/labs/oabend/aviramstern/results.csv',
-           '/tmp/results.csv',
+           '/cs/labs/oabend/aviramstern/results.csv',
+           # '/tmp/results.csv',
            validation_samples=dev_samples,
            n_executions=1,
            show_progress=True,
            show_epoch_eval=True,
            tuner_domains_override=[
-               PS(name='labels_to_predict', values=[
-                   ('supersense_role', 'supersense_func'),
-               ]),
-               # PS(name='mask_by', values=['pos:IN,PRP$,RB,TO']),
-               PS(name='mask_by', values=['sample-ys']),
-               PS(name='learning_rate', values=[0.1]),
-               PS(name='learning_rate_decay', values=[0.01]),
-               PS(name='mlp_dropout_p', values=[0.1])
+               # PS(name='labels_to_predict', values=[
+               #     ('supersense_role', 'supersense_func'),
+               # ]),
+               PS(name='mask_by', values=['pos:IN,PRP$,RB,TO']),
+               # PS(name='mask_by', values=['sample-ys']),
+               # PS(name='learning_rate', values=[0.1]),
+               # PS(name='learning_rate_decay', values=[0.01]),
+               # PS(name='mlp_dropout_p', values=[0.1])
            ])
 
 # print('LSTM-MLP evaluation:')
