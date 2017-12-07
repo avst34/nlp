@@ -1,3 +1,5 @@
+from collections import Counter
+
 import supersenses
 import json
 from datasets.streusle import streusle
@@ -66,33 +68,36 @@ print('loaded %d test records with %d tokens (%d unique), %d prepositions' % (le
                                                        len(set([t.token for s in test_records for t in s.tagged_tokens])),
                                                        len([tok for rec in test_records for tok in rec.tagged_tokens if tok.combined_supersense])))
 
-all_records = train_records + dev_records + test_records
-all_ignored_ss = [ignored_ss for rec in all_records for ignored_ss in rec.ignored_supersenses]
-unfamiliar_ss = [ss for ss in all_ignored_ss if not supersenses.filter_non_supersense(ss)]
-unfamiliar_ss = [ss for ss in unfamiliar_ss if not(ss.startswith('`') or '_' in ss or '?' in ss)]
-print('Ignored %d supersenses, %d out of them are unfamiliar:' % (len(set(all_ignored_ss)), len(set(unfamiliar_ss))))
-for ss in sorted(set(unfamiliar_ss)):
-    print("%s (%d appearances)" % (ss, unfamiliar_ss.count(ss)))
-
-unfamiliar_ss_after_splitting = [_ss for ss in unfamiliar_ss for __ss in ss.split('|') for _ss in __ss.split(' ') if not supersenses.filter_non_supersense(_ss)]
-print('And after splitting:')
-for ss in sorted(set(unfamiliar_ss_after_splitting)):
-    print("%s (%d appearances)" % (ss, unfamiliar_ss_after_splitting.count(ss)))
-
-all_prepositions = set([t.token.lower() for rec in all_records for t in rec.tagged_tokens if t.combined_supersense])
-print("All prepositions:", len(all_prepositions))
-print("----------------")
-for p in sorted(all_prepositions):
-    print(p)
-print("---")
-
-all_mwe_prepositions = [t.token.lower() for rec in all_records for t in rec.tagged_tokens if t.combined_supersense and t.part_of_mwe]
-print("All mwe prepositions:", len(set(all_mwe_prepositions)))
-print("----------------")
-for p in sorted(set(all_mwe_prepositions)):
-    print(p)
-print("---")
-
+# all_records = train_records + dev_records + test_records
+# all_ignored_ss = [ignored_ss for rec in all_records for ignored_ss in rec.ignored_supersenses]
+# unfamiliar_ss = [ss for ss in all_ignored_ss if not supersenses.filter_non_supersense(ss)]
+# unfamiliar_ss = [ss for ss in unfamiliar_ss if not(ss.startswith('`') or '_' in ss or '?' in ss)]
+# print('Ignored %d supersenses, %d out of them are unfamiliar:' % (len(set(all_ignored_ss)), len(set(unfamiliar_ss))))
+# for ss in sorted(set(unfamiliar_ss)):
+#     print("%s (%d appearances)" % (ss, unfamiliar_ss.count(ss)))
+#
+# unfamiliar_ss_after_splitting = [_ss for ss in unfamiliar_ss for __ss in ss.split('|') for _ss in __ss.split(' ') if not supersenses.filter_non_supersense(_ss)]
+# print('And after splitting:')
+# for ss in sorted(set(unfamiliar_ss_after_splitting)):
+#     print("%s (%d appearances)" % (ss, unfamiliar_ss_after_splitting.count(ss)))
+#
+# all_prepositions = set([t.token.lower() for rec in all_records for t in rec.tagged_tokens if t.combined_supersense])
+# print("All prepositions:", len(all_prepositions))
+# print("----------------")
+# for p in sorted(all_prepositions):
+#     print(p)
+# print("---")
+#
+# all_mwe_prepositions = [t.token.lower() for rec in all_records for t in rec.tagged_tokens if t.combined_supersense and t.part_of_mwe]
+# print("All mwe prepositions:", len(set(all_mwe_prepositions)))
+# print("----------------")
+# for p in sorted(set(all_mwe_prepositions)):
+#     print(p)
+# print("---")
+#
+#
+# print("Preposition POSes:", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.combined_supersense]))
+# print("Preposition POSes (MWEs dropped):", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.combined_supersense and not t.part_of_mwe]))
 
 train_samples = [streusle_record_to_conditional_model_sample(r, [supersenses.constants.TYPES.PREPOSITION_SUPERSENSE]) for r in train_records]
 train_samples = [s for s in train_samples if any(s.ys)]
@@ -126,6 +131,7 @@ token_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_s
 
 pss_vocab = Vocabulary('PrepositionalSupersenses')
 pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
+pss_vocab.add_word(None)
 
 tuner = LstmMlpSupersensesModelHyperparametersTuner(
     token_embd=streusle_loader.get_tokens_word2vec_model().as_dict(),
@@ -147,6 +153,11 @@ tuner.tune(train_samples,
                PS(name='labels_to_predict', values=[
                    ('supersense_role', 'supersense_func'),
                ]),
+               # PS(name='mask_by', values=['pos:IN,PRP$,RB,TO']),
+               PS(name='mask_by', values=['sample-ys']),
+               PS(name='learning_rate', values=[0.1]),
+               PS(name='learning_rate_decay', values=[0.01]),
+               PS(name='mlp_dropout_p', values=[0.1])
            ])
 
 # print('LSTM-MLP evaluation:')

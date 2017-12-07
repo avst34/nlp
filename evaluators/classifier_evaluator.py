@@ -38,9 +38,9 @@ class ClassifierEvaluator:
 
         if any([p, a]):
             if p is None:
-                p = [None for _ in a]
+                p = [None] * len(a)
             elif a is None:
-                a = [None for _ in p]
+                a = [None] * len(p)
         else:
             p, a = [[None], [None]]
 
@@ -85,7 +85,7 @@ class ClassifierEvaluator:
         class_scores = {}
 
         for ind, sample in enumerate(samples):
-            predicted_ys = predictor.predict(sample.xs, [True if y else False for y in sample.ys])
+            predicted_ys = predictor.predict(sample.xs, sample.mask)
             if ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
             for p, a in zip(predicted_ys, sample.ys):
@@ -94,13 +94,13 @@ class ClassifierEvaluator:
                 self.update_counts(counts, ALL_CLASSES_STRICT, p, a)
                 if a is not None and len(a) > 1:
                     for ind, klass in enumerate(a):
-                        cklass = tuple([klass if i == ind else '*' for i in range(len(klass))])
+                        cklass = tuple([a[i] if i == ind else '*' for i in range(len(a))])
                         self.update_counts(counts, cklass, p[ind], klass)
 
         for klass, class_counts in counts.items():
             if class_counts['total'] != 0:
-                precision = (class_counts['p_value_a_value_eq'] / (class_counts['p_value_a_value_eq'] + class_counts['p_value_a_value_neq'] + class_counts['p_value_a_none']))
-                recall = (class_counts['p_value_a_value_eq'] / (class_counts['p_value_a_value_eq'] + class_counts['p_value_a_value_neq'] + class_counts['p_none_a_value']))
+                precision = (class_counts['p_value_a_value_eq'] / ((class_counts['p_value_a_value_eq'] + class_counts['p_value_a_value_neq'] + class_counts['p_value_a_none']) or 0.001))
+                recall = (class_counts['p_value_a_value_eq'] / ((class_counts['p_value_a_value_eq'] + class_counts['p_value_a_value_neq'] + class_counts['p_none_a_value']) or 0.001))
                 if precision + recall:
                     f1 = f1_score(precision, recall)
                 else:

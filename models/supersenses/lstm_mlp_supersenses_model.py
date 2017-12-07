@@ -1,6 +1,7 @@
 from collections import namedtuple
 from pprint import pprint
 from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel
+from ptb_poses import assert_pos
 from utils import update_dict, clear_nones
 import numpy as np
 
@@ -28,6 +29,10 @@ class LstmMlpSupersensesModel(object):
     SUPERSENSE_FUNC = "supersense_func"
 
     class HyperParameters:
+
+        MASK_BY_SAMPLE_YS = 'sample-ys'
+        MASK_BY_POS_PREFIX = 'pos:'
+
         def __init__(self,
                      labels_to_predict,
                      use_token,
@@ -51,8 +56,10 @@ class LstmMlpSupersensesModel(object):
                      epochs,
                      validation_split,
                      learning_rate,
-                     learning_rate_decay
+                     learning_rate_decay,
+                     mask_by # MASK_BY_SAMPLE_YS or MASK_BY_POS_PREFIX + 'pos1,pos2,...'
                  ):
+            self.mask_by = mask_by
             self.labels_to_predict = labels_to_predict
             self.token_internal_embd_dim = token_internal_embd_dim
             self.use_token_internal = use_token_internal
@@ -76,7 +83,20 @@ class LstmMlpSupersensesModel(object):
             self.mlp_dropout_p = mlp_dropout_p
             self.epochs = epochs
             self.validation_split = validation_split
+            assert(mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS
+                   or mask_by.startswith(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX))
 
+            for pos in (self.get_pos_mask() or []):
+                assert_pos(pos)
+
+        def is_mask_by_sample_ys(self):
+            return self.mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS
+
+        def get_pos_mask(self):
+            if not self.mask_by.startswith(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX):
+                return None
+            opts = self.mask_by[len(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX):].split(',')
+            return opts
 
     def __init__(self,
                  token_vocab,
@@ -140,7 +160,7 @@ class LstmMlpSupersensesModel(object):
                 },
                 'n_labels_to_predict': len(self.hyperparameters.labels_to_predict)
             }, del_keys=['use_token', 'use_pos', 'use_dep', 'token_embd_dim', 'pos_embd_dim', 'token_internal_embd_dim',
-                         'update_token_embd', 'update_pos_embd', 'use_token_onehot', 'use_token_internal', 'labels_to_predict'])
+                         'update_token_embd', 'update_pos_embd', 'use_token_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by'])
            )
         )
 
@@ -178,16 +198,44 @@ class LstmMlpSupersensesModel(object):
         labels = sorted(self.hyperparameters.labels_to_predict)
         return LstmMlpSupersensesModel.SampleY(**{label: ll_sample_y[ind] for ind, label in enumerate(labels)})
 
+    def apply_mask(self, sample_x, sample_y):
+        if self.hyperparameters.is_mask_by_sample_ys():
+            return sample_y is not None
+        else:
+            return sample_x.pos in self.hyperparameters.get_pos_mask()
+
+    def get_sample_mask(self, sample):
+        return [self.apply_mask(x, y) for x, y in zip(sample.xs, sample.ys)]
+
     def sample_to_lowlevel(self, sample):
         return LstmMlpMulticlassModel.Sample(
             xs=[self.sample_x_to_lowlevel(x) for x in sample.xs],
             ys=[self.sample_y_to_lowlevel(y) for y in sample.ys],
+            mask=self.get_sample_mask(sample)
         )
+
+    def report_masking(self, samples, name='samples'):
+        n_sentences = 0
+        n_y_labels = 0
+        for s in samples:
+            mask = self.get_sample_mask(s)
+            if any(mask):
+                n_sentences += 1
+            n_y_labels += len([y for i, y in enumerate(s.ys) if any([y.supersense_func, y.supersense_role]) and mask[i]])
+        print("[%s]: %d sentences, %d labels" % (name, n_sentences, n_y_labels))
 
     def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
         ll_samples = [self.sample_to_lowlevel(s) for s in samples]
+        ll_samples = [x for x in ll_samples if any(x.mask)]
+
         ll_validation_samples = [self.sample_to_lowlevel(s) for s in validation_samples] if validation_samples else None
+        ll_validation_samples = [x for x in ll_validation_samples if any(x.mask)] if ll_validation_samples else None
+
+        self.report_masking(samples, 'Training')
+        if validation_samples:
+            self.report_masking(validation_samples, 'Validation')
+
         self.model.fit(ll_samples, show_progress=show_progress,
                        show_epoch_eval=show_epoch_eval, evaluator=evaluator,
                        validation_samples=ll_validation_samples)

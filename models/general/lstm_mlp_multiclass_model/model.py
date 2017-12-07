@@ -20,7 +20,7 @@ MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
 
 class LstmMlpMulticlassModel(object):
 
-    Sample = namedtuple('Sample', ['xs', 'ys'])
+    Sample = namedtuple('Sample', ['xs', 'ys', 'mask'])
 
     class SampleX:
         def __init__(self, fields, head_ind=None):
@@ -188,7 +188,7 @@ class LstmMlpMulticlassModel(object):
                     mask[ind] = False
         return mask
 
-    def _build_network_for_input(self, xs, mask=None):
+    def _build_network_for_input(self, xs, mask):
         mask = self.build_mask(xs, external_mask=mask)
         if not self.hyperparameters.is_bilstm:
             cur_lstm_state = self.lstm_builder.initial_state()
@@ -236,7 +236,9 @@ class LstmMlpMulticlassModel(object):
     def _build_loss(self, outputs, ys):
         losses = []
         for out, y in zip(outputs, ys):
-            if y is not None:
+            if out is not None:
+                if y is None:
+                    y = [None] * self.hyperparameters.n_labels_to_predict
                 assert len([label_y is None for label_y in y]) in [0, len(y)], "Got a sample with partial None labels"
                 for label_out, label_y in zip(out, y):
                     ss_ind = self.output_vocabulary.get_index(label_y)
@@ -288,8 +290,7 @@ class LstmMlpMulticlassModel(object):
                 dy.renew_cg()
                 losses = []
                 for sample in batch:
-                    mask = [klasses is not None for klasses in sample.ys]
-                    outputs = self._build_network_for_input(sample.xs, mask=mask)
+                    outputs = self._build_network_for_input(sample.xs, sample.mask)
                     sample_loss = self._build_loss(outputs, sample.ys)
                     losses.append(sample_loss)
                 batch_loss = dy.esum(losses)
@@ -307,7 +308,7 @@ class LstmMlpMulticlassModel(object):
             if evaluator and show_epoch_eval:
                 print('--------------------------------------------')
                 print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
-                print('Test data evaluation:')
+                print('Validation data evaluation:')
                 epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self)
                 self.test_set_evaluation.append(epoch_test_eval)
                 print('Training data evaluation:')
@@ -325,18 +326,18 @@ class LstmMlpMulticlassModel(object):
         dy.renew_cg()
         if mask is None:
             mask = [True] * len(sample_xs)
-        outputs = self._build_network_for_input(sample_xs)
+        outputs = self._build_network_for_input(sample_xs, mask)
         ys = []
         for token_ind, out in enumerate(outputs):
             if not mask[token_ind] or out is None:
-                predictions = None
+                predictions = [None] * self.hyperparameters.n_labels_to_predict
             else:
                 predictions = []
                 for klass_out in out:
                     ind = np.argmax(klass_out.npvalue())
                     predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
                     predictions.append(predicted)
-                predictions = tuple(predictions)
+            predictions = tuple(predictions)
             ys.append(predictions)
         assert all([y is None or type(y) is tuple and len(y) == self.hyperparameters.n_labels_to_predict for y in ys])
         return ys

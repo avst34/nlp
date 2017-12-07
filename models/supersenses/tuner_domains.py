@@ -32,7 +32,8 @@ TUNER_DOMAINS_TUNING = [
     # PS(name='epochs', values=range(1, 2)),
     PS(name='validation_split', values=[0.3]),
     PS(name='learning_rate', values=np.logspace(-5, 0, 11)),
-    PS(name='learning_rate_decay', values=np.r_[0, np.logspace(-5, -1, 9)])
+    PS(name='learning_rate_decay', values=np.r_[0, np.logspace(-5, -1, 9)]),
+    PS(name='mask_by', values=['sample-ys', 'pos:IN,PRP$,RB,TO'])
 ]
 
 
