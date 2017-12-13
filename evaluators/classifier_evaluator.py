@@ -18,8 +18,9 @@ class ClassifierEvaluator:
         print("------")
         for x, y_true, y_predicted in zip(sample.xs, sample.ys, predicted_ys):
             print(''.join(['{:<30}'.format("[%s] %s" % (f, x[f])) for f in sorted(x.keys())]))
-            print('^ [%s]  ACTUAL: %10s  PREDICTED: %10s' % ('X' if y_true != y_predicted else 'V', y_true, y_predicted) \
-                    if y_true else ' ')
+            if any(y_true) or any(y_predicted):
+                print('^ [%s]  ACTUAL: %10s  PREDICTED: %10s' % ('X' if y_true != y_predicted else 'V', y_true, y_predicted) \
+                        if y_true else ' ')
 
     def update_counts(self, counts, klass, predicted, actual, strict=True):
         counts[klass] = counts.get(klass, {
@@ -44,20 +45,24 @@ class ClassifierEvaluator:
         else:
             p, a = [[None], [None]]
 
+        def isNone(x):
+            return x is None or not any(x)
+
         for predicted, actual in zip(p, a):
             c = 1 / len(p)
-            if predicted is None and actual is None:
+            if isNone(predicted) and isNone(actual):
                 counts[klass]['p_none_a_none'] += c
             else:
                 counts[klass]['total'] += c
-                if predicted is None and actual is not None:
+                if isNone(predicted) and actual is not None:
                     counts[klass]['p_none_a_value'] += c
-                elif predicted is not None and actual is None:
+                elif not isNone(predicted) and isNone(actual):
                     counts[klass]['p_value_a_none'] += c
                 elif predicted == actual:
                     counts[klass]['p_value_a_value_eq'] += c
                 else:
                     counts[klass]['p_value_a_value_neq'] += c
+        return
 
     def evaluate(self, samples, examples_to_show=3, predictor=None):
         ALL_CLASSES = ClassifierEvaluator.ALL_CLASSES
@@ -95,6 +100,8 @@ class ClassifierEvaluator:
                 if a is not None and len(a) > 1:
                     for ind, klass in enumerate(a):
                         cklass = tuple([a[i] if i == ind else '*' for i in range(len(a))])
+                        self.update_counts(counts, cklass, p[ind], klass)
+                        cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(a))])
                         self.update_counts(counts, cklass, p[ind], klass)
 
         for klass, class_counts in counts.items():

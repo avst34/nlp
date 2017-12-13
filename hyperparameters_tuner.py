@@ -26,9 +26,10 @@ class HyperparametersTuner:
 
     class ParamSettings:
 
-        def __init__(self, name, values):
+        def __init__(self, name, values, enabled=True):
             self.name = name
             self.values = values
+            self.enabled = enabled
 
         def sample(self):
             return random.choice(self.values)
@@ -38,7 +39,7 @@ class HyperparametersTuner:
             self.score = score
             self.result_data = result_data
 
-    def __init__(self, params_settings, executor, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None):
+    def __init__(self, params_settings, executor, results_csv_path, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None):
         assert all([isinstance(ps, HyperparametersTuner.ParamSettings) for ps in params_settings])
         self.shared_csv = shared_csv
         if shared_csv:
@@ -54,6 +55,11 @@ class HyperparametersTuner:
         self.emitted_result1s = None
         self.executor_id = self.gen_id()
 
+        self.csv_file_path = results_csv_path
+        self.emitted_csv_rows = 0
+        self.emitted_results = 0
+
+
     def sample_params(self):
         return OrderedDict({
             (setting.name, setting.sample()) for setting in self.params_settings
@@ -61,20 +67,21 @@ class HyperparametersTuner:
 
     def sample_execution(self, params=None):
         params = params or self.sample_params()
+        enabled_params = {p: v for p, v in params.items() if self.param(p).enabled}
         start_time = time.time()
-        result = self.executor(params)
+        result = self.executor(enabled_params)
         execution_time = time.time() - start_time
         assert isinstance(result, HyperparametersTuner.ExecutionResult)
         self.emit_result_to_csv(params, result, execution_time)
-        return params, result,
+        return params, result
 
     def sample_executions(self, n_executions, mapper=map):
         return mapper(lambda _: self.sample_execution(), range(n_executions))
 
-    def tune(self, results_csv_path, n_executions=30, mapper=map):
-        self.csv_file_path = results_csv_path
-        self.emitted_csv_rows = 0
-        self.emitted_results = 0
+    def param(self, name):
+        return [ps for ps in self.params_settings if ps.name == name][0]
+
+    def tune(self, n_executions=30, mapper=map):
         results = self.sample_executions(n_executions, mapper)
         best_params, best_result = max(results, key=lambda result: result[1].score)
         return best_params, best_result

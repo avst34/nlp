@@ -1,3 +1,12 @@
+import random
+
+import dynet_config
+import os
+os.environ['DYNET_RANDOM_SEED'] = str(random.randrange(10000000))
+dynet_config.set(random_seed=int(os.environ['DYNET_RANDOM_SEED']))
+import dynet
+
+
 from collections import Counter
 
 import supersenses
@@ -53,6 +62,21 @@ def streusle_record_to_conditional_model_sample(record, ss_types):
         ],
     )
 
+def print_samples_statistics(name, samples):
+    sentences = len(samples)
+    tokens = len([tok for s in samples for tok in s.tagged_tokens])
+    prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.pos in ['IN', 'PRP$', 'RB', 'TO']])
+    labeled_prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.pos in ['IN', 'PRP$', 'RB', 'TO'] and tok.combined_supersense])
+    labels_lost = len([tok for s in samples for tok in s.tagged_tokens if tok.pos not in ['IN', 'PRP$', 'RB', 'TO'] and tok.combined_supersense])
+
+    print("Set: %s, Sentences: %d, Tokens: %d, Prepositions: %d, Labeled prepositions: %d, Labels Lost: %d" % (name,
+                                                                                  sentences,
+                                                                                  tokens,
+                                                                                  prepositions,
+                                                                                  labeled_prepositions,
+                                                                                  labels_lost)
+          )
+
 streusle_loader = streusle.StreusleLoader()
 train_records, dev_records, test_records = streusle_loader.load()
 print('loaded %d train records with %d tokens (%d unique), %d prepositions' % (len(train_records),
@@ -67,6 +91,10 @@ print('loaded %d test records with %d tokens (%d unique), %d prepositions' % (le
                                                        sum([len(x.tagged_tokens) for x in test_records]),
                                                        len(set([t.token for s in test_records for t in s.tagged_tokens])),
                                                        len([tok for rec in test_records for tok in rec.tagged_tokens if tok.combined_supersense])))
+
+print_samples_statistics('train', train_records)
+print_samples_statistics('dev', dev_records)
+print_samples_statistics('test', test_records)
 
 # all_records = train_records + dev_records + test_records
 # all_ignored_ss = [ignored_ss for rec in all_records for ignored_ss in rec.ignored_supersenses]
@@ -134,31 +162,37 @@ pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
 pss_vocab.add_word(None)
 
 tuner = LstmMlpSupersensesModelHyperparametersTuner(
+    results_csv_path='/cs/labs/oabend/aviramstern/results.csv',
+    samples=train_samples,
+    validation_samples=dev_samples,
+    show_progress=True,
+    show_epoch_eval=True,
+    tuner_domains_override=[
+        PS(name='labels_to_predict', values=[
+            ('supersense_role', 'supersense_func'),
+        ]),
+        PS(name='mask_by', values=['pos:IN,PRP$,RB,TO']),
+        # PS(name='mask_by', values=['sample-ys']),
+        # PS(name='learning_rate', values=[0.1]),
+        # PS(name='learning_rate_decay', values=[0.01]),
+        # PS(name='mlp_dropout_p', values=[0.1])
+        # PS(name='epochs', values=[5])
+    ],
+
     token_embd=streusle_loader.get_tokens_word2vec_model().as_dict(),
     token_vocab=token_vocab,
     token_onehot_vocab=pp_vocab,
     pos_vocab=pos_vocab,
     dep_vocab=dep_vocab,
     supersense_vocab=pss_vocab,
-
 )
-tuner.tune(train_samples,
-           '/cs/labs/oabend/aviramstern/results.csv',
-           # '/tmp/results.csv',
-           validation_samples=dev_samples,
-           n_executions=1,
-           show_progress=True,
-           show_epoch_eval=True,
-           tuner_domains_override=[
-               # PS(name='labels_to_predict', values=[
-               #     ('supersense_role', 'supersense_func'),
-               # ]),
-               PS(name='mask_by', values=['pos:IN,PRP$,RB,TO']),
-               # PS(name='mask_by', values=['sample-ys']),
-               # PS(name='learning_rate', values=[0.1]),
-               # PS(name='learning_rate_decay', values=[0.01]),
-               # PS(name='mlp_dropout_p', values=[0.1])
-           ])
+
+# tuner.tune(n_executions=1)
+tuner.sample_execution(json.loads(
+    """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role", "supersense_func"], "use_token_onehot": true, "mlp_dropout_p": 0.12, "epochs": 100, "mlp_activation": "relu", "validation_split": 0.3, "use_token": true, "update_token_embd": false, "update_pos_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "use_head": true, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "pos_embd_dim": 98, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_dep": true}"""
+    # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role"], "use_token_onehot": true, "mlp_dropout_p": 0.12, "epochs": 100, "mlp_activation": "relu", "validation_split": 0.3, "use_token": true, "update_token_embd": false, "update_pos_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "use_head": true, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "pos_embd_dim": 98, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_dep": true}"""
+    # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_func"], "use_token_onehot": true, "mlp_dropout_p": 0.12, "epochs": 100, "mlp_activation": "relu", "validation_split": 0.3, "use_token": true, "update_token_embd": false, "update_pos_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "use_head": true, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "pos_embd_dim": 98, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_dep": true}"""
+))
 
 # print('LSTM-MLP evaluation:')
 # lstm_mlp_model = LstmMlpSupersensesModel(
@@ -168,13 +202,15 @@ tuner.tune(train_samples,
 #     pos_vocab=pos_vocab,
 #     dep_vocab=dep_vocab,
 #     supersense_vocab=pss_vocab,
-#     hyperparameters=LstmMlpSupersensesModel.HyperParameters(**json.loads("""{"use_head": true, "lstm_h_dim": 74, "epochs": 100, "mlp_layer_dim": 62, "mlp_layers": 2, "num_lstm_layers": 2, "use_token_onehot": true, "update_token_embd": false, "learning_rate": 0.1, "use_token": true, "use_pos": false, "token_internal_embd_dim": 27, "use_token_internal": false, "use_dep": true, "validation_split": 0.3, "token_embd_dim": 300, "pos_embd_dim": 80, "mlp_dropout_p": 0.05, "is_bilstm": true, "mlp_activation": "tanh", "update_pos_embd": true, "learning_rate_decay": 0.00031622776601683794}"""))
+#     hyperparameters=LstmMlpSupersensesModel.HyperParameters(**json.loads(
+#         """ {"use_token_internal": false, "token_internal_embd_dim": 73, "mlp_layers": 2, "epochs": 100, "is_bilstm": true, "labels_to_predict": ["supersense_func"], "use_head": false, "mlp_activation": "relu", "learning_rate_decay": 0.01, "validation_split": 0.3, "learning_rate": 0.1, "num_lstm_layers": 2, "mlp_dropout_p": 0.12, "pos_embd_dim": 50, "use_token": true, "use_token_onehot": true, "use_pos": false, "update_token_embd": true, "update_pos_embd": false, "mlp_layer_dim": 98, "token_embd_dim": 300, "use_dep": true, "lstm_h_dim": 100, "mask_by": "pos:IN,PRP$,RB,TO"}"""
+#     ))
 # )
 #
 # lstm_mlp_model.fit(train_samples,
 #                    dev_samples,
 #                    evaluator=evaluator)
 #
-# evaluator = ClassifierEvaluator(predictor=lstm_mlp_model.model)
-# ll_samples = [LstmMlpSupersensesModel.sample_to_lowlevel(x) for x in test_samples]
-# evaluator.evaluate(ll_samples, examples_to_show=5)
+# # evaluator = ClassifierEvaluator(predictor=lstm_mlp_model.model)
+# # ll_samples = [LstmMlpSupersensesModel.sample_to_lowlevel(x) for x in test_samples]
+# # evaluator.evaluate(ll_samples, examples_to_show=5)

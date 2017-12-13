@@ -52,6 +52,15 @@ def build_csv_rows(params, result):
 class LstmMlpSupersensesModelHyperparametersTuner:
 
     def __init__(self,
+                 samples,
+                 results_csv_path,
+                 tuner_domains_override=None,
+                 validation_samples=None,
+                 show_progress=True,
+                 show_epoch_eval=True,
+                 evaluator=ClassifierEvaluator(),
+                 tuner_score_getter=lambda evaluations: max([e['f1'] or 0 for e in evaluations]),
+                 tuner_results_getter=extract_classifier_evaluator_results,
                  token_vocab=None,
                  pos_vocab=None,
                  dep_vocab=None,
@@ -69,8 +78,29 @@ class LstmMlpSupersensesModelHyperparametersTuner:
             'pos_embd': pos_embd
         }
         self.fit_kwargs = None
-        self.tuner_results_getter = None
-        self.tuner_score_getter = None
+        self.tuner_results_getter = tuner_results_getter
+        self.tuner_score_getter = tuner_score_getter
+
+        assert evaluator is not None
+
+        tuner_domains_override = tuner_domains_override or []
+        tuner_domains_override_names = set([d.name for d in tuner_domains_override])
+        tuner_domains = [d for d in TUNER_DOMAINS if d.name not in tuner_domains_override_names] + tuner_domains_override
+
+        self.tuner = HyperparametersTuner(results_csv_path=results_csv_path,
+                                          params_settings=tuner_domains, executor=self._execute,
+                                          csv_row_builder=build_csv_rows, shared_csv=True,
+                                          lock_file_path=results_csv_path + '.lock')
+
+        self.fit_kwargs = {
+            'samples': samples,
+            'validation_samples': validation_samples,
+            'show_progress': show_progress,
+            'show_epoch_eval': show_epoch_eval,
+            'evaluator': evaluator
+        }
+
+
 
     def _execute(self, hyperparameters):
         lstm_mlp_model = LstmMlpSupersensesModel(hyperparameters=LstmMlpSupersensesModel.HyperParameters(**hyperparameters), **self.init_kwargs)
@@ -83,24 +113,9 @@ class LstmMlpSupersensesModelHyperparametersTuner:
             score=self.tuner_score_getter(lstm_mlp_model.test_set_evaluation)
         )
 
-    def tune(self, samples, results_csv_path, validation_samples=None, n_executions=30, show_progress=True, show_epoch_eval=True,
-             evaluator=ClassifierEvaluator(), tuner_score_getter=lambda evaluations: max([e['f1'] or 0 for e in evaluations]),
-             tuner_results_getter=extract_classifier_evaluator_results, tuner_domains_override=None):
-        assert evaluator is not None
-        tuner_domains_override = tuner_domains_override or []
-        tuner_domains_override_names = set([d.name for d in tuner_domains_override])
-        tuner_domains = [d for d in TUNER_DOMAINS if d.name not in tuner_domains_override_names] + tuner_domains_override
-        self.tuner_results_getter = tuner_results_getter
-        self.tuner_score_getter = tuner_score_getter
-        self.fit_kwargs = {
-            'samples': samples,
-            'validation_samples': validation_samples,
-            'show_progress': show_progress,
-            'show_epoch_eval': show_epoch_eval,
-            'evaluator': evaluator
-        }
-        tuner = HyperparametersTuner(tuner_domains, executor=self._execute,
-                                     csv_row_builder=build_csv_rows, shared_csv=True,
-                                     lock_file_path=results_csv_path + '.lock')
-        best_params, best_results = tuner.tune(results_csv_path, n_executions)
+    def tune(self, n_executions=30):
+        best_params, best_results = self.tuner.tune(n_executions)
         return best_params, best_results
+
+    def sample_execution(self, params=None):
+        return self.tuner.sample_execution(params)

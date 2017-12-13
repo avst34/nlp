@@ -11,5 +11,5 @@ source /cs/usr/aviramstern/venvs/cortex/bin/activate.csh
 while true; do
     #    #python3 $DIR/../main.py > ~/baseline.out
     #python3 $DIR/../main.py --dynet-gpu --dynet-autobatch > ~/baseline.out
-    python3 /cs/usr/aviramstern/nlp/main.py
+    python3 /cs/usr/aviramstern/nlp_prod/main.py
 done

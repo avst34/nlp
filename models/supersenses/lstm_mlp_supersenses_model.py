@@ -190,8 +190,6 @@ class LstmMlpSupersensesModel(object):
     def sample_y_to_lowlevel(self, sample_y):
         labels = sorted(self.hyperparameters.labels_to_predict)
         ll_y = tuple([getattr(sample_y, label) for label in labels])
-        if None in ll_y:
-            return None
         return ll_y
 
     def lowlevel_to_sample_y(self, ll_sample_y):
