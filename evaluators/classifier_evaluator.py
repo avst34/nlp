@@ -18,7 +18,7 @@ class ClassifierEvaluator:
         print("------")
         for x, y_true, y_predicted in zip(sample.xs, sample.ys, predicted_ys):
             print(''.join(['{:<30}'.format("[%s] %s" % (f, x[f])) for f in sorted(x.keys())]))
-            if any(y_true) or any(y_predicted):
+            if any(y_true or []) or any(y_predicted or []):
                 print('^ [%s]  ACTUAL: %10s  PREDICTED: %10s' % ('X' if y_true != y_predicted else 'V', y_true, y_predicted) \
                         if y_true else ' ')
 
@@ -94,6 +94,8 @@ class ClassifierEvaluator:
             if ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
             for p, a in zip(predicted_ys, sample.ys):
+                if not p:
+                    p = tuple([None] * len(a))
                 self.update_counts(counts, a, p, a)
                 self.update_counts(counts, ALL_CLASSES, p, a, strict=False)
                 self.update_counts(counts, ALL_CLASSES_STRICT, p, a)
@@ -120,6 +122,11 @@ class ClassifierEvaluator:
                     ('correct/total', '%d / %d' % (class_counts['p_value_a_value_eq'], class_counts['total']))
                 ])
 
+        def report(klass, display_name):
+            print(' - %s precision: %2.2f' % (display_name, class_scores[klass]['precision']))
+            print(' - %s recall:    %2.2f' % (display_name, class_scores[klass]['recall']))
+            if class_scores[klass]['f1'] is not None:
+                print(' - %s f1 score:  %2.2f' % (display_name, class_scores[klass]['f1']))
 
         total_counts = counts[ALL_CLASSES]
         total_precision = class_scores[ALL_CLASSES]['precision']
@@ -127,15 +134,12 @@ class ClassifierEvaluator:
         total_f1 = class_scores[ALL_CLASSES]['f1']
 
         print('Evaluation on %d samples (%d predictions):' % (len(samples),
-                total_counts['p_value_a_value_eq'] +
-                total_counts['p_value_a_value_neq'] +
-                total_counts['p_none_a_value']
-            )
-        )
-        print(' - precision: %2.2f' % total_precision)
-        print(' - recall:    %2.2f' % total_recall)
-        if total_f1 is not None:
-            print(' - f1 score:  %2.2f' % total_f1)
+                                                              total_counts['p_value_a_value_eq'] +
+                                                              total_counts['p_value_a_value_neq'] +
+                                                              total_counts['p_none_a_value'])
+              )
+        report(ALL_CLASSES, 'All Classes')
+        report(ALL_CLASSES_STRICT, 'All Classes (strict)')
 
         return {
             'precision': total_precision,

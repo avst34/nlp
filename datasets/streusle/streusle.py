@@ -46,10 +46,10 @@ class TaggedToken(namedtuple('TokenData_', ['token', 'token_word2vec', 'pos', 's
 
         self.supersense_role_type = supersenses.get_supersense_type(self.supersense_role) if self.supersense_role else None
         self.supersense_func_type = supersenses.get_supersense_type(self.supersense_func) if self.supersense_func else None
-        combined_supersense = None
+        supersense_combined = None
         if self.supersense_role and self.supersense_func:
-            combined_supersense = self.supersense_role + '|' + self.supersense_func
-        self.combined_supersense = combined_supersense
+            supersense_combined = self.supersense_role + '|' + self.supersense_func
+        self.supersense_combined = supersense_combined
 
 class StreusleRecord:
 
@@ -137,7 +137,7 @@ class StreusleLoader(object):
                                         ud_dep_tree=UD_DEP_TREES.get(line[0]),
                                         only_supersenses=only_with_supersenses)
                 if only_with_supersenses:
-                    if not any([token.combined_supersense for token in record.tagged_tokens]):
+                    if not any([token.supersense_combined for token in record.tagged_tokens]):
                         continue
                 records.append(record)
             test_sentids = self._load_test_sentids()
