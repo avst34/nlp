@@ -10,15 +10,22 @@ class LstmMlpSupersensesModel(object):
     Sample = namedtuple('Sample', ['xs', 'ys'])
 
     class SampleX:
+
         def __init__(self,
                      token,
                      pos=None,
-                     dep=None,
-                     head_ind=None):
+                     spacy_dep=None,
+                     spacy_head_ind=None,
+                     spacy_ner=None,
+                     ud_dep=None,
+                     ud_head_ind=None):
             self.token = token
             self.pos = pos
-            self.dep = dep
-            self.head_ind = head_ind
+            self.spacy_ner = spacy_ner
+            self.spacy_dep = spacy_dep
+            self.spacy_head_ind = spacy_head_ind
+            self.ud_dep = ud_dep
+            self.ud_head_ind = ud_head_ind
 
     class SampleY:
         def __init__(self, supersense_role=None, supersense_func=None):
@@ -38,6 +45,8 @@ class LstmMlpSupersensesModel(object):
                      use_token,
                      use_pos,
                      use_dep,
+                     deps_from, # 'spacy' or 'ud'
+                     use_ner,
                      use_token_onehot,
                      use_token_internal,
                      update_token_embd,
@@ -45,6 +54,7 @@ class LstmMlpSupersensesModel(object):
                      token_embd_dim,
                      token_internal_embd_dim,
                      pos_embd_dim,
+                     ner_embd_dim,
                      mlp_layers,
                      mlp_layer_dim,
                      mlp_activation,
@@ -53,12 +63,13 @@ class LstmMlpSupersensesModel(object):
                      is_bilstm,
                      use_head,
                      mlp_dropout_p,
+                     lstm_dropout_p,
                      epochs,
-                     validation_split,
                      learning_rate,
                      learning_rate_decay,
                      mask_by # MASK_BY_SAMPLE_YS or MASK_BY_POS_PREFIX + 'pos1,pos2,...'
-                 ):
+                     ):
+            self.lstm_dropout_p = lstm_dropout_p
             self.mask_by = mask_by
             self.labels_to_predict = labels_to_predict
             self.token_internal_embd_dim = token_internal_embd_dim
@@ -72,8 +83,11 @@ class LstmMlpSupersensesModel(object):
             self.use_token = use_token
             self.use_pos = use_pos
             self.use_dep = use_dep
+            self.deps_from = deps_from
+            self.use_ner = use_ner
             self.token_embd_dim = token_embd_dim
             self.pos_embd_dim = pos_embd_dim
+            self.ner_embd_dim = ner_embd_dim
             self.mlp_layers = mlp_layers
             self.mlp_layer_dim = mlp_layer_dim
             self.lstm_h_dim = lstm_h_dim
@@ -82,12 +96,12 @@ class LstmMlpSupersensesModel(object):
             self.use_head = use_head
             self.mlp_dropout_p = mlp_dropout_p
             self.epochs = epochs
-            self.validation_split = validation_split
+
             assert(mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS
                    or mask_by.startswith(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX))
-
             for pos in (self.get_pos_mask() or []):
                 assert_pos(pos)
+            assert(deps_from in ['spacy', 'ud'])
 
         def is_mask_by_sample_ys(self):
             return self.mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS
@@ -98,10 +112,15 @@ class LstmMlpSupersensesModel(object):
             opts = self.mask_by[len(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX):].split(',')
             return opts
 
+        def should_use_ud_dep(self):
+            return self.deps_from == 'ud'
+
     def __init__(self,
                  token_vocab,
                  pos_vocab,
-                 dep_vocab,
+                 spacy_dep_vocab,
+                 ud_dep_vocab,
+                 ner_vocab,
                  token_onehot_vocab,
                  supersense_vocab,
                  token_embd=None,
@@ -110,7 +129,8 @@ class LstmMlpSupersensesModel(object):
         hp = hyperparameters
         self.token_vocab = token_vocab
         self.pos_vocab = pos_vocab
-        self.dep_vocab = dep_vocab
+        self.spacy_dep_vocab = spacy_dep_vocab
+        self.ud_dep_vocab = ud_dep_vocab
         self.token_onehot_vocab = token_onehot_vocab
         self.supersense_vocab = supersense_vocab
         self.token_embd = token_embd
@@ -120,31 +140,36 @@ class LstmMlpSupersensesModel(object):
         print("LstmMlpSupersensesModel: Building model with the following hyperparameters:")
         pprint(hp.__dict__)
 
+        dep_vocab = ud_dep_vocab if self.hyperparameters.should_use_ud_dep() else spacy_dep_vocab
+
         self.model = LstmMlpMulticlassModel(
             input_vocabularies=clear_nones({
                 'token': token_vocab,
                 'token_internal': token_vocab,
                 'pos': pos_vocab,
                 'dep': dep_vocab,
+                'ner': ner_vocab,
                 'token_onehot': token_onehot_vocab
             }),
             input_embeddings=clear_nones({
                 'token': token_embd,
                 'pos': pos_embd,
-                'dep': self._build_vocab_onehot_embd(self.dep_vocab),
+                'dep': self._build_vocab_onehot_embd(dep_vocab),
                 'token_onehot': self._build_vocab_onehot_embd(self.token_onehot_vocab)
             }),
             output_vocabulary=supersense_vocab,
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
                 'lstm_input_fields': list(filter(lambda x: x, [
                     self.hyperparameters.use_token and "token",
-                    self.hyperparameters.use_token_internal and "token_internal",
-                    self.hyperparameters.use_pos and "pos"
+                    self.hyperparameters.use_token_internal and "token_internal"
                 ])),
                 'mlp_input_fields': list(filter(lambda x: x, [
+                    self.hyperparameters.use_pos and "pos",
                     self.hyperparameters.use_dep and "dep",
+                    self.hyperparameters.use_ner and "ner",
                     self.hyperparameters.use_token_onehot and "token_onehot"
                 ])),
+                'token_dep_types': ['head'],
                 'input_embeddings_to_update': {
                     'token': hp.update_token_embd,
                     'pos': hp.update_pos_embd,
@@ -154,14 +179,15 @@ class LstmMlpSupersensesModel(object):
                 'input_embedding_dims': {
                     'token': hp.token_embd_dim,
                     'pos': hp.pos_embd_dim,
-                    'dep': self.dep_vocab.size() if self.dep_vocab else 0,
+                    'ner': hp.ner_embd_dim,
+                    'dep': dep_vocab.size() if dep_vocab else 0,
                     'token_onehot': self.token_onehot_vocab.size() if self.token_onehot_vocab else 0,
                     'token_internal': hp.token_internal_embd_dim
                 },
                 'n_labels_to_predict': len(self.hyperparameters.labels_to_predict)
-            }, del_keys=['use_token', 'use_pos', 'use_dep', 'token_embd_dim', 'pos_embd_dim', 'token_internal_embd_dim',
-                         'update_token_embd', 'update_pos_embd', 'use_token_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by'])
-           )
+            }, del_keys=['use_token', 'use_pos', 'use_dep', 'use_ner', 'token_embd_dim', 'pos_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
+                         'update_token_embd', 'update_pos_embd', 'use_token_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'deps_from'])
+                                                                   )
         )
 
     def _build_vocab_onehot_embd(self, vocab):
@@ -174,26 +200,25 @@ class LstmMlpSupersensesModel(object):
             embeddings[word] = vec
         return embeddings
 
-    @staticmethod
-    def sample_x_to_lowlevel(sample_x):
+    def sample_x_to_lowlevel(self, sample_x):
         return LstmMlpMulticlassModel.SampleX(
             fields={
                 'token': sample_x.token,
                 'token_onehot': sample_x.token,
                 'token_internal': sample_x.token,
                 'pos': sample_x.pos,
-                'dep': sample_x.dep
+                'dep': sample_x.ud_dep if self.hyperparameters.should_use_ud_dep() else sample_x.spacy_dep
             },
-            head_ind=sample_x.head_ind
+            deps={"head": sample_x.ud_head_ind if self.hyperparameters.should_use_ud_dep() else sample_x.spacy_head_ind}
         )
 
     def sample_y_to_lowlevel(self, sample_y):
-        labels = sorted(self.hyperparameters.labels_to_predict)
+        labels = self.hyperparameters.labels_to_predict
         ll_y = tuple([getattr(sample_y, label) for label in labels])
         return ll_y
 
     def lowlevel_to_sample_y(self, ll_sample_y):
-        labels = sorted(self.hyperparameters.labels_to_predict)
+        labels = self.hyperparameters.labels_to_predict
         return LstmMlpSupersensesModel.SampleY(**{label: ll_sample_y[ind] for ind, label in enumerate(labels)})
 
     def apply_mask(self, sample_x, sample_y):

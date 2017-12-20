@@ -6,7 +6,7 @@ os.environ['DYNET_RANDOM_SEED'] = str(random.randrange(10000000))
 dynet_config.set(random_seed=int(os.environ['DYNET_RANDOM_SEED']))
 import dynet
 
-from run import most_frequent_baseline, lstm_mlp_baseline
+from run import most_frequent_baseline, lstm_mlp_baseline, dataset_statistics
 from collections import Counter
 from datasets.streusle import streusle
 
@@ -44,7 +44,7 @@ print_samples_statistics('train', train_records)
 print_samples_statistics('dev', dev_records)
 print_samples_statistics('test', test_records)
 
-# all_records = train_records + dev_records + test_records
+all_records = train_records + dev_records + test_records
 # all_ignored_ss = [ignored_ss for rec in all_records for ignored_ss in rec.ignored_supersenses]
 # unfamiliar_ss = [ss for ss in all_ignored_ss if not supersenses.filter_non_supersense(ss)]
 # unfamiliar_ss = [ss for ss in unfamiliar_ss if not(ss.startswith('`') or '_' in ss or '?' in ss)]
@@ -75,5 +75,6 @@ print_samples_statistics('test', test_records)
 # print("Preposition POSes:", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.supersense_combined]))
 # print("Preposition POSes (MWEs dropped):", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.supersense_combined and not t.part_of_mwe]))
 
-most_frequent_baseline.run(train_records, dev_records)
-# lstm_mlp_baseline.run(train_records, dev_records, test_records)
+# dataset_statistics.run(all_records)
+# most_frequent_baseline.run(train_records, dev_records)
+lstm_mlp_baseline.run(train_records, dev_records, test_records, streusle_loader)

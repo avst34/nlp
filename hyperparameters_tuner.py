@@ -79,7 +79,10 @@ class HyperparametersTuner:
         return mapper(lambda _: self.sample_execution(), range(n_executions))
 
     def param(self, name):
-        return [ps for ps in self.params_settings if ps.name == name][0]
+        for ps in self.params_settings:
+            if ps.name == name:
+                return ps
+        raise Exception("Unknown tuner param: " + name)
 
     def tune(self, n_executions=30, mapper=map):
         results = self.sample_executions(n_executions, mapper)

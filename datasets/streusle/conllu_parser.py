@@ -7,8 +7,13 @@ from conllu.tree_helpers import create_tree
 DEFAULT_FIELDS = ('id', 'form', 'lemma', 'upostag', 'xpostag', 'feats', 'head', 'deprel', 'deps', 'misc')
 
 def parse(text, fields=DEFAULT_FIELDS):
+    for sentence in text.split("\n\n"):
+        if "004940" in sentence:
+            print(sentence)
+            print("")
+            print("id:", [x for x in sentence.split('\n') if "sent_id" in x][0])
     return {
-        sentence.split('\n')[0]:
+        [x for x in sentence.split('\n') if "sent_id" in x][0]:
         [
             parse_line(line, fields)
             for line in sentence.split("\n")

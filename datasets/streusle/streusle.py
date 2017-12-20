@@ -9,10 +9,11 @@ from word2vec import Word2VecModel
 
 STREUSLE_DIR = os.path.join(os.path.dirname(__file__), 'streusle-3.0-v2')
 
-ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES'])(
+ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES'])(
     WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'word2vec.pickle'),
     WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'word2vec_missing.json'),
     SPACY_DEP_TREES=os.path.join(STREUSLE_DIR, 'spacy_dep_trees.json'),
+    SPACY_NERS=os.path.join(STREUSLE_DIR, 'spacy_ners.json'),
     UD_DEP_TREES=os.path.join(STREUSLE_DIR, 'ud_dep_trees.json'),
     DEV_SET_SENTIDS=os.path.join(STREUSLE_DIR, 'splits/psst-dev.sentids'),
     DEV_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'splits/psst-dev-ud-split.sentids')
@@ -34,10 +35,20 @@ def load_dep_tree(tree_json_path):
     else:
         return {}
 
+def load_json(path, default=None):
+    if os.path.exists(path):
+        with open(path) as f:
+            obj = json.load(f)
+    else:
+        obj = default
+    return obj
+
+
 SPACY_DEP_TREES = load_dep_tree(ENHANCEMENTS.SPACY_DEP_TREES)
 UD_DEP_TREES = load_dep_tree(ENHANCEMENTS.UD_DEP_TREES)
+SPACY_NERS = load_json(ENHANCEMENTS.SPACY_NERS, {})
 
-class TaggedToken(namedtuple('TokenData_', ['token', 'token_word2vec', 'pos', 'supersense_role', 'supersense_func', 'spacy_head_ind', 'spacy_dep', 'ud_head_ind', 'ud_dep', 'part_of_mwe'])):
+class TaggedToken(namedtuple('TokenData_', ['token', 'token_word2vec', 'pos', 'supersense_role', 'supersense_func', 'spacy_head_ind', 'spacy_dep', 'ud_head_ind', 'ud_dep', 'part_of_mwe', 'spacy_ner'])):
     def __init__(self, *args, **kwargs):
         super().__init__()
 
@@ -58,6 +69,7 @@ class StreusleRecord:
                  sentence,
                  data,
                  spacy_dep_tree,
+                 spacy_ners,
                  ud_dep_tree,
                  only_supersenses=None):
         super().__init__()
@@ -107,6 +119,7 @@ class StreusleRecord:
                 spacy_dep=self.spacy_dep_tree[i].dep if self.spacy_dep_tree else None,
                 ud_head_ind=self.ud_dep_tree[i].head_ind if self.ud_dep_tree else None,
                 ud_dep=self.ud_dep_tree[i].dep if self.ud_dep_tree else None,
+                spacy_ner=spacy_ners[i] if spacy_ners else None,
                 # supersense=filter_supersense(self.data['labels'].get(str(i + 1), [None, None])[1]),
                 supersense_role=extract_supersense_pair(self.data['labels'].get(str(i + 1), [None, None])[1])[0],
                 supersense_func=extract_supersense_pair(self.data['labels'].get(str(i + 1), [None, None])[1])[1],
@@ -130,10 +143,15 @@ class StreusleLoader(object):
                 if line == '':
                     break
                 line = line.split('\t')
+                # make sure we enhanced it
+                assert not SPACY_DEP_TREES or SPACY_DEP_TREES.get(line[0])
+                assert not SPACY_NERS or SPACY_NERS.get(line[0])
+                assert not UD_DEP_TREES or UD_DEP_TREES.get(line[0])
                 record = StreusleRecord(id=line[0],
                                         sentence=line[1],
                                         data=json.loads(line[2]),
                                         spacy_dep_tree=SPACY_DEP_TREES.get(line[0]),
+                                        spacy_ners=SPACY_NERS.get(line[0]),
                                         ud_dep_tree=UD_DEP_TREES.get(line[0]),
                                         only_supersenses=only_with_supersenses)
                 if only_with_supersenses:

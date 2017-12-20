@@ -5,8 +5,8 @@ import math
 import re
 
 import supersenses
-# import spacy
-# from spacy.tokens import Doc
+import spacy
+from spacy.tokens import Doc
 from numpy import dot
 from numpy.linalg import norm
 
@@ -22,6 +22,9 @@ if len(records_list) == 2:
     train_records, dev_records, test_records = records_list[0], [], records_list[1]
 elif len(records_list) == 3:
     train_records, dev_records, test_records = records_list
+
+records = sum(records_list, [])
+
 
 def enhance_word2vec():
     # collect word2vec vectors for words in the data
@@ -40,14 +43,18 @@ def enhance_word2vec():
 
     print('Enhanced with word2vec, %d words in total (%d skipped)' % (len(all_tokens), len(missing_words)))
 
+
 def apply_spacy_pipeline(tokens):
-    nlp = spacy.load('en_core_web_sm')
+    nlp = spacy.load('en')
     doc = Doc(nlp.vocab, words=tokens)
     for name, pipe in nlp.pipeline:
         doc = pipe(doc)
     return doc
 
+
 TreeNode = namedtuple('TreeNode', ['head_ind', 'dep'])
+
+
 def enhance_spacy_dependency_trees():
     trees = {}
     for ind, rec in enumerate(records):
@@ -60,6 +67,20 @@ def enhance_spacy_dependency_trees():
     with open(streusle.ENHANCEMENTS.SPACY_DEP_TREES, 'w') as f:
         json.dump(trees, f, indent=2)
     print('Enhanced with spacy dep trees, %d trees in total' % (len(trees)))
+
+
+def enhance_spacy_ners():
+    ners = {}
+    for ind, rec in enumerate(records):
+        doc = apply_spacy_pipeline([tt.token for tt in rec.tagged_tokens])
+        ners[rec.id] = [
+            token.ent_type_
+            for token in doc
+        ]
+        print('enhance ners: %d/%d' % (ind + 1, len(records)))
+    with open(streusle.ENHANCEMENTS.SPACY_NERS, 'w') as f:
+        json.dump(ners, f, indent=2)
+
 
 def enhance_dev_sentences_old():
     def prod(vec1, vec2):
@@ -148,6 +169,7 @@ def enhance_dev_sentences():
     with open(streusle.ENHANCEMENTS.DEV_SET_SENTIDS, 'w') as f:
         f.write("\n".join([r.id for r in dev]))
 
+
 def enhance_ud_dependency_trees():
     UD_FILES = [
         '/cs/labs/oabend/aviramstern/ud/UD_English/en-ud-dev.conllu',
@@ -162,12 +184,13 @@ def enhance_ud_dependency_trees():
     trees = {}
     ID_PATTERN = re.compile(r'# sent_id \= reviews-(\d+)-0+(\d+)')
     for ind, (sent_id, sent) in enumerate(sents.items()):
+        if "004940" in sent_id:
+            print(sent_id)
         match = ID_PATTERN.match(sent_id)
         if match:
             assert(all([tok['id'] is not None for tok in sent]))
             streusle_id = "ewtb.r." + match.group(1) + '.' + match.group(2)
             tok_id_to_ind = {tok['id']: ind for ind, tok in enumerate(sent)}
-            print(streusle_id)
             trees[streusle_id] = [
                 TreeNode(head_ind=tok_id_to_ind[token['head']] if token['head'] else tok_id_to_ind[token['id']], dep=token['deprel'])
                 for token in sent
@@ -180,8 +203,9 @@ def enhance_ud_dependency_trees():
 
 if __name__ == '__main__':
     # enhance_spacy_dependency_trees()
+    enhance_spacy_ners()
     # enhance_word2vec()
     # enhance_dev_sentences()
-    enhance_ud_dependency_trees()
+    # enhance_ud_dependency_trees()
 
 

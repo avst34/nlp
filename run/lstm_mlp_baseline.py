@@ -9,38 +9,44 @@ import json
 
 evaluator = ClassifierEvaluator()
 
-def streusle_record_to_lstm_model_sample(record,
-                                         deps_from # 'ud' or 'spacy'
-                                         ):
-    assert deps_from in ['ud', 'spacy']
+def streusle_record_to_lstm_model_sample(record):
     return LstmMlpSupersensesModel.Sample(
         xs=[LstmMlpSupersensesModel.SampleX(
-            token=tagged_token.token,
-            pos=tagged_token.pos,
-            dep=tagged_token.spacy_dep if deps_from == 'spacy' else tagged_token.ud_dep,
-            head_ind=tagged_token.spacy_head_ind if deps_from == 'spacy' else tagged_token.ud_head_ind,
-        ) for tagged_token in record.tagged_tokens],
+                token=tagged_token.token,
+                pos=tagged_token.pos,
+                spacy_dep=tagged_token.spacy_dep,
+                spacy_head_ind=tagged_token.spacy_head_ind,
+                spacy_ner=tagged_token.spacy_ner,
+                ud_dep=tagged_token.ud_dep,
+                ud_head_ind=tagged_token.ud_head_ind,
+            ) for tagged_token in record.tagged_tokens
+        ],
         ys=[LstmMlpSupersensesModel.SampleY(
-            supersense_role=tagged_token.supersense_role,
-            supersense_func=tagged_token.supersense_func
-        ) for tagged_token in record.tagged_tokens
+                supersense_role=tagged_token.supersense_role,
+                supersense_func=tagged_token.supersense_func
+            ) for tagged_token in record.tagged_tokens
         ],
     )
 
-def run(train_records, dev_records, test_records):
-    deps_from='ud'
-    train_samples = [streusle_record_to_lstm_model_sample(r, deps_from=deps_from) for r in train_records]
-    dev_samples = [streusle_record_to_lstm_model_sample(r, deps_from=deps_from) for r in dev_records]
-    test_samples = [streusle_record_to_lstm_model_sample(r, deps_from=deps_from) for r in test_records]
+def run(train_records, dev_records, test_records, streusle_loader):
+    train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
+    dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
+    test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
 
     pp_vocab = Vocabulary('Prepositions')
     pp_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys) if any([y.supersense_role, y.supersense_func])]))
 
-    dep_vocab = Vocabulary('Dependencies')
-    dep_vocab.add_words(set([x.dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    spacy_dep_vocab = Vocabulary('Spacy Dependencies')
+    spacy_dep_vocab.add_words(set([x.spacy_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+
+    ud_dep_vocab = Vocabulary('UD Dependencies')
+    ud_dep_vocab.add_words(set([x.ud_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
 
     pos_vocab = Vocabulary('POS')
     pos_vocab.add_words(set([x.pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+
+    ner_vocab = Vocabulary('NER')
+    ner_vocab.add_words(set([x.spacy_ner for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
 
     token_vocab = Vocabulary('Tokens')
     token_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
@@ -71,15 +77,17 @@ def run(train_records, dev_records, test_records):
         token_vocab=token_vocab,
         token_onehot_vocab=pp_vocab,
         pos_vocab=pos_vocab,
-        dep_vocab=dep_vocab,
+        spacy_dep_vocab=spacy_dep_vocab,
+        ud_dep_vocab=ud_dep_vocab,
+        ner_vocab=ner_vocab,
         supersense_vocab=pss_vocab,
     )
 
     # tuner.tune(n_executions=1)
     tuner.sample_execution(json.loads(
-        """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role", "supersense_func"], "use_token_onehot": true, "mlp_dropout_p": 0.12, "epochs": 100, "mlp_activation": "relu", "validation_split": 0.3, "use_token": true, "update_token_embd": false, "update_pos_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "use_head": true, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "pos_embd_dim": 98, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_dep": true}"""
-        # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role"], "use_token_onehot": true, "mlp_dropout_p": 0.12, "epochs": 100, "mlp_activation": "relu", "validation_split": 0.3, "use_token": true, "update_token_embd": false, "update_pos_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "use_head": true, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "pos_embd_dim": 98, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_dep": true}"""
-        # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_func"], "use_token_onehot": true, "mlp_dropout_p": 0.12, "epochs": 100, "mlp_activation": "relu", "validation_split": 0.3, "use_token": true, "update_token_embd": false, "update_pos_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "use_head": true, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "pos_embd_dim": 98, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_dep": true}"""
+        """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role", "supersense_func"], "use_token_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "update_pos_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "use_head": true, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "pos_embd_dim": 98, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_ner": false, "deps_from": "ud", "ner_embd_dim": 30, "lstm_dropout_p": 0.1, "use_dep": true}"""
+        # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role"], "use_token_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "update_pos_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "use_head": true, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "pos_embd_dim": 98, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_ner": false, "deps_from": "ud", "ner_embd_dim": 30, "lstm_dropout_p": 0.1, "use_dep": true}"""
+        # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_func"], "use_token_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "update_pos_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "use_head": true, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "pos_embd_dim": 98, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_ner": false, "deps_from": "ud", "ner_embd_dim": 30, "lstm_dropout_p": 0.1, "use_dep": true}"""
     ))
 
     # print('LSTM-MLP evaluation:')
@@ -91,7 +99,7 @@ def run(train_records, dev_records, test_records):
     #     dep_vocab=dep_vocab,
     #     supersense_vocab=pss_vocab,
     #     hyperparameters=LstmMlpSupersensesModel.HyperParameters(**json.loads(
-    #         """ {"use_token_internal": false, "token_internal_embd_dim": 73, "mlp_layers": 2, "epochs": 100, "is_bilstm": true, "labels_to_predict": ["supersense_func"], "use_head": false, "mlp_activation": "relu", "learning_rate_decay": 0.01, "validation_split": 0.3, "learning_rate": 0.1, "num_lstm_layers": 2, "mlp_dropout_p": 0.12, "pos_embd_dim": 50, "use_token": true, "use_token_onehot": true, "use_pos": false, "update_token_embd": true, "update_pos_embd": false, "mlp_layer_dim": 98, "token_embd_dim": 300, "use_dep": true, "lstm_h_dim": 100, "mask_by": "pos:IN,PRP$,RB,TO"}"""
+    #         """ {"use_token_internal": false, "token_internal_embd_dim": 73, "mlp_layers": 2, "epochs": 100, "is_bilstm": true, "labels_to_predict": ["supersense_func"], "use_head": false, "mlp_activation": "relu", "learning_rate_decay": 0.01, "learning_rate": 0.1, "num_lstm_layers": 2, "mlp_dropout_p": 0.12, "pos_embd_dim": 50, "use_token": true, "use_token_onehot": true, "use_pos": false, "update_token_embd": true, "update_pos_embd": false, "mlp_layer_dim": 98, "token_embd_dim": 300, "use_ner": false, "deps_from": "ud", "ner_embd_dim": 30, "lstm_dropout_p": 0.1, "use_dep": true, "lstm_h_dim": 100, "mask_by": "pos:IN,PRP$,RB,TO"}"""
     #     ))
     # )
     #
