@@ -25,7 +25,7 @@ elif len(records_list) == 3:
     train_records, dev_records, test_records = records_list
 
 records = sum(records_list, [])
-
+print("records: %d" % len(records))
 
 def enhance_word2vec():
     # collect word2vec vectors for words in the data

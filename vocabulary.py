@@ -1,9 +1,12 @@
 class Vocabulary(object):
 
-    def __init__(self, name="Unnamed"):
+    def __init__(self, name="Unnamed", words=None):
         self._word_to_ind = {}
         self._ind_to_word = []
         self.name = name
+
+        if words:
+            self.add_words(words)
 
     def add_words(self, words):
         for word in words:
@@ -40,6 +43,16 @@ class Vocabulary(object):
 
     def __repr__(self):
         return 'Vocabulary: "%s" with %d words' % (self.name, self.size())
+
+    def print(self):
+        print('Vocabulary: %s' % self.name)
+        print('------------------')
+        for w in self.all_words():
+            print(repr(w))
+
+    def as_list(self):
+        return list(self._ind_to_word)
+
 
 class VocabularyBuilder(object):
 

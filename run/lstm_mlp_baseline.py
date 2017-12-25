@@ -55,6 +55,8 @@ def run(train_records, dev_records, test_records, streusle_loader):
     pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
     pss_vocab.add_word(None)
 
+    # dump_vocabularies([pp_vocab, spacy_dep_vocab, ud_dep_vocab, pos_vocab, ner_vocab, token_vocab, pss_vocab])
+
     tuner = LstmMlpSupersensesModelHyperparametersTuner(
         results_csv_path='/cs/labs/oabend/aviramstern/results.csv',
         samples=train_samples,

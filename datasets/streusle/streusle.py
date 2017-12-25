@@ -144,9 +144,6 @@ class StreusleLoader(object):
                     break
                 line = line.split('\t')
                 # make sure we enhanced it
-                assert not SPACY_DEP_TREES or SPACY_DEP_TREES.get(line[0])
-                assert not SPACY_NERS or SPACY_NERS.get(line[0])
-                assert not UD_DEP_TREES or UD_DEP_TREES.get(line[0])
                 record = StreusleRecord(id=line[0],
                                         sentence=line[1],
                                         data=json.loads(line[2]),
@@ -157,6 +154,10 @@ class StreusleLoader(object):
                 if only_with_supersenses:
                     if not any([token.supersense_combined for token in record.tagged_tokens]):
                         continue
+
+                assert not SPACY_DEP_TREES or SPACY_DEP_TREES.get(line[0])
+                assert not SPACY_NERS or SPACY_NERS.get(line[0])
+                assert not UD_DEP_TREES or UD_DEP_TREES.get(line[0])
                 records.append(record)
             test_sentids = self._load_test_sentids()
             dev_sentids = self._load_dev_sentids()
