@@ -1,6 +1,6 @@
 from vocabulary import Vocabulary
 
-NER = Vocabulary('NER', [
+SPACY_NER = Vocabulary('SPACY_NER', [
     'MONEY',
     'ORG',
     'TIME',
@@ -20,3 +20,4 @@ NER = Vocabulary('NER', [
     'CARDINAL',
     'QUANTITY',
 ])
+

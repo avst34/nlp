@@ -48,7 +48,7 @@ SPACY_DEP_TREES = load_dep_tree(ENHANCEMENTS.SPACY_DEP_TREES)
 UD_DEP_TREES = load_dep_tree(ENHANCEMENTS.UD_DEP_TREES)
 SPACY_NERS = load_json(ENHANCEMENTS.SPACY_NERS, {})
 
-class TaggedToken(namedtuple('TokenData_', ['token', 'token_word2vec', 'pos', 'supersense_role', 'supersense_func', 'spacy_head_ind', 'spacy_dep', 'ud_head_ind', 'ud_dep', 'part_of_mwe', 'spacy_ner'])):
+class TaggedToken(namedtuple('TokenData_', ['token', 'ind', 'token_word2vec', 'pos', 'supersense_role', 'supersense_func', 'spacy_head_ind', 'spacy_dep', 'ud_head_ind', 'ud_dep', 'part_of_mwe', 'spacy_ner'])):
     def __init__(self, *args, **kwargs):
         super().__init__()
 
@@ -113,6 +113,7 @@ class StreusleRecord:
         self.tagged_tokens = [
             TaggedToken(
                 token=tok_data[0],
+                ind=i,
                 token_word2vec=W2V.get(tok_data[0]),
                 pos=tok_data[1],
                 spacy_head_ind=self.spacy_dep_tree[i].head_ind if self.spacy_dep_tree else None,

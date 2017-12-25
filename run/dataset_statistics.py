@@ -95,16 +95,18 @@ def deps_stats(records):
 
                 # UD
                 ud_parent = record.tagged_tokens[tok.ud_head_ind]
-                if tok.ud_dep == 'case':
-                    print('case (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
-                elif tok.ud_dep == 'nmod:poss':
-                    print('nmod:poss (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
-                elif tok.ud_dep == 'mark':
-                    print('mark (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
-                elif tok.ud_dep == 'advmod':
-                    print('advmod (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
-                elif tok.ud_dep == 'obl':
-                    print('obl (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
+                # if tok.ud_dep == 'case':
+                #     print('case (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
+                # elif tok.ud_dep == 'nmod:poss':
+                #     print('nmod:poss (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
+                # elif tok.ud_dep == 'mark':
+                #     print('mark (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
+                # elif tok.ud_dep == 'advmod':
+                #     print('advmod (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
+                # elif tok.ud_dep == 'obl':
+                #     print('obl (%s -> %s):' % (ud_parent.token, tok.token), ' '.join([t.token for t in record.tagged_tokens]))
+                if tok.ud_dep == 'root':
+                    print('UD root (%s -> %s) [MWE %s]:' % (ud_parent.token, tok.token, tok.part_of_mwe), ' '.join([t.token for t in record.tagged_tokens]))
 
     print("UD Deps stats:")
     print("--------------")
