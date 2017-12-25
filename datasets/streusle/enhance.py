@@ -3,6 +3,7 @@ import random
 import math
 
 import re
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 import supersenses
 import spacy
@@ -70,16 +71,20 @@ def enhance_spacy_dependency_trees():
 
 
 def enhance_spacy_ners():
-    ners = {}
-    for ind, rec in enumerate(records):
+    def process(t):
+        ind, rec = t
         doc = apply_spacy_pipeline([tt.token for tt in rec.tagged_tokens])
-        ners[rec.id] = [
-            token.ent_type_
+        print('enhance ners: %d/%d' % (ind + 1, len(records)))
+        return [
+            token.ent_type_ or None
             for token in doc
         ]
-        print('enhance ners: %d/%d' % (ind + 1, len(records)))
-    with open(streusle.ENHANCEMENTS.SPACY_NERS, 'w') as f:
-        json.dump(ners, f, indent=2)
+
+    with ThreadPoolExecutor(1) as tpe:
+        ners_list = list(tpe.map(process, enumerate(records)))
+        ners = {rec.id: ners for rec, ners in zip(records, ners_list)}
+        with open(streusle.ENHANCEMENTS.SPACY_NERS, 'w') as f:
+            json.dump(ners, f, indent=2)
 
 
 def enhance_dev_sentences_old():

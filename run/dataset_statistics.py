@@ -11,12 +11,14 @@ def pp_pos_stats(records):
 
 
 def deps_stats(records):
-    UDBin = namedtuple('UDBin', ['pos', 'parent'])
+    UDBin = namedtuple('UDBin', ['pos', 'parent', 'grandparent'])
     ud_bins = {}
     ud_bins_all_pos = {}
-    SpacyBin = namedtuple('UDBin', ['pos', 'children'])
+    ud_bins_all_pos_grandparent = {}
+    SpacyBin = namedtuple('UDBin', ['pos', 'parent', 'children'])
     spacy_bins = {}
     spacy_bins_all_pos = {}
+    spacy_bins_all_pos_parents = {}
     spacy_bins_all_pobj = {}
     spacy_bins_all_pobjless = {}
 
@@ -26,16 +28,24 @@ def deps_stats(records):
         for tok in record.tagged_tokens:
             if tok.supersense_combined:
                 _bin = UDBin(pos=tok.pos,
-                            parent=tok.ud_dep)
+                            parent=tok.ud_dep,
+                             grandparent='-- ALL --')
                 ud_bins[_bin] = ud_bins.get(_bin, 0)
                 ud_bins[_bin] += 1
 
-                _bin = UDBin(pos='-- ALL -- ',
-                            parent=tok.ud_dep)
+                _bin = UDBin(pos='-- ALL --',
+                            parent=tok.ud_dep,
+                             grandparent='-- ALL --')
                 ud_bins_all_pos[_bin] = ud_bins_all_pos.get(_bin, 0)
                 ud_bins_all_pos[_bin] += 1
 
-                _bin = SpacyBin(pos=tok.pos,
+                _bin = UDBin(pos='-- ALL --',
+                            parent='-- ALL --',
+                             grandparent=record.tagged_tokens[tok.ud_head_ind].ud_dep)
+                ud_bins_all_pos_grandparent[_bin] = ud_bins_all_pos_grandparent.get(_bin, 0)
+                ud_bins_all_pos_grandparent[_bin] += 1
+
+                _bin = SpacyBin(parent='-- ALL --', pos=tok.pos,
                                children=tuple(sorted([t.spacy_dep for t in record.tagged_tokens
                                        if record.tagged_tokens[t.spacy_head_ind] == tok
                                         and t != tok]))
@@ -43,7 +53,7 @@ def deps_stats(records):
                 spacy_bins[_bin] = spacy_bins.get(_bin, 0)
                 spacy_bins[_bin] += 1
 
-                _bin = SpacyBin(pos='-- ALL --',
+                _bin = SpacyBin(parent='-- ALL --', pos='-- ALL --',
                                children=tuple(sorted([t.spacy_dep for t in record.tagged_tokens
                                        if record.tagged_tokens[t.spacy_head_ind] == tok
                                         and t != tok]))
@@ -51,12 +61,19 @@ def deps_stats(records):
                 spacy_bins_all_pos[_bin] = spacy_bins_all_pos.get(_bin, 0)
                 spacy_bins_all_pos[_bin] += 1
 
+                _bin = SpacyBin(parent=tok.spacy_dep,
+                                pos='-- ALL --',
+                                children='-- ALL --')
+
+                spacy_bins_all_pos_parents[_bin] = spacy_bins_all_pos_parents.get(_bin, 0)
+                spacy_bins_all_pos_parents[_bin] += 1
+
                 # spaCy
                 children = tuple(sorted([t for t in record.tagged_tokens
                                          if record.tagged_tokens[t.spacy_head_ind] == tok
                                          and t != tok]))
                 children_labels = [x.spacy_dep for x in children]
-                _bin = SpacyBin(pos='-- ALL --',
+                _bin = SpacyBin(parent='-- ALL --', pos='-- ALL --',
                                children='pobj' if 'pobj' in children_labels else 'No' if len(children) == 0 else 'Other'
                                )
                 spacy_bins_all_pobj[_bin] = spacy_bins_all_pobj.get(_bin, 0)
@@ -105,6 +122,14 @@ def deps_stats(records):
         print("%s\t%d\t%2.2f" % (_bin.parent, ud_bins_all_pos[_bin], ud_bins_all_pos[_bin] / sum(ud_bins_all_pos.values()) * 100))
     print("")
 
+    print("UD Deps stats (aggr-grandparent):")
+    print("--------------")
+    print("Grandparent\tCount\tPercent")
+    bins = sorted(ud_bins_all_pos_grandparent.keys(), key=lambda bin: -ud_bins_all_pos_grandparent[bin])
+    for _bin in bins:
+        print("%s\t%d\t%2.2f" % (_bin.grandparent, ud_bins_all_pos_grandparent[_bin], ud_bins_all_pos_grandparent[_bin] / sum(ud_bins_all_pos_grandparent.values()) * 100))
+    print("")
+
     print("Spacy Deps stats:")
     print("--------------")
     print("POS\tParent\tChildren\tpobj\tCount\tPercent")
@@ -135,6 +160,14 @@ def deps_stats(records):
     bins = sorted(spacy_bins_all_pobjless.keys(), key=lambda bin: -spacy_bins_all_pobjless[bin])
     for _bin in bins:
         print("%s\t%d\t%2.2f" % (_bin, spacy_bins_all_pobjless[_bin], spacy_bins_all_pobjless[_bin] / pobjless_toks_cnt * 100))
+    print("")
+
+    print("Spacy Deps stats (aggr-parent):")
+    print("--------------")
+    print("Parent\tCount\tPercent")
+    bins = sorted(spacy_bins_all_pos_parents.keys(), key=lambda bin: -spacy_bins_all_pos_parents[bin])
+    for _bin in bins:
+        print("%s\t%d\t%2.2f" % (_bin.parent, spacy_bins_all_pos_parents[_bin], spacy_bins_all_pos_parents[_bin] / sum(spacy_bins_all_pos_parents.values()) * 100))
     print("")
 
 

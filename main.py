@@ -75,6 +75,6 @@ all_records = train_records + dev_records + test_records
 # print("Preposition POSes:", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.supersense_combined]))
 # print("Preposition POSes (MWEs dropped):", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.supersense_combined and not t.part_of_mwe]))
 
-# dataset_statistics.run(all_records)
+dataset_statistics.run(all_records)
 # most_frequent_baseline.run(train_records, dev_records)
-lstm_mlp_baseline.run(train_records, dev_records, test_records, streusle_loader)
+# lstm_mlp_baseline.run(train_records, dev_records, test_records, streusle_loader)
