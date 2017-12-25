@@ -1,6 +1,6 @@
 from vocabulary import Vocabulary
             
-UD Dependencies = Vocabulary('UD Dependencies', [
+UD_DEPS = Vocabulary('UD Dependencies', [
 'acl:relcl',
 'ccomp',
 'obl:tmod',

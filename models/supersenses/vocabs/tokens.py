@@ -1,6 +1,6 @@
 from vocabulary import Vocabulary
             
-Tokens = Vocabulary('Tokens', [
+TOKENS = Vocabulary('Tokens', [
 'nothing',
 'about',
 'gain',
