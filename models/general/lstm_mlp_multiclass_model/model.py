@@ -23,9 +23,9 @@ class LstmMlpMulticlassModel(object):
     Sample = namedtuple('Sample', ['xs', 'ys', 'mask'])
 
     class SampleX:
-        def __init__(self, fields, deps={}):
+        def __init__(self, fields, neighbors={}):
             self.fields = fields
-            self.deps = deps
+            self.neighbors = neighbors
 
         def __getitem__(self, field):
             return self.fields[field]
@@ -44,7 +44,7 @@ class LstmMlpMulticlassModel(object):
     class HyperParameters:
         def __init__(self,
                      lstm_input_fields,
-                     token_dep_types,
+                     token_neighbour_types,
                      input_embeddings_to_update,
                      input_embedding_dims,
                      input_embeddings_default_dim,
@@ -55,16 +55,14 @@ class LstmMlpMulticlassModel(object):
                      lstm_h_dim,
                      num_lstm_layers,
                      is_bilstm,
-                     use_head,
                      mlp_dropout_p,
                      lstm_dropout_p,
                      epochs,
                      learning_rate,
                      learning_rate_decay,
-                     n_labels_to_predict
-                     ):
+                     n_labels_to_predict):
             self.lstm_dropout_p = lstm_dropout_p
-            self.token_dep_types = token_dep_types
+            self.token_neighbour_types = token_neighbour_types
             self.n_labels_to_predict = n_labels_to_predict
             self.mlp_input_fields = mlp_input_fields
             self.learning_rate_decay = learning_rate_decay
@@ -80,7 +78,6 @@ class LstmMlpMulticlassModel(object):
             self.num_lstm_layers = num_lstm_layers
             self.is_bilstm = is_bilstm
             self.mlp_dropout_p = mlp_dropout_p
-            self.use_head = use_head
             self.epochs = epochs
 
     def __init__(self,
@@ -136,11 +133,9 @@ class LstmMlpMulticlassModel(object):
     def _build_network_params(self):
         pc = dy.ParameterCollection()
 
-        if self.hyperparameters.use_head:
-            mlp_input_dim = 2 * self.hyperparameters.lstm_h_dim + 1
-        else:
-            mlp_input_dim = self.hyperparameters.lstm_h_dim
+        mlp_input_dim = self.hyperparameters.lstm_h_dim
         mlp_input_dim += sum([self.get_embd_dim(field) for field in self.hyperparameters.mlp_input_fields])
+        mlp_input_dim += (1 + self.hyperparameters.lstm_h_dim) * len(self.hyperparameters.token_neighbour_types)
 
         embedded_input_dim = sum([self.get_embd_dim(field) for field in self.hyperparameters.lstm_input_fields])
 
@@ -186,22 +181,24 @@ class LstmMlpMulticlassModel(object):
         external_mask = external_mask or [True for _ in xs]
         mask = list(external_mask)
         for ind, x in enumerate(xs):
-            for field in self.hyperparameters.mlp_input_fields:
-                if not self.input_vocabularies[field].has_word(x[field]):
-                    mask[ind] = False
+            if mask[ind]:
+                for field in self.hyperparameters.mlp_input_fields:
+                    if not self.input_vocabularies[field].has_word(x[field]):
+                        mask[ind] = False
         return mask
 
-    def _validate_xs(self, xs):
-        for x in xs:
-            for dep_type in x.deps:
-                if dep_type not in self.hyperparameters.token_dep_types:
-                    raise Exception("Unknown dep type:" + dep_type)
-            for dep_type in self.hyperparameters.token_dep_types:
-                if dep_type not in x.deps:
-                    raise Exception("X without a dep:" + dep_type)
+    def _validate_xs(self, xs, mask):
+        for x, x_mask in zip(xs, mask):
+            for neighbor_type in x.neighbors:
+                if neighbor_type not in self.hyperparameters.token_neighbour_types:
+                    raise Exception("Unknown dep type:" + neighbor_type)
+            if x_mask:
+                for neighbor_type in self.hyperparameters.token_neighbour_types:
+                    if neighbor_type not in x.neighbors:
+                        raise Exception("X without a dep:" + neighbor_type)
 
     def _build_network_for_input(self, xs, mask):
-        self._validate_xs(xs)
+        self._validate_xs(xs, mask)
         mask = self.build_mask(xs, external_mask=mask)
         if not self.hyperparameters.is_bilstm:
             cur_lstm_state = self.lstm_builder.initial_state()
@@ -209,7 +206,7 @@ class LstmMlpMulticlassModel(object):
             cur_lstm_state = self.lstm_builder
         embeddings = [
             dy.concatenate([
-                dy.lookup(self.params.input_lookups[field], self.input_vocabularies[field].get_index(token_data[field]), update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update[field])
+                dy.lookup(self.params.input_lookups[field], self.input_vocabularies[field].get_index(token_data[field]), update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field))
                 for field in self.hyperparameters.lstm_input_fields
             ])
             for token_data in xs
@@ -223,12 +220,12 @@ class LstmMlpMulticlassModel(object):
             else:
                 cur_out = lstm_out
                 inp_token = xs[ind]
-                for dep_type in self.hyperparameters.token_dep_types:
-                    dep_ind = xs[ind].deps.get(dep_type)
-                    if dep_ind is None:
+                for neighbour_type in self.hyperparameters.token_neighbour_types:
+                    neighbour_ind = xs[ind].neighbors.get(neighbour_type)
+                    if neighbour_ind is None:
                         cur_out = dy.concatenate([cur_out, dy.inputTensor([0]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)])
                     else:
-                        cur_out = dy.concatenate([cur_out, dy.inputTensor([1]), lstm_outputs[dep_ind]])
+                        cur_out = dy.concatenate([cur_out, dy.inputTensor([1]), lstm_outputs[neighbour_ind]])
                 cur_out = dy.concatenate([cur_out] +
                                          [dy.lookup(
                                              self.params.input_lookups[field],

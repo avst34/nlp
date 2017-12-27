@@ -60,27 +60,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
                  show_epoch_eval=True,
                  evaluator=ClassifierEvaluator(),
                  tuner_score_getter=lambda evaluations: max([e['f1'] or 0 for e in evaluations]),
-                 tuner_results_getter=extract_classifier_evaluator_results,
-                 token_vocab=None,
-                 pos_vocab=None,
-                 spacy_dep_vocab=None,
-                 ud_dep_vocab=None,
-                 ner_vocab=None,
-                 token_onehot_vocab=None,
-                 supersense_vocab=None,
-                 token_embd=None,
-                 pos_embd=None):
-        self.init_kwargs = {
-            'token_vocab': token_vocab,
-            'pos_vocab': pos_vocab,
-            'spacy_dep_vocab': spacy_dep_vocab,
-            'ud_dep_vocab': ud_dep_vocab,
-            'ner_vocab': ner_vocab,
-            'token_onehot_vocab': token_onehot_vocab,
-            'supersense_vocab': supersense_vocab,
-            'token_embd': token_embd,
-            'pos_embd': pos_embd
-        }
+                 tuner_results_getter=extract_classifier_evaluator_results):
         self.fit_kwargs = None
         self.tuner_results_getter = tuner_results_getter
         self.tuner_score_getter = tuner_score_getter
@@ -107,7 +87,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
 
 
     def _execute(self, hyperparameters):
-        lstm_mlp_model = LstmMlpSupersensesModel(hyperparameters=LstmMlpSupersensesModel.HyperParameters(**hyperparameters), **self.init_kwargs)
+        lstm_mlp_model = LstmMlpSupersensesModel(hyperparameters=LstmMlpSupersensesModel.HyperParameters(**hyperparameters))
         lstm_mlp_model.fit(**self.fit_kwargs)
         return HyperparametersTuner.ExecutionResult(
             result_data={

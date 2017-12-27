@@ -1,33 +1,42 @@
 from collections import namedtuple
 
 from models.supersenses import vocabs, embeddings
-from models.supersenses.features.features_utils import get_parent, get_grandparent
+from models.supersenses.features.feature import Feature, FeatureType, MountPoint, Features
+from models.supersenses.features.features_utils import get_parent, get_grandparent, get_child_of_type, get_children
 
+[LSTM, MLP] = [MountPoint.LSTM, MountPoint.MLP]
 
-class FeatureType:
-    ENUM = 'ENUM'
-    REF = 'REF'
+def build_features(hyperparameters):
+    hp = hyperparameters
+    return Features([
+        Feature('token-word2vec',   FeatureType.ENUM, vocabs.TOKENS,     embeddings.TOKENS_WORD2VEC,   extractor=lambda tok, sent: tok.token,  mount_point=LSTM, enable=hp.use_token, update=hp.update_token_embd, masked_only=False),
+        Feature('token-internal',   FeatureType.ENUM, vocabs.TOKENS,     embeddings.AUTO,              extractor=lambda tok, sent: tok.token,  mount_point=LSTM, enable=hp.use_token_internal, dim=hp.token_internal_embd_dim, update=True, masked_only=False),
+        Feature('token.pos',        FeatureType.ENUM, vocabs.POS,        embeddings.POS_ONEHOT,        extractor=lambda tok, sent: tok.pos,    mount_point=MLP,  enable=hp.use_pos),
+        Feature('token.ud-dep',     FeatureType.ENUM, vocabs.UD_DEPS,    embeddings.UD_DEPS_ONEHOT,    extractor=lambda tok, sent: tok.ud_dep, mount_point=MLP,  enable=hp.use_dep and hp.deps_from == 'ud'),
+        Feature('token.spacy-dep',  FeatureType.ENUM, vocabs.SPACY_DEPS, embeddings.SPACY_DEPS_ONEHOT, extractor=lambda tok, sent: tok.spacy_dep, mount_point=MLP,  enable=hp.use_dep and hp.deps_from == 'spacy'),
+        Feature('token.spacy-ner',  FeatureType.ENUM, vocabs.SPACY_NER,  embeddings.SPACY_NER_ONEHOT,  extractor=lambda tok, sent: tok.spacy_ner, mount_point=MLP,  enable=hp.use_spacy_ner),
 
-Feature = namedtuple('Feature', ['name', 'type', 'vocab', 'embedding', 'extractor'])
+        Feature('prep-onehot', FeatureType.ENUM, vocabs.PREPS, embeddings.PREPS_ONEHOT, extractor=lambda tok, sent: tok.token,  mount_point=MLP, enable=hp.use_prep_onehot, fall_to_none=True),
 
-FEATURES = [
-    Feature('token-word2vec',          FeatureType.ENUM, vocabs.TOKENS,    embeddings.TOKENS_WORD2VEC, lambda tok, sent: tok.token),
-    Feature('token-internal',          FeatureType.ENUM, vocabs.TOKENS,    embeddings.AUTO,            lambda tok, sent: tok.token),
-    Feature('token-ud-parent',         FeatureType.REF,  None,             None,                       lambda tok, sent: get_parent(tok, sent, 'ud_head_ind')),
-    Feature('token-ud-grandparent',    FeatureType.REF,  None,             None,                       lambda tok, sent: get_grandparent(tok, sent, 'ud_head_ind')),
-    Feature('token-spacy-parent',      FeatureType.REF,  None,             None,                       lambda tok, sent: get_parent(tok, sent, 'spacy_head_ind')),
-    Feature('token-spacy-grandparent', FeatureType.REF,  None,             None,                       lambda tok, sent: get_grandparent(tok, sent, 'spacy_head_ind')),
+        Feature('token-ud-parent',           FeatureType.REF,  None,             None,                        extractor=lambda tok, sent: get_parent(tok, sent, 'ud_head_ind').ind, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'ud'),
+        Feature('token-ud-parent.pos',       FeatureType.ENUM, vocabs.POS,       embeddings.POS_ONEHOT,       extractor=lambda tok, sent: get_parent(tok, sent, 'ud_head_ind').pos, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'ud'),
+        Feature('token-ud-parent.ud-dep',    FeatureType.ENUM, vocabs.UD_DEPS,   embeddings.UD_DEPS_ONEHOT,   extractor=lambda tok, sent: get_parent(tok, sent, 'ud_head_ind').ud_dep, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'ud'),
+        Feature('token-ud-parent.spacy-ner', FeatureType.ENUM, vocabs.SPACY_NER, embeddings.SPACY_NER_ONEHOT, extractor=lambda tok, sent: get_parent(tok, sent, 'ud_head_ind').spacy_ner, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'ud'),
 
-    Feature('ud-governor',         FeatureType.REF,  None,             lambda tok, sent: get_ud_governor(tok, sent)),
-    Feature('ud-governor.pos',     FeatureType.ENUM, vocabs.POS,       lambda tok, sent: get_ud_governor(tok, sent).pos),
-    Feature('ud-governor.ner',     FeatureType.REF,  vocabs.SPACY_NER, lambda tok, sent: get_ud_governor(tok, sent).spacy_ner),
-    Feature('ud-head-noun',        FeatureType.REF,  None,             lambda tok, sent: get_ud_head_noun(tok, sent)),
-    Feature('ud-head-noun.pos',    FeatureType.ENUM, vocabs.POS,       lambda tok, sent: get_ud_head_noun(tok, sent).pos),
-    Feature('ud-head-noun.ner',    FeatureType.REF,  vocabs.SPACY_NER, lambda tok, sent: get_ud_head_noun(tok, sent).spacy_ner),
-    Feature('spacy-governor',      FeatureType.REF,  None,             lambda tok, sent: get_ud_governor(tok, sent)),
-    Feature('spacy-governor.pos',  FeatureType.ENUM, vocabs.POS,       lambda tok, sent: get_ud_governor(tok, sent).pos),
-    Feature('spacy-governor.ner',  FeatureType.REF,  vocabs.SPACY_NER, lambda tok, sent: get_ud_governor(tok, sent).spacy_ner),
-    Feature('spacy-head-noun',     FeatureType.REF,  None,             lambda tok, sent: get_ud_head_noun(tok, sent)),
-    Feature('spacy-head-noun.pos', FeatureType.ENUM, vocabs.POS,       lambda tok, sent: get_ud_head_noun(tok, sent).pos),
-    Feature('spacy-head-noun.ner', FeatureType.REF,  vocabs.SPACY_NER, lambda tok, sent: get_ud_head_noun(tok, sent).spacy_ner),
-]
+        Feature('token-ud-grandparent',           FeatureType.REF,  None,             None,                        extractor=lambda tok, sent: get_grandparent(tok, sent, 'ud_head_ind').ind, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'ud'),
+        Feature('token-ud-grandparent.pos',       FeatureType.ENUM, vocabs.POS,       embeddings.POS_ONEHOT,       extractor=lambda tok, sent: get_grandparent(tok, sent, 'ud_head_ind').pos, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'ud'),
+        Feature('token-ud-grandparent.ud-dep',    FeatureType.ENUM, vocabs.UD_DEPS,   embeddings.UD_DEPS_ONEHOT,   extractor=lambda tok, sent: get_grandparent(tok, sent, 'ud_head_ind').ud_dep, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'ud'),
+        Feature('token-ud-grandparent.spacy-ner', FeatureType.ENUM, vocabs.SPACY_NER, embeddings.SPACY_NER_ONEHOT, extractor=lambda tok, sent: get_grandparent(tok, sent, 'ud_head_ind').spacy_ner, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'ud'),
+
+        Feature('token-spacy-parent',           FeatureType.REF,  None,              None,                         extractor=lambda tok, sent: get_parent(tok, sent, 'spacy_head_ind').ind, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'spacy'),
+        Feature('token-spacy-parent.pos',       FeatureType.ENUM, vocabs.POS,        embeddings.POS_ONEHOT,        extractor=lambda tok, sent: get_parent(tok, sent, 'spacy_head_ind').pos, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'spacy'),
+        Feature('token-spacy-parent.spacy-dep', FeatureType.ENUM, vocabs.SPACY_DEPS, embeddings.SPACY_DEPS_ONEHOT, extractor=lambda tok, sent: get_parent(tok, sent, 'spacy_head_ind').spacy_dep, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'spacy'),
+        Feature('token-spacy-parent.spacy-ner', FeatureType.ENUM, vocabs.SPACY_NER,  embeddings.SPACY_NER_ONEHOT,  extractor=lambda tok, sent: get_parent(tok, sent, 'spacy_head_ind').spacy_ner, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'spacy'),
+
+        Feature('token-spacy-pobj-child',           FeatureType.REF,  None,              None,                         extractor=lambda tok, sent: get_child_of_type(tok, sent, 'pobj', 'spacy_head_ind', 'spacy_dep').ind, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'spacy'),
+        Feature('token-spacy-pobj-child.pos',       FeatureType.ENUM, vocabs.POS,        embeddings.POS_ONEHOT,        extractor=lambda tok, sent: get_child_of_type(tok, sent, 'pobj', 'spacy_head_ind', 'spacy_dep').pos, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'spacy'),
+        Feature('token-spacy-pobj-child.spacy-dep', FeatureType.ENUM, vocabs.SPACY_DEPS, embeddings.SPACY_DEPS_ONEHOT, extractor=lambda tok, sent: get_child_of_type(tok, sent, 'pobj', 'spacy_head_ind', 'spacy_dep').spacy_dep, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'spacy'),
+        Feature('token-spacy-pobj-child.spacy-ner', FeatureType.ENUM, vocabs.SPACY_NER,  embeddings.SPACY_NER_ONEHOT,  extractor=lambda tok, sent: get_child_of_type(tok, sent, 'pobj', 'spacy_head_ind', 'spacy_dep').spacy_ner, mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'spacy'),
+
+        Feature('token-spacy-has-children', FeatureType.ENUM,  vocabs.BOOLEAN, embeddings.BOOLEAN_ONEHOT, extractor=lambda tok, sent: str(len(get_children(tok, sent, 'spacy_head_ind')) == 0), mount_point=MLP, enable=hp.use_dep and hp.deps_from == 'spacy'),
+    ])

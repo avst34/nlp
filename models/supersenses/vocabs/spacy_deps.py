@@ -46,4 +46,5 @@ SPACY_DEPS = Vocabulary('Spacy Dependencies', [
 'mark',
 'appos',
 'parataxis',
+None
 ])

@@ -102,7 +102,7 @@ if __name__ == '__main__':
     an.plot_on_score('learning_rate_decay', filter=filter)
     an.plot_on_score('use_head', filter=filter)
     an.plot_on_score('use_dep', filter=filter)
-    an.plot_on_score('use_token_onehot', filter=filter)
+    an.plot_on_score('use_prep_onehot', filter=filter)
     an.plot_on_score('use_token_internal', filter=filter)
     an.plot_on_score('token_internal_embd_dim', filter = lambda e: e["use_token_internal"] == 'True'and filter(e))
     an.plot_on_score('mlp_layers', filter=filter)

@@ -51,4 +51,5 @@ POS = Vocabulary('POS', [
 "''",
 'TO',
 'NNS',
+None
 ])
