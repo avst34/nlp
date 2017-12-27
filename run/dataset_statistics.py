@@ -1,4 +1,5 @@
 from collections import Counter, namedtuple
+import random
 
 
 def pp_pos_stats(records):
@@ -9,6 +10,41 @@ def pp_pos_stats(records):
     for pos in poses:
         print("%s: %d/%d (%2.2f%%)" % (pos, pp_pos_counter[pos], pos_counter[pos], pp_pos_counter[pos] / pos_counter[pos] * 100))
 
+def deps_examples(records):
+    records = list(records)
+    fields = ['spacy_dep', 'ud_dep']
+
+    for field in fields:
+        print(field)
+        print('-----')
+        all_deps = [getattr(tok, field) for rec in records for tok in rec.tagged_tokens if tok.supersense_combined]
+        deps_counter = Counter(all_deps)
+        deps_ordered = sorted(deps_counter, key=lambda dep: -deps_counter[dep])
+        for dep in deps_ordered:
+            print(dep + ' (%2.2f%%):' % (deps_counter[dep] / len(all_deps) * 100))
+            print('-----------')
+            found = []
+            found_mwe = []
+            random.shuffle(records)
+            for rec in records:
+                for tok in rec.tagged_tokens:
+                    if tok.supersense_combined and getattr(tok, field) == dep:
+                        parent = rec.tagged_tokens[getattr(tok, field.replace('dep', 'head_ind'))]
+                        s = '%s: (%s -> %s) [MWE %s]:' % (rec.id, parent.token, tok.token, tok.part_of_mwe) + ' ' +  ' '.join([t.token for t in rec.tagged_tokens])
+                        if tok.part_of_mwe:
+                            found_mwe.append(s)
+                        else:
+                            found.append(s)
+                    if len(found) > 3 and len(found_mwe) > 3:
+                        break
+                if len(found) > 3 and len(found_mwe) > 3:
+                    break
+            for s in found[:3]:
+                print(s)
+            for s in found_mwe[:3]:
+                print(s)
+            print('')
+        print('#####')
 
 def deps_stats(records):
     UDBin = namedtuple('UDBin', ['pos', 'parent', 'grandparent'])
@@ -175,5 +211,6 @@ def deps_stats(records):
 
 def run(records):
     # pp_pos_stats(records)
-    deps_stats(records)
+    # deps_stats(records)
+    deps_examples(records)
 

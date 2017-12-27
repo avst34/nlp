@@ -189,7 +189,7 @@ def enhance_ud_dependency_trees():
     trees = {}
     ID_PATTERN = re.compile(r'# sent_id \= reviews-(\d+)-0+(\d+)')
     for ind, (sent_id, sent) in enumerate(sents.items()):
-        if "004940" in sent_id:
+        if "363685-0017" in sent_id:
             print(sent_id)
         match = ID_PATTERN.match(sent_id)
         if match:
@@ -208,9 +208,9 @@ def enhance_ud_dependency_trees():
 
 if __name__ == '__main__':
     # enhance_spacy_dependency_trees()
-    enhance_spacy_ners()
+    # enhance_spacy_ners()
     # enhance_word2vec()
     # enhance_dev_sentences()
-    # enhance_ud_dependency_trees()
+    enhance_ud_dependency_trees()
 
 

@@ -111,8 +111,7 @@ class LstmMlpSupersensesModel(object):
         def should_use_ud_dep(self):
             return self.deps_from == 'ud'
 
-    def __init__(self,
-                 hyperparameters=None):
+    def __init__(self, hyperparameters):
         hp = hyperparameters
         self.hyperparameters = hp
 
