@@ -14,15 +14,17 @@ class LstmMlpSupersensesModel:
         def __init__(self,
                      token,
                      ind,
-                     ud_pos=None,
-                     spacy_pos=None,
-                     spacy_dep=None,
-                     spacy_head_ind=None,
-                     spacy_ner=None,
-                     ud_dep=None,
-                     ud_head_ind=None):
+                     is_part_of_mwe,
+                     ud_pos,
+                     spacy_pos,
+                     spacy_dep,
+                     spacy_head_ind,
+                     spacy_ner,
+                     ud_dep,
+                     ud_head_ind):
             self.token = token
             self.ind = ind
+            self.is_part_of_mwe = is_part_of_mwe
             self.ud_pos = ud_pos
             self.spacy_pos = spacy_pos
             self.spacy_ner = spacy_ner
@@ -106,7 +108,8 @@ class LstmMlpSupersensesModel:
                      epochs,
                      learning_rate,
                      learning_rate_decay,
-                     mask_by # MASK_BY_SAMPLE_YS or MASK_BY_POS_PREFIX + 'pos1,pos2,...'
+                     mask_by, # MASK_BY_SAMPLE_YS or MASK_BY_POS_PREFIX + 'pos1,pos2,...'
+                     mask_mwes
                      ):
             self.lstm_dropout_p = lstm_dropout_p
             self.mask_by = mask_by
@@ -132,6 +135,7 @@ class LstmMlpSupersensesModel:
             self.is_bilstm = is_bilstm
             self.mlp_dropout_p = mlp_dropout_p
             self.epochs = epochs
+            self.mask_mwes = mask_mwes
 
             assert(mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS
                    or mask_by.startswith(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX))
@@ -212,6 +216,8 @@ class LstmMlpSupersensesModel:
         return LstmMlpSupersensesModel.SampleY(**{label: ll_sample_y[ind] for ind, label in enumerate(labels)})
 
     def apply_mask(self, sample_x, sample_y):
+        if self.hyperparameters.mask_mwes and sample_x.is_part_of_mwe:
+            return False
         if self.hyperparameters.is_mask_by_sample_ys():
             return sample_y is not None
         else:

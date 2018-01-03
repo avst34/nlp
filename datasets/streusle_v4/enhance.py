@@ -88,14 +88,20 @@ def enhance_spacy_ners():
 
 
 def enhance_spacy_pos():
+    with open(streusle.ENHANCEMENTS.SPACY_POS, 'r') as f:
+        current = json.load(f)
+
     def process(t):
         ind, rec = t
+        if current.get(rec.id):
+            return current[rec.id]
         doc = apply_spacy_pipeline([tt.token for tt in rec.tagged_tokens])
         print('enhance spacy pos: %d/%d' % (ind + 1, len(records)))
         return [
             token.pos_ or None
             for token in doc
         ]
+
 
     with ThreadPoolExecutor(1) as tpe:
         pos_list = list(tpe.map(process, enumerate(records)))

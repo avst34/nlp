@@ -13,9 +13,9 @@ from datasets.streusle_v4 import streusle
 def print_samples_statistics(name, samples):
     sentences = len(samples)
     tokens = len([tok for s in samples for tok in s.tagged_tokens])
-    prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_pos in ['IN', 'PRP$', 'RB', 'TO']])
-    labeled_prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_pos in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
-    labels_lost = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_pos not in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
+    prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_xpos in ['IN', 'PRP$', 'RB', 'TO']])
+    labeled_prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_xpos in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
+    labels_lost = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_xpos not in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
 
     print("Set: %s, Sentences: %d, Tokens: %d, Prepositions: %d, Labeled prepositions: %d, Labels Lost: %d" % (name,
                                                                                   sentences,
@@ -64,7 +64,7 @@ all_records = train_records + dev_records + test_records
 #     print(p)
 # print("---")
 #
-# all_mwe_prepositions = [t.token.lower() for rec in all_records for t in rec.tagged_tokens if t.supersense_combined and t.part_of_mwe]
+# all_mwe_prepositions = [t.token.lower() for rec in all_records for t in rec.tagged_tokens if t.supersense_combined and t.is_part_of_mwe]
 # print("All mwe prepositions:", len(set(all_mwe_prepositions)))
 # print("----------------")
 # for p in sorted(set(all_mwe_prepositions)):
@@ -73,7 +73,7 @@ all_records = train_records + dev_records + test_records
 #
 #
 # print("Preposition POSes:", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.supersense_combined]))
-# print("Preposition POSes (MWEs dropped):", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.supersense_combined and not t.part_of_mwe]))
+# print("Preposition POSes (MWEs dropped):", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.supersense_combined and not t.is_part_of_mwe]))
 
 # dataset_statistics.run(all_records)
 # most_frequent_baseline.run(train_records, dev_records)

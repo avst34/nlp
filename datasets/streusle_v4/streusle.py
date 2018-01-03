@@ -54,20 +54,42 @@ UD_DEP_TREES = load_dep_tree(ENHANCEMENTS.UD_DEP_TREES)
 SPACY_NERS = load_json(ENHANCEMENTS.SPACY_NERS, {})
 SPACY_POS = load_json(ENHANCEMENTS.SPACY_POS, {})
 
-class TaggedToken(namedtuple('TokenData_', ['token', 'ind', 'token_word2vec', 'pos', 'supersense_role', 'supersense_func', 'spacy_head_ind', 'spacy_dep', 'ud_head_ind', 'ud_dep', 'part_of_wmwe', 'part_of_smwe', 'spacy_ner', 'ud_upos', 'ud_xpos', 'ud_lemma'])):
-    def __init__(self, *args, **kwargs):
-        super().__init__()
+class TaggedToken:
+    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, part_of_wmwe, part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, ud_lemma):
+        self.token = token
+        self.ind = ind
+        self.token_word2vec = token_word2vec
+        self.supersense_role = supersense_role
+        self.supersense_func = supersense_func
+        self.spacy_head_ind = spacy_head_ind
+        self.spacy_dep = spacy_dep
+        self.ud_head_ind = ud_head_ind
+        self.ud_dep = ud_dep
+        self.part_of_wmwe = part_of_wmwe
+        self.part_of_smwe = part_of_smwe
+        self.is_first_mwe_token = is_first_mwe_token
+        self.spacy_ner = spacy_ner
+        self.ud_upos = ud_upos
+        self.ud_xpos = ud_xpos
+        self.spacy_pos = spacy_pos
+        self.ud_lemma = ud_lemma
 
         if (self.supersense_role is not None) != (self.supersense_role is not None):
             raise Exception("TaggedToken initialized with only one supersense")
 
+        if self.is_part_of_mwe and not self.is_first_mwe_token:
+            self.supersense_func = None
+            self.supersense_role = None
+
         self.supersense_role_type = supersenses.get_supersense_type(self.supersense_role) if self.supersense_role else None
         self.supersense_func_type = supersenses.get_supersense_type(self.supersense_func) if self.supersense_func else None
+
         supersense_combined = None
         if self.supersense_role and self.supersense_func:
             supersense_combined = self.supersense_role + '|' + self.supersense_func
         self.supersense_combined = supersense_combined
-        self.part_of_mwe = self.part_of_smwe or self.part_of_wmwe
+
+        self.is_part_of_mwe = self.part_of_smwe or self.part_of_wmwe
 
 class StreusleRecord:
 
@@ -117,8 +139,8 @@ class StreusleRecord:
                 token_word2vec=W2V.get(tok_data['word']),
                 ud_upos=tok_data['upos'],
                 ud_xpos=tok_data['xpos'],
+                spacy_pos=spacy_pos[i] if spacy_pos else None,
                 ud_lemma=tok_data['lemma'],
-                pos=tok_data['xpos'], # backward compatibility
                 spacy_head_ind=self.spacy_dep_tree[i].head_ind if self.spacy_dep_tree else None,
                 spacy_dep=self.spacy_dep_tree[i].dep if self.spacy_dep_tree else None,
                 ud_head_ind=self.ud_dep_tree[i].head_ind if self.ud_dep_tree else None,
@@ -128,6 +150,7 @@ class StreusleRecord:
                 supersense_func=extract_supersense_pair(tok_data['ss'], tok_data['ss2'])[1],
                 part_of_smwe=self.data['smwes'].get(i+1) is not None,
                 part_of_wmwe=self.data['wmwes'].get(i+1) is not None,
+                is_first_mwe_token=(self.data['smwes'].get(i + 1) or self.data['wmwes'].get(i+1) or {'id': None})['id'] == tok_data['id']
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
@@ -153,13 +176,9 @@ class StreusleLoader(object):
                                         spacy_ners=SPACY_NERS.get(sent['streusle_sent_id']),
                                         spacy_pos=SPACY_POS.get(sent['streusle_sent_id']),
                                         only_supersenses=only_with_supersenses)
-                if only_with_supersenses:
-                    if not any([token.supersense_combined for token in record.tagged_tokens]):
-                        continue
-
                 assert not SPACY_DEP_TREES or SPACY_DEP_TREES.get(sent['streusle_sent_id'])
                 assert not SPACY_NERS or SPACY_NERS.get(sent['streusle_sent_id'])
-                assert not SPACY_POS or SPACY_POS.get(sent['streusle_sent_id'])
+                # assert not SPACY_POS or SPACY_POS.get(sent['streusle_sent_id'])
                 assert not UD_DEP_TREES or UD_DEP_TREES.get(sent['streusle_sent_id'])
                 records.append(record)
         test_sentids = self._load_test_sentids()

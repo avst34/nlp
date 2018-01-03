@@ -124,7 +124,7 @@ class StreusleRecord:
                 # supersense=filter_supersense(self.data['labels'].get(str(i + 1), [None, None])[1]),
                 supersense_role=extract_supersense_pair(self.data['labels'].get(str(i + 1), [None, None])[1])[0],
                 supersense_func=extract_supersense_pair(self.data['labels'].get(str(i + 1), [None, None])[1])[1],
-                part_of_mwe=any([i+1 in mwe_inds for mwe_inds in self.data['_']])
+                is_part_of_mwe=any([i+1 in mwe_inds for mwe_inds in self.data['_']])
             ) for i, tok_data in enumerate(self.data['words'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
