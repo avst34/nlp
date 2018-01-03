@@ -1,5 +1,6 @@
 from .preps_onehot import PREPS_ONEHOT
-from .pos_onehot import POS_ONEHOT
+from .ud_pos_onehot import UD_POS_ONEHOT
+from .spacy_pos_onehot import SPACY_POS_ONEHOT
 from .spacy_deps_onehot import SPACY_DEPS_ONEHOT
 from .spacy_ner_onehot import SPACY_NER_ONEHOT
 from .tokens_word2vec import TOKENS_WORD2VEC

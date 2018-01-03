@@ -17,6 +17,7 @@ TUNER_DOMAINS_TUNING = [
     PS(name='use_dep', values=[True, False]),
     PS(name='use_spacy_ner', values=[True, False]),
     PS(name='deps_from', values=['ud', 'spacy']),
+    PS(name='pos_from', values=['ud', 'spacy']),
     PS(name='use_prep_onehot', values=[True]),
     PS(name='token_embd_dim', values=[300]),
     PS(name='token_internal_embd_dim', values=range(20, 101)),

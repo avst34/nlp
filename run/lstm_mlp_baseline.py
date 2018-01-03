@@ -2,32 +2,14 @@ from evaluators.classifier_evaluator import ClassifierEvaluator
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
+from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 from models.supersenses.tuner_domains import PS
+from run.dump_vocabs import dump_vocabularies
 from vocabulary import Vocabulary
 import supersenses
 import json
 
 evaluator = ClassifierEvaluator()
-
-def streusle_record_to_lstm_model_sample(record):
-    return LstmMlpSupersensesModel.Sample(
-        xs=[LstmMlpSupersensesModel.SampleX(
-                token=tagged_token.token,
-                ind=ind,
-                pos=tagged_token.pos,
-                spacy_dep=tagged_token.spacy_dep,
-                spacy_head_ind=tagged_token.spacy_head_ind,
-                spacy_ner=tagged_token.spacy_ner,
-                ud_dep=tagged_token.ud_dep,
-                ud_head_ind=tagged_token.ud_head_ind,
-            ) for ind, tagged_token in enumerate(record.tagged_tokens)
-        ],
-        ys=[LstmMlpSupersensesModel.SampleY(
-                supersense_role=tagged_token.supersense_role,
-                supersense_func=tagged_token.supersense_func
-            ) for tagged_token in record.tagged_tokens
-        ],
-    )
 
 def run(train_records, dev_records, test_records, streusle_loader):
     train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
@@ -46,6 +28,9 @@ def run(train_records, dev_records, test_records, streusle_loader):
     # pos_vocab = Vocabulary('POS')
     # pos_vocab.add_words(set([x.pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
     #
+    spacy_pos_vocab = Vocabulary('SPACY_POS')
+    spacy_pos_vocab.add_words(set([x.spacy_pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+
     # ner_vocab = Vocabulary('NER')
     # ner_vocab.add_words(set([x.spacy_ner for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
     #
@@ -57,6 +42,7 @@ def run(train_records, dev_records, test_records, streusle_loader):
     # pss_vocab.add_word(None)
     #
     # dump_vocabularies([pp_vocab, spacy_dep_vocab, ud_dep_vocab, pos_vocab, ner_vocab, token_vocab, pss_vocab])
+    dump_vocabularies([spacy_pos_vocab])
 
     tuner = LstmMlpSupersensesModelHyperparametersTuner(
         results_csv_path='/cs/labs/oabend/aviramstern/results.csv',

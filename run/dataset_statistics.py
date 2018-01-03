@@ -3,8 +3,8 @@ import random
 
 
 def pp_pos_stats(records):
-    pp_pos_counter = Counter([t.pos for rec in records for t in rec.tagged_tokens if t.supersense_combined and not t.part_of_mwe])
-    pos_counter = Counter([t.pos for rec in records for t in rec.tagged_tokens if not t.part_of_mwe])
+    pp_pos_counter = Counter([t.ud_xpos for rec in records for t in rec.tagged_tokens if t.supersense_combined and not t.part_of_mwe])
+    pos_counter = Counter([t.ud_xpos for rec in records for t in rec.tagged_tokens if not t.part_of_mwe])
     poses = sorted(pp_pos_counter.keys(), key=lambda pos: -pp_pos_counter[pos] / pos_counter[pos])
     print("POS stats:")
     for pos in poses:
@@ -63,7 +63,7 @@ def deps_stats(records):
     for record in records:
         for tok in record.tagged_tokens:
             if tok.supersense_combined:
-                _bin = UDBin(pos=tok.pos,
+                _bin = UDBin(pos=tok.ud_xpos,
                             parent=tok.ud_dep,
                              grandparent='-- ALL --')
                 ud_bins[_bin] = ud_bins.get(_bin, 0)

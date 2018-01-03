@@ -8,14 +8,14 @@ import dynet
 
 from run import most_frequent_baseline, lstm_mlp_baseline, dataset_statistics
 from collections import Counter
-from datasets.streusle import streusle
+from datasets.streusle_v4 import streusle
 
 def print_samples_statistics(name, samples):
     sentences = len(samples)
     tokens = len([tok for s in samples for tok in s.tagged_tokens])
-    prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.pos in ['IN', 'PRP$', 'RB', 'TO']])
-    labeled_prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.pos in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
-    labels_lost = len([tok for s in samples for tok in s.tagged_tokens if tok.pos not in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
+    prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_pos in ['IN', 'PRP$', 'RB', 'TO']])
+    labeled_prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_pos in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
+    labels_lost = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_pos not in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
 
     print("Set: %s, Sentences: %d, Tokens: %d, Prepositions: %d, Labeled prepositions: %d, Labels Lost: %d" % (name,
                                                                                   sentences,
@@ -75,6 +75,6 @@ all_records = train_records + dev_records + test_records
 # print("Preposition POSes:", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.supersense_combined]))
 # print("Preposition POSes (MWEs dropped):", Counter([t.pos for rec in all_records for t in rec.tagged_tokens if t.supersense_combined and not t.part_of_mwe]))
 
-dataset_statistics.run(all_records)
+# dataset_statistics.run(all_records)
 # most_frequent_baseline.run(train_records, dev_records)
-# lstm_mlp_baseline.run(train_records, dev_records, test_records, streusle_loader)
+lstm_mlp_baseline.run(train_records, dev_records, test_records, streusle_loader)
