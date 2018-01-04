@@ -38,7 +38,7 @@ class LstmMlpSupersensesModel:
 
         @staticmethod
         def from_dict(d):
-            return LstmMlpMulticlassModel.SampleX(**d)
+            return LstmMlpSupersensesModel.SampleX(**d)
 
     class SampleY:
 
@@ -51,7 +51,7 @@ class LstmMlpSupersensesModel:
 
         @staticmethod
         def from_dict(d):
-            return LstmMlpMulticlassModel.SampleX(**d)
+            return LstmMlpSupersensesModel.SampleY(**d)
 
     class Sample:
 
@@ -64,7 +64,7 @@ class LstmMlpSupersensesModel:
             return {
                 'xs': [x.to_dict() for x in self.xs],
                 'ys': [y.to_dict() for y in self.ys],
-                'id': self.sample_id
+                'sample_id': self.sample_id
             }
 
         @staticmethod

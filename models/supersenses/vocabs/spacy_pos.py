@@ -16,4 +16,5 @@ SPACY_POS = Vocabulary('SPACY_POS', [
 'SYM',
 'PRON',
 'ADJ',
+None
 ])
