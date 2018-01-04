@@ -1,4 +1,5 @@
 from evaluators.classifier_evaluator import ClassifierEvaluator
+from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
@@ -16,33 +17,40 @@ def run(train_records, dev_records, test_records, streusle_loader):
     dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
     test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
 
-    # pp_vocab = Vocabulary('Prepositions')
+    # pp_vocab = Vocabulary('PREPS')
     # pp_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys) if any([y.supersense_role, y.supersense_func])]))
     #
-    # spacy_dep_vocab = Vocabulary('Spacy Dependencies')
+    # spacy_dep_vocab = Vocabulary('SPACY_DEPS')
     # spacy_dep_vocab.add_words(set([x.spacy_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # spacy_dep_vocab.add_word(None)
     #
-    # ud_dep_vocab = Vocabulary('UD Dependencies')
+    # ud_dep_vocab = Vocabulary('UD_DEPS')
     # ud_dep_vocab.add_words(set([x.ud_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # ud_dep_vocab.add_word(None)
     #
-    # pos_vocab = Vocabulary('POS')
-    # pos_vocab.add_words(set([x.pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # ud_pos_vocab = Vocabulary('UD_POS')
+    # ud_pos_vocab.add_words(set([x.ud_pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # ud_pos_vocab.add_word(None)
     #
-    spacy_pos_vocab = Vocabulary('SPACY_POS')
-    spacy_pos_vocab.add_words(set([x.spacy_pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-
-    # ner_vocab = Vocabulary('NER')
-    # ner_vocab.add_words(set([x.spacy_ner for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # spacy_pos_vocab = Vocabulary('SPACY_POS')
+    # spacy_pos_vocab.add_words(set([x.spacy_pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # spacy_pos_vocab.add_word(None)
     #
-    # token_vocab = Vocabulary('Tokens')
+    # spacy_ner_vocab = Vocabulary('SPACY_NER')
+    # spacy_ner_vocab.add_words(set([x.spacy_ner for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # spacy_ner_vocab.add_word(None)
+    #
+    # token_vocab = Vocabulary('TOKENS')
     # token_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
     #
-    # pss_vocab = Vocabulary('PrepositionalSupersenses')
+    # pss_vocab = Vocabulary('PSS')
     # pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
     # pss_vocab.add_word(None)
     #
-    # dump_vocabularies([pp_vocab, spacy_dep_vocab, ud_dep_vocab, pos_vocab, ner_vocab, token_vocab, pss_vocab])
-    dump_vocabularies([spacy_pos_vocab])
+    # dump_vocabularies([pp_vocab, spacy_dep_vocab, ud_dep_vocab, ud_pos_vocab, ner_vocab, token_vocab, pss_vocab, spacy_pos_vocab])
+    # dump_vocabularies([spacy_ner_vocab])
+
+    test_features()
 
     tuner = LstmMlpSupersensesModelHyperparametersTuner(
         results_csv_path='/cs/labs/oabend/aviramstern/results.csv',
@@ -56,23 +64,30 @@ def run(train_records, dev_records, test_records, streusle_loader):
                 ('supersense_role',),
                 ('supersense_func',),
             ]),
-            PS(name='mask_by',   values=['samply_ys']),
+            PS(name='mask_by',   values=['sample-ys']),
             PS(name='deps_from', values=['ud']),
             PS(name='pos_from',  values=['ud']),
+            PS(name='use_token_internal', values=[True]),
+            PS(name='use_pos', values=[True]),
+            PS(name='use_dep', values=[True]),
+            PS(name='use_spacy_ner', values=[True]),
+            PS(name='use_prep_onehot', values=[True]),
+
             # PS(name='mask_by', values=['sample-ys']),
             # PS(name='learning_rate', values=[0.1]),
             # PS(name='learning_rate_decay', values=[0.01]),
             # PS(name='mlp_dropout_p', values=[0.1])
-            # PS(name='epochs', values=[5])
+            # PS(name='epochs', values=[1])
         ],
     )
 
-    # tuner.tune(n_executions=1)
-    tuner.sample_execution(json.loads(
-        """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role", "supersense_func"], "use_prep_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_spacy_ner": false, "deps_from": "ud", "lstm_dropout_p": 0.1, "use_dep": true}"""
-        # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role"], "use_prep_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_spacy_ner": false, "deps_from": "ud", "lstm_dropout_p": 0.1, "use_dep": true}"""
-        # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_func"], "use_prep_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_spacy_ner": false, "deps_from": "ud", "lstm_dropout_p": 0.1, "use_dep": true}"""
-    ))
+    tuner.tune(n_executions=1)
+    # tuner.sample_execution(json.loads(
+    #     """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role", "supersense_func"], "use_prep_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_spacy_ner": false, "deps_from": "ud", "lstm_dropout_p": 0.1, "use_dep": true}"""
+    #     # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role"], "use_prep_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_spacy_ner": false, "deps_from": "ud", "lstm_dropout_p": 0.1, "use_dep": true}"""
+    #     # """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_func"], "use_prep_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_spacy_ner": false, "deps_from": "ud", "lstm_dropout_p": 0.1, "use_dep": true}"""
+    # ))
+    # tuner.sample_execution()
 
     # print('LSTM-MLP evaluation:')
     # lstm_mlp_model = LstmMlpSupersensesModel(

@@ -254,7 +254,11 @@ class LstmMlpMulticlassModel(object):
                     ss_ind = self.output_vocabulary.get_index(label_y)
                     loss = -dy.log(dy.pick(label_out, ss_ind))
                     losses.append(loss)
-        return dy.esum(losses)
+        if len(losses):
+            loss = dy.esum(losses)
+        else:
+            loss = None
+        return loss
 
     # def _build_vocabularies(self, samples):
     #     if not self.input_vocabularies:
@@ -297,17 +301,19 @@ class LstmMlpMulticlassModel(object):
             BATCH_SIZE = 20
             batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
             for batch_ind, batch in enumerate(batches):
-                dy.renew_cg()
+                dy.renew_cg(immediate_compute=True, check_validity=True)
                 losses = []
                 for sample in batch:
                     outputs = self._build_network_for_input(sample.xs, sample.mask)
                     sample_loss = self._build_loss(outputs, sample.ys)
-                    losses.append(sample_loss)
-                batch_loss = dy.esum(losses)
-                batch_loss.forward()
-                batch_loss.backward()
-                loss_sum += batch_loss.value()
-                trainer.update()
+                    if sample_loss is not None:
+                        losses.append(sample_loss)
+                if len(losses):
+                    batch_loss = dy.esum(losses)
+                    batch_loss.forward()
+                    batch_loss.backward()
+                    loss_sum += batch_loss.value()
+                    trainer.update()
                 if show_progress:
                     if int((batch_ind + 1) / len(batches) * 100) > int(batch_ind / len(batches) * 100):
                         per = int((batch_ind + 1) / len(batches) * 100)

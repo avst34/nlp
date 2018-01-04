@@ -181,7 +181,7 @@ class LstmMlpSupersensesModel:
                     'n_labels_to_predict': len(self.hyperparameters.labels_to_predict)
              },
              del_keys=['use_token', 'use_pos', 'use_gold_pos', 'use_spacy_pos', 'use_dep', 'use_spacy_ner', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
-                       'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'deps_from']))
+                       'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'deps_from', 'pos_from', 'mask_mwes']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):

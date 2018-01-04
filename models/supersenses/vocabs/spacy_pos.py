@@ -1,20 +1,20 @@
 from vocabulary import Vocabulary
             
 SPACY_POS = Vocabulary('SPACY_POS', [
-'X',
-'ADV',
-'ADP',
-'NOUN',
-'VERB',
-'CCONJ',
-'NUM',
-'PUNCT',
-'DET',
-'PART',
-'PROPN',
-'INTJ',
-'SYM',
 'PRON',
+'NUM',
+'INTJ',
+'ADV',
+'CCONJ',
+'ADP',
+'X',
+'VERB',
 'ADJ',
-None
-])
+'PROPN',
+'PUNCT',
+'SYM',
+'NOUN',
+'PART',
+'DET',
+None]
+)

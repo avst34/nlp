@@ -231,8 +231,8 @@ def enhance_ud_dependency_trees():
 
 if __name__ == '__main__':
     # enhance_spacy_dependency_trees()
-    # enhance_spacy_ners()
-    enhance_spacy_pos()
+    enhance_spacy_ners()
+    # enhance_spacy_pos()
     # enhance_word2vec()
     # enhance_dev_sentences()
     # enhance_ud_dependency_trees()

@@ -13,7 +13,7 @@ def build_csv_rows(params, result):
     assert isinstance(result, HyperparametersTuner.ExecutionResult)
     result_data = result.result_data
     rows_tuples = []
-    best_epoch = max([(evaluation['f1'], epoch) for epoch, evaluation in enumerate(result_data['test'])])[1]
+    best_epoch = max([(evaluation['f1'] or 0, epoch) for epoch, evaluation in enumerate(result_data['test'])])[1]
     for scope, scope_data in result_data.items():
         for epoch, epoch_data in enumerate(scope_data):
             class_scores = epoch_data['class_scores']
