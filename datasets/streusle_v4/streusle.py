@@ -55,7 +55,7 @@ SPACY_NERS = load_json(ENHANCEMENTS.SPACY_NERS, {})
 SPACY_POS = load_json(ENHANCEMENTS.SPACY_POS, {})
 
 class TaggedToken:
-    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, part_of_wmwe, part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, ud_lemma):
+    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, is_part_of_wmwe, is_part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, ud_lemma):
         self.token = token
         self.ind = ind
         self.token_word2vec = token_word2vec
@@ -65,8 +65,8 @@ class TaggedToken:
         self.spacy_dep = spacy_dep
         self.ud_head_ind = ud_head_ind
         self.ud_dep = ud_dep
-        self.part_of_wmwe = part_of_wmwe
-        self.part_of_smwe = part_of_smwe
+        self.is_part_of_wmwe = is_part_of_wmwe
+        self.is_part_of_smwe = is_part_of_smwe
         self.is_first_mwe_token = is_first_mwe_token
         self.spacy_ner = spacy_ner
         self.ud_upos = ud_upos
@@ -76,6 +76,8 @@ class TaggedToken:
 
         if (self.supersense_role is not None) != (self.supersense_role is not None):
             raise Exception("TaggedToken initialized with only one supersense")
+
+        self.is_part_of_mwe = self.is_part_of_smwe or self.is_part_of_wmwe
 
         if self.is_part_of_mwe and not self.is_first_mwe_token:
             self.supersense_func = None
@@ -89,7 +91,6 @@ class TaggedToken:
             supersense_combined = self.supersense_role + '|' + self.supersense_func
         self.supersense_combined = supersense_combined
 
-        self.is_part_of_mwe = self.part_of_smwe or self.part_of_wmwe
 
 class StreusleRecord:
 
@@ -148,9 +149,9 @@ class StreusleRecord:
                 spacy_ner=spacy_ners[i] if spacy_ners else None,
                 supersense_role=extract_supersense_pair(tok_data['ss'], tok_data['ss2'])[0],
                 supersense_func=extract_supersense_pair(tok_data['ss'], tok_data['ss2'])[1],
-                part_of_smwe=self.data['smwes'].get(i+1) is not None,
-                part_of_wmwe=self.data['wmwes'].get(i+1) is not None,
-                is_first_mwe_token=(self.data['smwes'].get(i + 1) or self.data['wmwes'].get(i+1) or {'id': None})['id'] == tok_data['id']
+                is_part_of_smwe=self.data['smwes'].get(i+1) is not None,
+                is_part_of_wmwe=self.data['wmwes'].get(i+1) is not None,
+                is_first_mwe_token=(self.data['smwes'].get(i + 1, {}).get('toknums') or self.data['wmwes'].get(i + 1, {}).get('toknums') or [None])[0] == tok_data['#']
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
@@ -178,7 +179,7 @@ class StreusleLoader(object):
                                         only_supersenses=only_with_supersenses)
                 assert not SPACY_DEP_TREES or SPACY_DEP_TREES.get(sent['streusle_sent_id'])
                 assert not SPACY_NERS or SPACY_NERS.get(sent['streusle_sent_id'])
-                # assert not SPACY_POS or SPACY_POS.get(sent['streusle_sent_id'])
+                assert not SPACY_POS or SPACY_POS.get(sent['streusle_sent_id'])
                 assert not UD_DEP_TREES or UD_DEP_TREES.get(sent['streusle_sent_id'])
                 records.append(record)
         test_sentids = self._load_test_sentids()

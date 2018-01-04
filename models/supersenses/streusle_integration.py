@@ -1,8 +1,7 @@
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 
 
-def streusle_record_to_lstm_model_sample(record, drop_mwes_pss=True):
-    print('WARNING: Dropping MWE pss from streusle records')
+def streusle_record_to_lstm_model_sample(record):
     return LstmMlpSupersensesModel.Sample(
         xs=[LstmMlpSupersensesModel.SampleX(
             token=tagged_token.token,
@@ -18,9 +17,9 @@ def streusle_record_to_lstm_model_sample(record, drop_mwes_pss=True):
         ) for ind, tagged_token in enumerate(record.tagged_tokens)
         ],
         ys=[LstmMlpSupersensesModel.SampleY(
-            supersense_role=tagged_token.supersense_role if not tagged_token.is_part_of_mwe or not drop_mwes_pss,
-            supersense_func=tagged_token.supersense_func if not tagged_token.is_part_of_mwe or not drop_mwes_pss,
+            supersense_role=tagged_token.supersense_role,
+            supersense_func=tagged_token.supersense_func
         ) for tagged_token in record.tagged_tokens
         ],
-        id=record.id
+        sample_id=record.id
     )

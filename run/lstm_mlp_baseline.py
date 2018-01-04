@@ -53,8 +53,12 @@ def run(train_records, dev_records, test_records, streusle_loader):
         tuner_domains_override=[
             PS(name='labels_to_predict', values=[
                 ('supersense_role', 'supersense_func'),
+                ('supersense_role',),
+                ('supersense_func',),
             ]),
-            PS(name='mask_by', values=['pos:IN,PRP$,RB,TO']),
+            PS(name='mask_by',   values=['samply_ys']),
+            PS(name='deps_from', values=['ud']),
+            PS(name='pos_from',  values=['ud']),
             # PS(name='mask_by', values=['sample-ys']),
             # PS(name='learning_rate', values=[0.1]),
             # PS(name='learning_rate_decay', values=[0.01]),
