@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/tcsh
 #SBATCH --mem=4096m
 #SBATCH -c2
 #SBATCH --time=2-0
