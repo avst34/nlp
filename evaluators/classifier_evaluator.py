@@ -14,13 +14,16 @@ class ClassifierEvaluator:
         self.predictor = predictor
 
     def print_prediction(self, sample, predicted_ys):
-        print("Sample:")
-        print("------")
-        for x, y_true, y_predicted in zip(sample.xs, sample.ys, predicted_ys):
-            print(''.join(['{:<30}'.format("[%s] %s" % (f, x[f])) for f in sorted(x.keys())]))
-            if any(y_true or []) or any(y_predicted or []):
-                print('^ [%s]  ACTUAL: %10s  PREDICTED: %10s' % ('X' if y_true != y_predicted else 'V', y_true, y_predicted) \
-                        if y_true else ' ')
+        try:
+            print("Sample:")
+            print("------")
+            for x, y_true, y_predicted in zip(sample.xs, sample.ys, predicted_ys):
+                print(''.join(['{:<30}'.format("[%s] %s" % (f, x[f])) for f in sorted(x.keys())]))
+                if any(y_true or []) or any(y_predicted or []):
+                    print('^ [%s]  ACTUAL: %10s  PREDICTED: %10s' % ('X' if y_true != y_predicted else 'V', y_true, y_predicted) \
+                            if y_true else ' ')
+        except UnicodeEncodeError:
+            pass
 
     def update_counts(self, counts, klass, predicted, actual, strict=True):
         counts[klass] = counts.get(klass, {
