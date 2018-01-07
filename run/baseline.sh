@@ -8,8 +8,8 @@ source /cs/usr/aviramstern/lab/venvs/cortex/bin/activate.csh
 
 # DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-while true; do
+#while true; do
     #    #python3 $DIR/../main.py > ~/baseline.out
     #python3 $DIR/../main.py --dynet-gpu --dynet-autobatch > ~/baseline.out
     python3 /cs/usr/aviramstern/nlp_prod/main.py
-done
+#done
