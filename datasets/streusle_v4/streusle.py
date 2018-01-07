@@ -166,7 +166,7 @@ class StreusleLoader(object):
         streusle_file = os.path.join(STREUSLE_DIR, 'streusle.conllulex')
         print('Loading streusle data from ' + streusle_file)
         records = []
-        with open(streusle_file, 'r') as f:
+        with open(streusle_file, 'r', encoding='utf8') as f:
             sents = list(conllulex2json.load_sents(f))
             for sent in sents:
                 record = StreusleRecord(id=sent['streusle_sent_id'],

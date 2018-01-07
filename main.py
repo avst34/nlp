@@ -1,6 +1,9 @@
 import random
 import dynet_config
-import os
+import os, sys
+
+print(os.environ)
+print(sys.path)
 
 os.environ['DYNET_RANDOM_SEED'] = str(random.randrange(10000000))
 dynet_config.set(random_seed=int(os.environ['DYNET_RANDOM_SEED']))
