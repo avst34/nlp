@@ -219,7 +219,7 @@ class LstmMlpSupersensesModel:
         if self.hyperparameters.mask_mwes and sample_x.is_part_of_mwe:
             return False
         if self.hyperparameters.is_mask_by_sample_ys():
-            return sample_y is not None
+            return sample_y is not None and any(sample_y)
         else:
             return self.get_sample_x_pos(sample_x) in self.hyperparameters.get_pos_mask()
 
