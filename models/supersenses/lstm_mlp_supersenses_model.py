@@ -45,9 +45,13 @@ class LstmMlpSupersensesModel:
         def __init__(self, supersense_role=None, supersense_func=None):
             self.supersense_role = supersense_role
             self.supersense_func = supersense_func
+            assert self.supersense_func and self.supersense_role or not(self.supersense_func or self.supersense_role)
 
         def to_dict(self):
             return self.__dict__
+
+        def is_empty(self):
+            return not self.supersense_func and not self.supersense_role
 
         @staticmethod
         def from_dict(d):
@@ -219,7 +223,7 @@ class LstmMlpSupersensesModel:
         if self.hyperparameters.mask_mwes and sample_x.is_part_of_mwe:
             return False
         if self.hyperparameters.is_mask_by_sample_ys():
-            return sample_y is not None and any(sample_y)
+            return not sample_y.is_empty()
         else:
             return self.get_sample_x_pos(sample_x) in self.hyperparameters.get_pos_mask()
 
