@@ -11,6 +11,7 @@ def streusle_record_to_lstm_model_sample(record):
             spacy_dep=tagged_token.spacy_dep,
             spacy_head_ind=tagged_token.spacy_head_ind,
             spacy_ner=tagged_token.spacy_ner,
+            ud_lemma=tagged_token.ud_lemma,
             ud_dep=tagged_token.ud_dep,
             ud_head_ind=tagged_token.ud_head_ind,
             is_part_of_mwe=tagged_token.is_part_of_mwe,

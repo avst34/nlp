@@ -57,7 +57,7 @@ class ClassifierEvaluator:
                 counts[klass]['p_none_a_none'] += c
             else:
                 counts[klass]['total'] += c
-                if isNone(predicted) and actual is not None:
+                if isNone(predicted) and not isNone(actual):
                     counts[klass]['p_none_a_value'] += c
                 elif not isNone(predicted) and isNone(actual):
                     counts[klass]['p_value_a_none'] += c
@@ -92,9 +92,9 @@ class ClassifierEvaluator:
 
         class_scores = {}
 
-        for ind, sample in enumerate(samples):
+        for sample_ind, sample in enumerate(samples):
             predicted_ys = predictor.predict(sample.xs, sample.mask)
-            if ind < examples_to_show:
+            if sample_ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
             for p, a in zip(predicted_ys, sample.ys):
                 if not p:

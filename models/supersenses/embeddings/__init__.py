@@ -1,10 +1,5 @@
-from .preps_onehot import PREPS_ONEHOT
-from .ud_pos_onehot import UD_POS_ONEHOT
-from .spacy_pos_onehot import SPACY_POS_ONEHOT
-from .spacy_deps_onehot import SPACY_DEPS_ONEHOT
-from .spacy_ner_onehot import SPACY_NER_ONEHOT
 from .tokens_word2vec import TOKENS_WORD2VEC
-from .ud_deps_onehot import UD_DEPS_ONEHOT
-from .boolean_onehot import BOOLEAN_ONEHOT
+from .ud_lemmas_word2vec import UD_LEMMAS_WORD2VEC
+from .boolean import BOOLEAN
 
 AUTO = 'AUTO' # A randomally initialized embeddings that will be leared during training (vector size should be provided extenally)

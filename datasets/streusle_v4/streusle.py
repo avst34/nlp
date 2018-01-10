@@ -13,21 +13,29 @@ sys.path.append(STREUSLE_DIR)
 print(STREUSLE_DIR)
 from .streusle_4alpha import conllulex2json
 
-ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'SPACY_POS', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES'])(
+ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'UD_LEMMAS_WORD2VEC_PATH', 'UD_LEMMAS_WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'SPACY_POS', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'TEST_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES'])(
     WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'word2vec.pickle'),
     WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'word2vec_missing.json'),
+    UD_LEMMAS_WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'ud_lemmas_word2vec.pickle'),
+    UD_LEMMAS_WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'ud_lemmas_word2vec_missing.json'),
     SPACY_DEP_TREES=os.path.join(STREUSLE_DIR, 'spacy_dep_trees.json'),
     SPACY_NERS=os.path.join(STREUSLE_DIR, 'spacy_ners.json'),
     SPACY_POS=os.path.join(STREUSLE_DIR, 'spacy_pos.json'),
     UD_DEP_TREES=os.path.join(STREUSLE_DIR, 'ud_dep_trees.json'),
     DEV_SET_SENTIDS=os.path.join(STREUSLE_DIR, 'splits/psst-dev.sentids'),
-    DEV_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'splits/psst-dev-ud-split.sentids')
+    DEV_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'splits/psst-dev-ud-split.sentids'),
+    TEST_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'splits/psst-test-ud-split.sentids')
 )
 
-W2V = Word2VecModel({})
-if os.path.exists(ENHANCEMENTS.WORD2VEC_PATH):
-    with open(ENHANCEMENTS.WORD2VEC_PATH, 'rb')as f:
-        W2V = Word2VecModel.load(f)
+def load_word2vec(path):
+    w2v = Word2VecModel({})
+    if os.path.exists(path):
+        with open(path, 'rb')as f:
+            w2v = Word2VecModel.load(f)
+    return w2v
+
+W2V = load_word2vec(ENHANCEMENTS.WORD2VEC_PATH)
+UD_LEMMAS_W2V = load_word2vec(ENHANCEMENTS.UD_LEMMAS_WORD2VEC_PATH)
 
 TreeNode = namedtuple('TreeNode', ['head_ind', 'dep'])
 def load_dep_tree(tree_json_path):
@@ -190,7 +198,7 @@ class StreusleLoader(object):
         return train_records, dev_records, test_records
 
     def _load_test_sentids(self):
-        with open(os.path.join(STREUSLE_DIR, 'splits', 'psst-test-ud-split.sentids'), 'r') as f:
+        with open(os.path.join(ENHANCEMENTS.TEST_SET_SENTIDS_UD_SPLIT), 'r') as f:
             return set([x.strip() for x in f.readlines()])
 
     def _load_dev_sentids(self):
@@ -217,6 +225,9 @@ class StreusleLoader(object):
 
     def get_tokens_word2vec_model(self):
         return W2V
+
+    def get_ud_lemmas_word2vec_model(self):
+        return UD_LEMMAS_W2V
 
 
 wordVocabularyBuilder = VocabularyBuilder(lambda record: [x.token for x in record.tagged_tokens])

@@ -42,13 +42,17 @@ def run(train_records, dev_records, test_records, streusle_loader):
     #
     # token_vocab = Vocabulary('TOKENS')
     # token_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    #
+
+    # ud_lemmas_vocab = Vocabulary('UD_LEMMAS')
+    # ud_lemmas_vocab.add_words(set([x.ud_lemma for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+
     # pss_vocab = Vocabulary('PSS')
     # pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
     # pss_vocab.add_word(None)
     #
     # dump_vocabularies([pp_vocab, spacy_dep_vocab, ud_dep_vocab, ud_pos_vocab, ner_vocab, token_vocab, pss_vocab, spacy_pos_vocab])
     # dump_vocabularies([spacy_ner_vocab])
+    # dump_vocabularies([ud_lemmas_vocab])
 
     test_features()
 
@@ -56,7 +60,7 @@ def run(train_records, dev_records, test_records, streusle_loader):
         results_csv_path='/cs/labs/oabend/aviramstern/nathan_results.csv',
         # results_csv_path='/tmp/nathan_results.csv',
         samples=train_samples,
-        validation_samples=test_samples,
+        validation_samples=dev_samples,
         show_progress=True,
         show_epoch_eval=True,
         tuner_domains_override=[
@@ -66,29 +70,41 @@ def run(train_records, dev_records, test_records, streusle_loader):
                 ('supersense_func',),
             ]),
             PS(name='mask_by',   values=['sample-ys']),
-            PS(name='deps_from', values=['ud']),
-            PS(name='pos_from',  values=['ud']),
             PS(name='use_token_internal', values=[True]),
+            PS(name='use_ud_lemma', values=[True]),
             PS(name='use_pos', values=[True]),
             PS(name='use_dep', values=[True]),
             PS(name='use_spacy_ner', values=[True]),
             PS(name='use_prep_onehot', values=[True]),
+            PS(name='deps_from', values=['ud']),
+            PS(name='pos_from',  values=['ud']),
 
             # PS(name='mask_by', values=['sample-ys']),
             # PS(name='learning_rate', values=[0.1]),
             # PS(name='learning_rate_decay', values=[0.01]),
             # PS(name='mlp_dropout_p', values=[0.1])
-            # PS(name='epochs', values=[1])
+            PS(name='epochs', values=[1])
         ],
     )
 
-    # tuner.tune(n_executions=1)
-    # role - c86ad38a5cfb2949
-    tuner.sample_execution(json.loads("""{"update_token_embd": true, "dynet_random_seed": "3005920", "lstm_h_dim": 100, "mask_by": "sample-ys", "epochs": 80, "num_lstm_layers": 2, "use_token_internal": true, "use_dep": true, "learning_rate_decay": 0.001, "lstm_dropout_p": 0.02, "labels_to_predict": ["supersense_role"], "use_pos": true, "token_embd_dim": 300, "mlp_layers": 2, "learning_rate": 0.15848931924611143, "pos_from": "ud", "mlp_dropout_p": 0.0, "use_prep_onehot": true, "token_internal_embd_dim": 25, "use_token": true, "mlp_layer_dim": 80, "is_bilstm": true, "mask_mwes": "False", "deps_from": "ud", "use_spacy_ner": true, "mlp_activation": "tanh"}"""))
-    # function - 02a438096d2e19c7
-    tuner.sample_execution(json.loads("""{"epochs": 80, "learning_rate_decay": 1e-05, "mask_mwes": "False", "learning_rate": 0.15848931924611143, "mlp_layers": 2, "use_pos": true, "use_token_internal": true, "mlp_activation": "tanh", "labels_to_predict": ["supersense_func"], "pos_from": "ud", "use_prep_onehot": true, "is_bilstm": true, "token_embd_dim": 300, "use_dep": true, "mask_by": "sample-ys", "deps_from": "ud", "num_lstm_layers": 2, "mlp_dropout_p": 0.01, "use_token": true, "dynet_random_seed": "7937160", "use_spacy_ner": true, "token_internal_embd_dim": 5, "lstm_dropout_p": 0.37, "update_token_embd": true, "lstm_h_dim": 80, "mlp_layer_dim": 80}"""))
-    # (role, function) - 0ba842babf8ca888
-    tuner.sample_execution(json.loads("""{"token_internal_embd_dim": 50, "mask_by": "sample-ys", "use_dep": true, "dynet_random_seed": "1746410", "num_lstm_layers": 2, "pos_from": "ud", "epochs": 80, "mlp_layer_dim": 100, "is_bilstm": true, "lstm_h_dim": 40, "use_token": true, "mask_mwes": "False", "mlp_layers": 2, "mlp_dropout_p": 0.02, "use_token_internal": true, "labels_to_predict": ["supersense_role", "supersense_func"], "deps_from": "ud", "token_embd_dim": 300, "use_prep_onehot": true, "learning_rate_decay": 1e-05, "use_pos": true, "use_spacy_ner": true, "lstm_dropout_p": 0.18, "mlp_activation": "relu", "learning_rate": 0.06309573444801933, "update_token_embd": true}"""))
+    best_params, best_results = tuner.tune(n_executions=1)
+    predictor = best_results.predictor
+
+    predictor.save('/tmp/predictor')
+    loaded_predictor = LstmMlpSupersensesModel.load('/tmp/predictor')
+
+    print('Predictor: original')
+
+    evaluator = ClassifierEvaluator(predictor=predictor.model)
+    ll_samples = [predictor.sample_to_lowlevel(x) for x in dev_samples]
+    evaluator.evaluate(ll_samples, examples_to_show=5)
+
+    print('Predictor: loaded5')
+
+    evaluator = ClassifierEvaluator(predictor=loaded_predictor.model)
+    ll_samples = [loaded_predictor.sample_to_lowlevel(x) for x in dev_samples]
+    evaluator.evaluate(ll_samples, examples_to_show=5)
+
 
     # tuner.sample_execution(json.loads(
     #     """{"use_token_internal": true, "learning_rate_decay": 0.00031622776601683794, "num_lstm_layers": 2, "labels_to_predict": ["supersense_role", "supersense_func"], "use_prep_onehot": true, "mlp_dropout_p": 0.12, "epochs": 40, "mlp_activation": "relu", "use_token": true, "update_token_embd": false, "mlp_layer_dim": 77, "is_bilstm": true, "token_internal_embd_dim": 33, "token_embd_dim": 300, "learning_rate": 0.31622776601683794, "mlp_layers": 2, "lstm_h_dim": 64, "use_pos": false, "mask_by": "pos:IN,PRP$,RB,TO", "use_spacy_ner": false, "deps_from": "ud", "lstm_dropout_p": 0.1, "use_dep": true}"""

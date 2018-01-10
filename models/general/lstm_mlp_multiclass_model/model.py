@@ -2,6 +2,7 @@ from collections import namedtuple
 
 import random
 import dynet as dy
+import json
 import numpy as np
 import math
 
@@ -23,9 +24,9 @@ class LstmMlpMulticlassModel(object):
     Sample = namedtuple('Sample', ['xs', 'ys', 'mask'])
 
     class SampleX:
-        def __init__(self, fields, neighbors={}):
+        def __init__(self, fields, neighbors=None):
             self.fields = fields
-            self.neighbors = neighbors
+            self.neighbors = neighbors or {}
 
         def __getitem__(self, field):
             return self.fields[field]
@@ -45,6 +46,7 @@ class LstmMlpMulticlassModel(object):
         def __init__(self,
                      lstm_input_fields,
                      token_neighbour_types,
+                     input_embeddings_to_allow_partial,
                      input_embeddings_to_update,
                      input_embedding_dims,
                      input_embeddings_default_dim,
@@ -61,6 +63,7 @@ class LstmMlpMulticlassModel(object):
                      learning_rate,
                      learning_rate_decay,
                      n_labels_to_predict):
+            self.input_embeddings_to_allow_partial = input_embeddings_to_allow_partial
             self.lstm_dropout_p = lstm_dropout_p
             self.token_neighbour_types = token_neighbour_types
             self.n_labels_to_predict = n_labels_to_predict
@@ -101,8 +104,10 @@ class LstmMlpMulticlassModel(object):
         self.hyperparameters = hyperparameters
         self.test_set_evaluation = None
         self.train_set_evaluation = None
+        self.pc = self._build_network_params()
 
         self.validate_params()
+
 
     @property
     def all_input_fields(self):
@@ -163,11 +168,19 @@ class LstmMlpMulticlassModel(object):
             ]
         )
 
-        for field, lookup_param in self.params.input_lookups.items():
-            embeddings = (self.input_embeddings or {}).get(field) or {}
-            for word, vector in embeddings.items():
-                if self.input_vocabularies[field].has_word(word):
-                    lookup_param.init_row(self.input_vocabularies[field].get_index(word), vector)
+        for field, lookup_param in sorted(self.params.input_lookups.items()):
+            embeddings = (self.input_embeddings or {}).get(field)
+            if embeddings:
+                vocab = self.input_vocabularies[field]
+                for word in vocab.all_words():
+                    word_index = self.input_vocabularies[field].get_index(word)
+                    vector = embeddings.get(word)
+                    if vector is not None:
+                        lookup_param.init_row(word_index, vector)
+                    else:
+                        if field not in self.hyperparameters.input_embeddings_to_allow_partial:
+                            raise Exception('Missing embedding vector for field: %s, word %s' % (field, word))
+                        lookup_param.init_row(word_index, [0] * self.get_embd_dim(field))
 
         if self.hyperparameters.is_bilstm:
             self.lstm_builder = dy.BiRNNBuilder(self.hyperparameters.num_lstm_layers, embedded_input_dim, self.hyperparameters.lstm_h_dim, pc, dy.LSTMBuilder)
@@ -223,7 +236,7 @@ class LstmMlpMulticlassModel(object):
                 for neighbour_type in self.hyperparameters.token_neighbour_types:
                     neighbour_ind = xs[ind].neighbors.get(neighbour_type)
                     if neighbour_ind is None:
-                        cur_out = dy.concatenate([cur_out, dy.inputTensor([0]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)])
+                        cur_out = dy.concatenate([cur_out, dy.inputTensor([-1]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)])
                     else:
                         cur_out = dy.concatenate([cur_out, dy.inputTensor([1]), lstm_outputs[neighbour_ind]])
                 cur_out = dy.concatenate([cur_out] +
@@ -240,7 +253,7 @@ class LstmMlpMulticlassModel(object):
                         mlp_cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * mlp_cur_out + dy.parameter(mlp_layer_params.b))
                     mlp_cur_out = dy.softmax(dy.parameter(softmax_params.W) * mlp_cur_out + dy.parameter(softmax_params.b))
                     output.append(mlp_cur_out)
-            outputs.append(output)
+            outputs.append(output)9
         return outputs
 
     def _build_loss(self, outputs, ys):
@@ -276,8 +289,8 @@ class LstmMlpMulticlassModel(object):
     #
     def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
+        self.pc = self._build_network_params()
         # self._build_vocabularies(samples + validation_samples or [])
-        pc = self._build_network_params()
 
         if validation_samples:
             test = validation_samples
@@ -289,7 +302,7 @@ class LstmMlpMulticlassModel(object):
         self.test_set_evaluation = []
         self.train_set_evaluation = []
 
-        trainer = dy.SimpleSGDTrainer(pc, learning_rate=self.hyperparameters.learning_rate)
+        trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
         for epoch in range(1, self.hyperparameters.epochs + 1):
             if np.isinf(trainer.learning_rate):
                 break
@@ -357,3 +370,36 @@ class LstmMlpMulticlassModel(object):
             ys.append(predictions)
         assert all([y is None or type(y) is tuple and len(y) == self.hyperparameters.n_labels_to_predict for y in ys])
         return ys
+
+    def save(self, base_path):
+        def pythonize_embds(embds):
+            return {k: [float(x) for x in list(v)] for k, v in embds.items()}
+
+        self.pc.save(base_path)
+        with open(base_path + '.hp', 'w') as f:
+            json.dump(vars(self.hyperparameters), f, indent=2)
+        input_vocabularies = {
+            name: vocab.pack() for name, vocab in self.input_vocabularies.items()
+        }
+        with open(base_path + '.in_vocabs', 'w') as f:
+            json.dump(input_vocabularies, f)
+        output_vocabulary = self.output_vocabulary.pack()
+        with open(base_path + '.out_vocab', 'w') as f:
+            json.dump(output_vocabulary, f)
+        with open(base_path + '.embds', 'w') as f:
+            json.dump({name: pythonize_embds(embds) for name, embds in self.input_embeddings.items()}, f)
+
+    @staticmethod
+    def load(base_path):
+        with open(base_path + '.hp', 'r') as hp_f:
+            with open(base_path + '.in_vocabs', 'r') as in_vocabs_f:
+                with open(base_path + '.out_vocab', 'r') as out_vocabs_f:
+                    with open(base_path + '.embds', 'r') as embds_f:
+                        return LstmMlpMulticlassModel(
+                            input_vocabularies={name: Vocabulary.unpack(packed) for name, packed in json.load(in_vocabs_f).items()},
+                            output_vocabulary=Vocabulary.unpack(json.load(out_vocabs_f)),
+                            input_embeddings=json.load(embds_f),
+                            hyperparameters=LstmMlpMulticlassModel.HyperParameters(**json.load(hp_f))
+                        )
+
+

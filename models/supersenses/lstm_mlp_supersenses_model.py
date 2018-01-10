@@ -1,3 +1,4 @@
+import json
 from collections import namedtuple
 from pprint import pprint
 from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel
@@ -21,7 +22,8 @@ class LstmMlpSupersensesModel:
                      spacy_head_ind,
                      spacy_ner,
                      ud_dep,
-                     ud_head_ind):
+                     ud_head_ind,
+                     ud_lemma):
             self.token = token
             self.ind = ind
             self.is_part_of_mwe = is_part_of_mwe
@@ -32,6 +34,7 @@ class LstmMlpSupersensesModel:
             self.spacy_head_ind = spacy_head_ind
             self.ud_dep = ud_dep
             self.ud_head_ind = ud_head_ind
+            self.ud_lemma = ud_lemma
 
         def to_dict(self):
             return self.__dict__
@@ -91,6 +94,7 @@ class LstmMlpSupersensesModel:
         def __init__(self,
                      labels_to_predict,
                      use_token,
+                     update_token_embd,
                      use_pos,
                      pos_from,
                      use_dep,
@@ -98,9 +102,15 @@ class LstmMlpSupersensesModel:
                      use_spacy_ner,
                      use_prep_onehot,
                      use_token_internal,
-                     update_token_embd,
+                     use_ud_lemma,
+                     update_ud_lemmas_embd,
                      token_embd_dim,
                      token_internal_embd_dim,
+                     ud_pos_embd_dim,
+                     spacy_pos_embd_dim,
+                     ud_deps_embd_dim,
+                     spacy_deps_embd_dim,
+                     spacy_ner_embd_dim,
                      mlp_layers,
                      mlp_layer_dim,
                      mlp_activation,
@@ -115,6 +125,13 @@ class LstmMlpSupersensesModel:
                      mask_by, # MASK_BY_SAMPLE_YS or MASK_BY_POS_PREFIX + 'pos1,pos2,...'
                      mask_mwes
                      ):
+            self.update_ud_lemmas_embd = update_ud_lemmas_embd
+            self.use_ud_lemma = use_ud_lemma
+            self.spacy_ner_embd_dim = spacy_ner_embd_dim
+            self.spacy_deps_embd_dim = spacy_deps_embd_dim
+            self.ud_deps_embd_dim = ud_deps_embd_dim
+            self.spacy_pos_embd_dim = spacy_pos_embd_dim
+            self.ud_pos_embd_dim = ud_pos_embd_dim
             self.lstm_dropout_p = lstm_dropout_p
             self.mask_by = mask_by
             self.labels_to_predict = labels_to_predict
@@ -174,17 +191,19 @@ class LstmMlpSupersensesModel:
         self.model = LstmMlpMulticlassModel(
             input_vocabularies={feat.name: feat.vocab for feat in self.features.list_enum_features()},
             input_embeddings={feat.name: feat.embedding for feat in self.features.list_features_with_embedding(include_auto=False)},
-            output_vocabulary=vocabs.PSS,
+            output_vocabulary=vocabs.PSS_WITHOUT_NONE if self.hyperparameters.is_mask_by_sample_ys() else vocabs.PSS,
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
                     'lstm_input_fields': names(self.features.list_lstm_features()),
                     'mlp_input_fields': names(self.features.list_mlp_features(include_refs=False)),
                     'token_neighbour_types': names(self.features.list_ref_features()),
+                    'input_embeddings_to_allow_partial': names(self.features.list_default_zero_vec_features()),
                     'input_embeddings_to_update': {name: True for name in names(self.features.list_updatable_features())},
                     'input_embeddings_default_dim': None,
                     'input_embedding_dims': {f.name: f.dim for f in self.features.list_features_with_embedding()},
                     'n_labels_to_predict': len(self.hyperparameters.labels_to_predict)
              },
-             del_keys=['use_token', 'use_pos', 'use_gold_pos', 'use_spacy_pos', 'use_dep', 'use_spacy_ner', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
+             del_keys=['use_token', 'use_ud_lemma', 'update_ud_lemmas_embd', 'use_pos', 'use_gold_pos', 'use_spacy_pos', 'use_dep', 'use_spacy_ner', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
+                       'ud_pos_embd_dim', 'spacy_pos_embd_dim', 'ud_deps_embd_dim', 'spacy_deps_embd_dim', 'spacy_ner_embd_dim',
                        'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'deps_from', 'pos_from', 'mask_mwes']))
         )
 
@@ -288,3 +307,15 @@ class LstmMlpSupersensesModel:
     @property
     def train_set_evaluation(self):
         return self.model.train_set_evaluation
+
+    def save(self, base_path):
+        self.model.save(base_path + '.ll')
+        with open(base_path + '.hp', 'w') as f:
+            json.dump(vars(self.hyperparameters), f, indent=2)
+
+    @staticmethod
+    def load(base_path):
+        with open(base_path + '.hp', 'r') as f:
+            model = LstmMlpSupersensesModel(hyperparameters=LstmMlpSupersensesModel.HyperParameters(**json.load(f)))
+            model.model = LstmMlpMulticlassModel.load(base_path + '.ll')
+            return model

@@ -44,6 +44,23 @@ def enhance_word2vec():
 
     print('Enhanced with word2vec, %d words in total (%d skipped)' % (len(all_tokens), len(missing_words)))
 
+def enhance_ud_lemmas_word2vec():
+    # collect word2vec vectors for words in the data
+    all_lemmas = set()
+    for rec in records:
+        for tagged_token in rec.tagged_tokens:
+            all_lemmas.add(tagged_token.ud_lemma)
+
+    wvm = Word2VecModel.load_google_model()
+    missing_words = wvm.collect_missing(all_lemmas)
+    with open(streusle.ENHANCEMENTS.UD_LEMMAS_WORD2VEC_PATH, 'wb') as f:
+        wvm.dump(all_lemmas, f, skip_missing=True)
+
+    with open(streusle.ENHANCEMENTS.UD_LEMMAS_WORD2VEC_MISSING_PATH, 'w') as f:
+        json.dump(missing_words, f, indent=2)
+
+    print('Enhanced with word2vec, %d words in total (%d skipped)' % (len(all_lemmas), len(missing_words)))
+
 
 def apply_spacy_pipeline(tokens):
     nlp = spacy.load('en')
@@ -231,9 +248,10 @@ def enhance_ud_dependency_trees():
 
 if __name__ == '__main__':
     # enhance_spacy_dependency_trees()
-    enhance_spacy_ners()
+    # enhance_spacy_ners()
     # enhance_spacy_pos()
     # enhance_word2vec()
+    enhance_ud_lemmas_word2vec()
     # enhance_dev_sentences()
     # enhance_ud_dependency_trees()
 

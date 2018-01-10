@@ -35,7 +35,8 @@ class HyperparametersTuner:
             return random.choice(self.values)
 
     class ExecutionResult:
-        def __init__(self, result_data, score):
+        def __init__(self, result_data, score, predictor):
+            self.predictor = predictor
             self.score = score
             self.result_data = result_data
 

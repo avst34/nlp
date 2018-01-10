@@ -16,7 +16,8 @@ class NoneFeatureValue(Exception):
 
 class Feature(object):
 
-    def __init__(self, name, type, vocab, embedding, extractor, enable, mount_point, dim=None, update=False, masked_only=True, fall_to_none=False):
+    def __init__(self, name, type, vocab, embedding, extractor, enable, mount_point, dim=None, update=False, masked_only=True, fall_to_none=False, default_zero_vec=False):
+        self.default_zero_vec = default_zero_vec
         self.name = name
         self.type = type
         self.vocab = vocab
@@ -101,5 +102,11 @@ class Features(object):
         features = [f for f in self.features if f.embedding and (include_auto or f.embedding != embeddings.AUTO)]
         assert all([f.dim is not None for f in features])
         return features
+
+    def list_default_zero_vec_features(self):
+        features = [f for f in self.features if f.default_zero_vec]
+        assert all([f.embedding != embeddings.AUTO and f.type == FeatureType.ENUM for f in features])
+        return features
+
 
 

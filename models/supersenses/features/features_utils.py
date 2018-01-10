@@ -1,3 +1,5 @@
+import string
+
 from models.supersenses.features.feature import NoneFeatureValue
 
 
@@ -36,3 +38,5 @@ def get_child_of_type(tok, sent, child_type, head_field, type_field):
     children = [tok for tok in get_children(tok, sent, head_field) if getattr(tok, type_field) == child_type]
     return children[0] if len(children) else None
 
+def is_capitalized(tok):
+    return tok.token and tok.token[0] in string.ascii_uppercase

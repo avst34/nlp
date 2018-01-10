@@ -94,7 +94,8 @@ class LstmMlpSupersensesModelHyperparametersTuner:
                 'train': self.tuner_results_getter(lstm_mlp_model.train_set_evaluation),
                 'test':  self.tuner_results_getter(lstm_mlp_model.test_set_evaluation),
             },
-            score=self.tuner_score_getter(lstm_mlp_model.test_set_evaluation)
+            score=self.tuner_score_getter(lstm_mlp_model.test_set_evaluation),
+            predictor=lstm_mlp_model
         )
 
     def tune(self, n_executions=30):

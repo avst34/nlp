@@ -14,9 +14,16 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     use_spacy_ner=True,
     use_prep_onehot=True,
     use_token_internal=True,
+    use_ud_lemma=True,
+    update_ud_lemmas_embd=True,
     update_token_embd=True,
     token_embd_dim=200,
     token_internal_embd_dim=30,
+    ud_pos_embd_dim=20,
+    spacy_pos_embd_dim=20,
+    ud_deps_embd_dim=20,
+    spacy_deps_embd_dim=20,
+    spacy_ner_embd_dim=20,
     mlp_layers=2,
     mlp_layer_dim=60,
     mlp_activation='tanh',
@@ -38,6 +45,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 3,
       "is_part_of_mwe": True,
       "token": "If",
+      "ud_lemma": "if",
       "ud_dep": "mark",
       "spacy_pos": "ADP",
       "spacy_ner": None,
@@ -50,6 +58,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 3,
       "is_part_of_mwe": False,
       "token": "you",
+      "ud_lemma": "you",
       "ud_dep": "nsubj",
       "spacy_pos": "PRON",
       "spacy_ner": None,
@@ -62,6 +71,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 3,
       "is_part_of_mwe": False,
       "token": "are",
+      "ud_lemma": "be",
       "ud_dep": "cop",
       "spacy_pos": "VERB",
       "spacy_ner": None,
@@ -74,6 +84,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "serious",
+      "ud_lemma": "serious",
       "ud_dep": "advcl",
       "spacy_pos": "ADJ",
       "spacy_ner": None,
@@ -86,6 +97,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 5,
       "is_part_of_mwe": False,
       "token": "about",
+      "ud_lemma": "about",
       "ud_dep": "mark",
       "spacy_pos": "ADP",
       "spacy_ner": None,
@@ -98,6 +110,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 3,
       "is_part_of_mwe": False,
       "token": "working",
+      "ud_lemma": "work",
       "ud_dep": "advcl",
       "spacy_pos": "VERB",
       "spacy_ner": None,
@@ -110,6 +123,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 5,
       "is_part_of_mwe": False,
       "token": "out",
+      "ud_lemma": "out",
       "ud_dep": "compound:prt",
       "spacy_pos": "PART",
       "spacy_ner": None,
@@ -122,6 +136,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 11,
       "is_part_of_mwe": False,
       "token": "in",
+      "ud_lemma": "in",
       "ud_dep": "case",
       "spacy_pos": "ADP",
       "spacy_ner": None,
@@ -134,6 +149,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 11,
       "is_part_of_mwe": False,
       "token": "a",
+      "ud_lemma": "a",
       "ud_dep": "det",
       "spacy_pos": "DET",
       "spacy_ner": None,
@@ -146,6 +162,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 10,
       "is_part_of_mwe": False,
       "token": "non-commercial",
+      "ud_lemma": "non-commercial",
       "ud_dep": "amod",
       "spacy_pos": "ADJ",
       "spacy_ner": None,
@@ -158,6 +175,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 11,
       "is_part_of_mwe": False,
       "token": "like",
+      "ud_lemma": "like",
       "ud_dep": "amod",
       "spacy_pos": "ADP",
       "spacy_ner": None,
@@ -170,6 +188,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 5,
       "is_part_of_mwe": False,
       "token": "atmosphere",
+      "ud_lemma": "atmosphere",
       "ud_dep": "obl",
       "spacy_pos": "NOUN",
       "spacy_ner": None,
@@ -182,6 +201,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "then",
+      "ud_lemma": "then",
       "ud_dep": "advmod",
       "spacy_pos": "ADV",
       "spacy_ner": None,
@@ -194,6 +214,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "you",
+      "ud_lemma": "you",
       "ud_dep": "nsubj",
       "spacy_pos": "PRON",
       "spacy_ner": None,
@@ -206,6 +227,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "have",
+      "ud_lemma": "have",
       "ud_dep": "aux",
       "spacy_pos": "VERB",
       "spacy_ner": None,
@@ -218,6 +240,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "chosen",
+      "ud_lemma": "choose",
       "ud_dep": "root",
       "spacy_pos": "VERB",
       "spacy_ner": None,
@@ -229,7 +252,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 18,
       "is_part_of_mwe": False,
-      "token": "the",
+      "token": "The",
+      "ud_lemma": "the",
       "ud_dep": "det",
       "spacy_pos": "DET",
       "spacy_ner": None,
@@ -242,6 +266,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 18,
       "is_part_of_mwe": False,
       "token": "best",
+      "ud_lemma": "best",
       "ud_dep": "amod",
       "spacy_pos": "ADJ",
       "spacy_ner": None,
@@ -254,6 +279,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "place",
+      "ud_lemma": "place",
       "ud_dep": "obj",
       "spacy_pos": "NOUN",
       "spacy_ner": None,
@@ -266,6 +292,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 20,
       "is_part_of_mwe": False,
       "token": "to",
+      "ud_lemma": "to",
       "ud_dep": "mark",
       "spacy_pos": "PART",
       "spacy_ner": None,
@@ -278,6 +305,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 18,
       "is_part_of_mwe": False,
       "token": "be",
+      "ud_lemma": "be",
       "ud_dep": "acl",
       "spacy_pos": "VERB",
       "spacy_ner": "PERSON", # wrong but added here for testing
@@ -290,6 +318,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": ".",
+      "ud_lemma": ".",
       "ud_dep": "punct",
       "spacy_pos": "PUNCT",
       "spacy_ner": None,
@@ -397,9 +426,11 @@ tokens = lambda inds: [get_token(ind) for ind in inds]
 
 test_sample_ud_parents = tokens([3, 3, 3, 15, 5, 3, 5, 11, 11, 10, 11, 5, 15, 15, 15, None, 18, 18, 15, 20, 18, 15])
 test_sample_spacy_parents = tokens([2, 2, 15, 2, 3, 4, 5, 5, 9, 11, 11, 7, 15, 15, 15, None, 18, 18, 15, 20, 18, 15])
-test_sample_ud_grandparents = tokens([15, 15, 15, 15, 3, 15, 3, 5, 5, 11, 5, 3, 15, 15, 15, 15, 15, 15, 15, 18, 15, 15])
+test_sample_spacy_grandparents = tokens([15, 15, None, 15, 2, 3, 4, 4, 11, 7, 7, 5, None, None, None, None, 15, 15, None, 18, 15, None])
+test_sample_ud_grandparents = tokens([15, 15, 15, None, 3, 15, 3, 5, 5, 11, 5, 3, None, None, None, None, 15, 15, None, 18, 15, None])
 test_sample_spacy_pobj_child = tokens([None, None, None, None, None, None, None, 11, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
 test_sample_spacy_has_children = [False, False, True, True, True, True, False, True, False, True, False, True, False, False, False, True, False, False, True, False, True, False]
+test_sample_capitalized_word_follows = [False, False, False, False, False, False, False, False, False, False, False, False, False, False, True, True, False, False, False, False, False, False]
 
 features = build_features(hps)
 
@@ -409,6 +440,10 @@ def both_none_or_attr_eq(v1, obj, attr):
 def test_token_word2vec(feature):
     for ind, x in enumerate(test_sample.xs):
         assert feature.extract(x, test_sample.xs) == x.token
+
+def test_token_ud_lemma_word2vec(feature):
+    for ind, x in enumerate(test_sample.xs):
+        assert feature.extract(x, test_sample.xs) == x.ud_lemma
 
 def test_token_internal(feature):
     for ind, x in enumerate(test_sample.xs):
@@ -498,6 +533,26 @@ def test_spacy_parent_spacy_ner(feature):
     for ind, x in enumerate(test_sample.xs):
         assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_parents[ind], 'spacy_ner')
 
+def test_spacy_grandparent(feature):
+    for ind, x in enumerate(test_sample.xs):
+        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'ind')
+
+def test_spacy_grandparent_ud_pos(feature):
+    for ind, x in enumerate(test_sample.xs):
+        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'ud_pos')
+
+def test_spacy_grandparent_spacy_pos(feature):
+    for ind, x in enumerate(test_sample.xs):
+        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'spacy_pos')
+
+def test_spacy_grandparent_spacy_dep(feature):
+    for ind, x in enumerate(test_sample.xs):
+        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'spacy_dep')
+
+def test_spacy_grandparent_spacy_ner(feature):
+    for ind, x in enumerate(test_sample.xs):
+        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'spacy_ner')
+
 def test_spacy_pobj_child(feature):
     for ind, x in enumerate(test_sample.xs):
         assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], 'ind')
@@ -522,16 +577,23 @@ def test_spacy_has_children(feature):
     for ind, x in enumerate(test_sample.xs):
         assert feature.extract(x, test_sample.xs) == str(test_sample_spacy_has_children[ind])
 
+def test_capitalized_word_follows(feature):
+    for ind, x in enumerate(test_sample.xs):
+        assert feature.extract(x, test_sample.xs) == str(test_sample_capitalized_word_follows[ind])
+
+
 tests = {
     'token-word2vec': test_token_word2vec,
     'token-internal': test_token_internal,
+    'token.ud-lemma-word2vec': test_token_ud_lemma_word2vec,
     'token.ud-pos': test_token_ud_pos,
     'token.spacy-pos': test_token_spacy_pos,
     'token.ud-dep': test_token_ud_dep,
     'token.spacy-dep': test_token_spacy_dep,
     'token.spacy-ner': test_token_spacy_ner,
 
-    'prep-onehot': test_prep_onehot,
+    # 'prep-onehot': test_prep_onehot,
+    'capitalized-word-follows': test_capitalized_word_follows,
 
     'token-ud-parent': test_ud_parent,
     'token-ud-parent.ud-pos': test_ud_parent_ud_pos,
@@ -550,6 +612,12 @@ tests = {
     'token-spacy-parent.spacy-pos': test_spacy_parent_spacy_pos,
     'token-spacy-parent.spacy-dep': test_spacy_parent_spacy_dep,
     'token-spacy-parent.spacy-ner': test_spacy_parent_spacy_ner,
+
+    'token-spacy-grandparent': test_spacy_grandparent,
+    'token-spacy-grandparent.ud-pos': test_spacy_grandparent_ud_pos,
+    'token-spacy-grandparent.spacy-pos': test_spacy_grandparent_spacy_pos,
+    'token-spacy-grandparent.spacy-dep': test_spacy_grandparent_spacy_dep,
+    'token-spacy-grandparent.spacy-ner': test_spacy_grandparent_spacy_ner,
 
     'token-spacy-pobj-child': test_spacy_pobj_child,
     'token-spacy-pobj-child.ud-pos': test_spacy_pobj_child_ud_pos,

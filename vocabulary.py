@@ -13,6 +13,7 @@ class Vocabulary(object):
             self.add_word(word)
 
     def add_word(self, word):
+        assert word is None or isinstance(word, str)
         if self.get_index_if_exists(word) is None:
             self._ind_to_word.append(word)
             self._word_to_ind[word] = len(self._ind_to_word) - 1
@@ -52,6 +53,16 @@ class Vocabulary(object):
 
     def as_list(self):
         return list(self._ind_to_word)
+
+    def pack(self):
+        return {
+            'name': self.name,
+            'words': self.as_list()
+        }
+
+    @staticmethod
+    def unpack(packed):
+        return Vocabulary(**packed)
 
 
 class VocabularyBuilder(object):
