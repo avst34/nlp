@@ -1,3 +1,6 @@
+import csv
+
+
 def clear_nones(obj):
     if type(obj) is list:
         return [x for x in obj if x is not None]
@@ -12,3 +15,16 @@ def update_dict(d, with_d, del_keys=None):
     d = {k: v for k, v in d.items() if k not in del_keys}
     d.update(with_d)
     return d
+
+def csv_to_objs(csv_file_path):
+    keys = []
+    objs = []
+    with open(csv_file_path, 'r') as csv_f:
+        csv_reader = csv.reader(csv_f)
+        for ind, row in enumerate(csv_reader):
+            if ind == 0:
+                keys = row
+            else:
+                objs.append({k: row[i] for i, k in enumerate(keys)})
+    return objs
+

@@ -1,12 +1,18 @@
+import zipfile
+import os
 from collections import namedtuple
 
 import random
+from glob import glob
+
 import dynet as dy
 import json
 import numpy as np
 import math
 
 # There are more hidden parameters coming from the LSTMs
+import zlib
+
 from dynet_utils import get_activation_function
 from utils import update_dict
 from vocabulary import Vocabulary
@@ -186,7 +192,6 @@ class LstmMlpMulticlassModel(object):
             self.lstm_builder = dy.BiRNNBuilder(self.hyperparameters.num_lstm_layers, embedded_input_dim, self.hyperparameters.lstm_h_dim, pc, dy.LSTMBuilder)
         else:
             self.lstm_builder = dy.LSTMBuilder(self.hyperparameters.num_lstm_layers, embedded_input_dim, self.hyperparameters.lstm_h_dim, pc)
-        self.lstm_builder.set_dropout(self.hyperparameters.lstm_dropout_p)
 
         return pc
 
@@ -210,8 +215,18 @@ class LstmMlpMulticlassModel(object):
                     if neighbor_type not in x.neighbors:
                         raise Exception("X without a dep:" + neighbor_type)
 
-    def _build_network_for_input(self, xs, mask):
+    def _build_network_for_input(self, xs, mask, apply_dropout):
         self._validate_xs(xs, mask)
+
+        if apply_dropout:
+            mlp_dropout_p = self.hyperparameters.mlp_dropout_p
+            lstm_dropout_p = self.hyperparameters.lstm_dropout_p
+        else:
+            mlp_dropout_p = 0
+            lstm_dropout_p = 0
+
+        self.lstm_builder.set_dropout(lstm_dropout_p)
+
         mask = self.build_mask(xs, external_mask=mask)
         if not self.hyperparameters.is_bilstm:
             cur_lstm_state = self.lstm_builder.initial_state()
@@ -249,7 +264,7 @@ class LstmMlpMulticlassModel(object):
                 for mlp_params, softmax_params in zip(self.params.mlps, self.params.softmaxes):
                     mlp_cur_out = cur_out
                     for mlp_layer_params in mlp_params:
-                        mlp_cur_out = dy.dropout(mlp_cur_out, self.hyperparameters.mlp_dropout_p)
+                        mlp_cur_out = dy.dropout(mlp_cur_out, mlp_dropout_p)
                         mlp_cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * mlp_cur_out + dy.parameter(mlp_layer_params.b))
                     mlp_cur_out = dy.softmax(dy.parameter(softmax_params.W) * mlp_cur_out + dy.parameter(softmax_params.b))
                     output.append(mlp_cur_out)
@@ -317,7 +332,7 @@ class LstmMlpMulticlassModel(object):
                 dy.renew_cg(immediate_compute=True, check_validity=True)
                 losses = []
                 for sample in batch:
-                    outputs = self._build_network_for_input(sample.xs, sample.mask)
+                    outputs = self._build_network_for_input(sample.xs, sample.mask, apply_dropout=True)
                     sample_loss = self._build_loss(outputs, sample.ys)
                     if sample_loss is not None:
                         losses.append(sample_loss)
@@ -355,7 +370,7 @@ class LstmMlpMulticlassModel(object):
         dy.renew_cg()
         if mask is None:
             mask = [True] * len(sample_xs)
-        outputs = self._build_network_for_input(sample_xs, mask)
+        outputs = self._build_network_for_input(sample_xs, mask, apply_dropout=False)
         ys = []
         for token_ind, out in enumerate(outputs):
             if not mask[token_ind] or out is None:
@@ -389,17 +404,38 @@ class LstmMlpMulticlassModel(object):
         with open(base_path + '.embds', 'w') as f:
             json.dump({name: pythonize_embds(embds) for name, embds in self.input_embeddings.items()}, f)
 
+        os.remove(base_path + ".zip")
+        files = glob(base_path + ".*") + [base_path]
+        with zipfile.ZipFile(base_path + ".zip", "w", zipfile.ZIP_DEFLATED) as zh:
+            for fname in files:
+                print("writing to zip..", fname)
+                zh.write(fname, arcname=os.path.basename(fname))
+        for fname in files:
+            print("removing..", fname)
+            os.remove(fname)
+
     @staticmethod
     def load(base_path):
-        with open(base_path + '.hp', 'r') as hp_f:
-            with open(base_path + '.in_vocabs', 'r') as in_vocabs_f:
-                with open(base_path + '.out_vocab', 'r') as out_vocabs_f:
-                    with open(base_path + '.embds', 'r') as embds_f:
-                        return LstmMlpMulticlassModel(
-                            input_vocabularies={name: Vocabulary.unpack(packed) for name, packed in json.load(in_vocabs_f).items()},
-                            output_vocabulary=Vocabulary.unpack(json.load(out_vocabs_f)),
-                            input_embeddings=json.load(embds_f),
-                            hyperparameters=LstmMlpMulticlassModel.HyperParameters(**json.load(hp_f))
-                        )
+        with zipfile.ZipFile(base_path + ".zip", "r") as zh:
+            zh.extractall(os.path.dirname(base_path))
+        try:
+            with open(base_path + '.hp', 'r') as hp_f:
+                with open(base_path + '.in_vocabs', 'r') as in_vocabs_f:
+                    with open(base_path + '.out_vocab', 'r') as out_vocabs_f:
+                        with open(base_path + '.embds', 'r') as embds_f:
+                            model = LstmMlpMulticlassModel(
+                                input_vocabularies={name: Vocabulary.unpack(packed) for name, packed in json.load(in_vocabs_f).items()},
+                                output_vocabulary=Vocabulary.unpack(json.load(out_vocabs_f)),
+                                input_embeddings=json.load(embds_f),
+                                hyperparameters=LstmMlpMulticlassModel.HyperParameters(**json.load(hp_f))
+                            )
+                            model.pc.populate(base_path)
+                            return model
+        finally:
+            files = glob(base_path + ".*") + [base_path]
+            for fname in files:
+                if os.path.realpath(fname) != os.path.realpath(base_path + ".zip"):
+                    print("loading..", fname)
+                    os.remove(fname)
 
 
