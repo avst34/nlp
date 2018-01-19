@@ -8,4 +8,5 @@ from .spacy_deps import SPACY_DEPS
 from .tokens import TOKENS
 from .ud_deps import UD_DEPS
 from .ud_lemmas import UD_LEMMAS
+from .spacy_lemmas import SPACY_LEMMAS
 from .boolean import BOOLEAN

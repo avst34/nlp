@@ -6,6 +6,7 @@ import threading
 import json
 import random
 from collections import OrderedDict
+from collections import defaultdict
 from lockfile import Lockfile
 
 
@@ -21,6 +22,28 @@ def build_csv_row(params, result):
     row = [x[1] for x in row_tuples]
     row = ['%1.4f' % x if type(x) is float else x for x in row]
     return headers, [row]
+
+def union_settings(settings_list):
+    group_by_name = defaultdict(lambda: [])
+    for settings in settings_list:
+        for setting in settings:
+            group_by_name[setting.name].append(setting)
+
+    return [
+        HyperparametersTuner.ParamSettings(
+            name=name,
+            values=list({v for s in settings for v in s.values}),
+            enabled=any({s.enabled for s in settings}),
+        )
+        for name, settings in group_by_name.items()
+    ]
+
+def override_settings(settings_list):
+    override_by_name = {}
+    for settings in settings_list:
+        for setting in settings:
+            override_by_name[setting.name] = setting
+    return override_by_name.values()
 
 class HyperparametersTuner:
 
@@ -40,8 +63,9 @@ class HyperparametersTuner:
             self.score = score
             self.result_data = result_data
 
-    def __init__(self, params_settings, executor, results_csv_path, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None):
+    def __init__(self, params_settings, executor, results_csv_path, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None, dump_models=True):
         assert all([isinstance(ps, HyperparametersTuner.ParamSettings) for ps in params_settings])
+        self.dump_models = dump_models
         self.shared_csv = shared_csv
         if shared_csv:
             assert lock_file_path is not None

@@ -13,7 +13,7 @@ sys.path.append(STREUSLE_DIR)
 print(STREUSLE_DIR)
 from .streusle_4alpha import conllulex2json
 
-ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'UD_LEMMAS_WORD2VEC_PATH', 'UD_LEMMAS_WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'SPACY_POS', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'TEST_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES'])(
+ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'UD_LEMMAS_WORD2VEC_PATH', 'UD_LEMMAS_WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'SPACY_POS', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'TEST_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES', 'SPACY_LEMMAS', 'SPACY_LEMMAS_WORD2VEC_PATH', 'SPACY_LEMMAS_WORD2VEC_MISSING_PATH'])(
     WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'word2vec.pickle'),
     WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'word2vec_missing.json'),
     UD_LEMMAS_WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'ud_lemmas_word2vec.pickle'),
@@ -21,6 +21,9 @@ ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_P
     SPACY_DEP_TREES=os.path.join(STREUSLE_DIR, 'spacy_dep_trees.json'),
     SPACY_NERS=os.path.join(STREUSLE_DIR, 'spacy_ners.json'),
     SPACY_POS=os.path.join(STREUSLE_DIR, 'spacy_pos.json'),
+    SPACY_LEMMAS=os.path.join(STREUSLE_DIR, 'spacy_lemmas.json'),
+    SPACY_LEMMAS_WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'spacy_lemmas_word2vec_path.json'),
+    SPACY_LEMMAS_WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'spacy_lemmas_word2vec_missing_path.json'),
     UD_DEP_TREES=os.path.join(STREUSLE_DIR, 'ud_dep_trees.json'),
     DEV_SET_SENTIDS=os.path.join(STREUSLE_DIR, 'splits/psst-dev.sentids'),
     DEV_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'splits/psst-dev-ud-split.sentids'),
@@ -36,6 +39,7 @@ def load_word2vec(path):
 
 W2V = load_word2vec(ENHANCEMENTS.WORD2VEC_PATH)
 UD_LEMMAS_W2V = load_word2vec(ENHANCEMENTS.UD_LEMMAS_WORD2VEC_PATH)
+SPACY_LEMMAS_W2V = load_word2vec(ENHANCEMENTS.SPACY_LEMMAS_WORD2VEC_PATH)
 
 TreeNode = namedtuple('TreeNode', ['head_ind', 'dep'])
 def load_dep_tree(tree_json_path):
@@ -60,10 +64,12 @@ def load_json(path, default=None):
 SPACY_DEP_TREES = load_dep_tree(ENHANCEMENTS.SPACY_DEP_TREES)
 UD_DEP_TREES = load_dep_tree(ENHANCEMENTS.UD_DEP_TREES)
 SPACY_NERS = load_json(ENHANCEMENTS.SPACY_NERS, {})
+SPACY_LEMMAS = load_json(ENHANCEMENTS.SPACY_LEMMAS, {})
 SPACY_POS = load_json(ENHANCEMENTS.SPACY_POS, {})
 
 class TaggedToken:
-    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, is_part_of_wmwe, is_part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, ud_lemma):
+    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, is_part_of_wmwe, is_part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, spacy_lemma, ud_lemma):
+        self.spacy_lemma = spacy_lemma
         self.token = token
         self.ind = ind
         self.token_word2vec = token_word2vec
@@ -108,6 +114,7 @@ class StreusleRecord:
                  data,
                  spacy_dep_tree,
                  spacy_ners,
+                 spacy_lemmas,
                  spacy_pos,
                  ud_dep_tree,
                  only_supersenses=None):
@@ -155,6 +162,7 @@ class StreusleRecord:
                 ud_head_ind=self.ud_dep_tree[i].head_ind if self.ud_dep_tree else None,
                 ud_dep=self.ud_dep_tree[i].dep if self.ud_dep_tree else None,
                 spacy_ner=spacy_ners[i] if spacy_ners else None,
+                spacy_lemma=spacy_lemmas[i] if spacy_lemmas else None,
                 supersense_role=extract_supersense_pair(tok_data['ss'], tok_data['ss2'])[0],
                 supersense_func=extract_supersense_pair(tok_data['ss'], tok_data['ss2'])[1],
                 is_part_of_smwe=self.data['smwes'].get(i+1) is not None,
@@ -183,10 +191,12 @@ class StreusleLoader(object):
                                         ud_dep_tree=UD_DEP_TREES.get(sent['streusle_sent_id']),
                                         spacy_dep_tree=SPACY_DEP_TREES.get(sent['streusle_sent_id']),
                                         spacy_ners=SPACY_NERS.get(sent['streusle_sent_id']),
+                                        spacy_lemmas=SPACY_LEMMAS.get(sent['streusle_sent_id']),
                                         spacy_pos=SPACY_POS.get(sent['streusle_sent_id']),
                                         only_supersenses=only_with_supersenses)
                 assert not SPACY_DEP_TREES or SPACY_DEP_TREES.get(sent['streusle_sent_id'])
                 assert not SPACY_NERS or SPACY_NERS.get(sent['streusle_sent_id'])
+                assert not SPACY_LEMMAS or SPACY_LEMMAS.get(sent['streusle_sent_id'])
                 assert not SPACY_POS or SPACY_POS.get(sent['streusle_sent_id'])
                 assert not UD_DEP_TREES or UD_DEP_TREES.get(sent['streusle_sent_id'])
                 records.append(record)
@@ -228,6 +238,9 @@ class StreusleLoader(object):
 
     def get_ud_lemmas_word2vec_model(self):
         return UD_LEMMAS_W2V
+
+    def get_spacy_lemmas_word2vec_model(self):
+        return SPACY_LEMMAS_W2V
 
 
 wordVocabularyBuilder = VocabularyBuilder(lambda record: [x.token for x in record.tagged_tokens])

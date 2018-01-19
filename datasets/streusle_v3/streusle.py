@@ -9,11 +9,12 @@ from word2vec import Word2VecModel
 
 STREUSLE_DIR = os.path.join(os.path.dirname(__file__), 'streusle-3.0-v2')
 
-ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES'])(
+ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES', 'SPACY_LEMMAS'])(
     WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'word2vec.pickle'),
     WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'word2vec_missing.json'),
     SPACY_DEP_TREES=os.path.join(STREUSLE_DIR, 'spacy_dep_trees.json'),
     SPACY_NERS=os.path.join(STREUSLE_DIR, 'spacy_ners.json'),
+    SPACY_LEMMAS=os.path.join(STREUSLE_DIR, 'spacy_lemmas.json'),
     UD_DEP_TREES=os.path.join(STREUSLE_DIR, 'ud_dep_trees.json'),
     DEV_SET_SENTIDS=os.path.join(STREUSLE_DIR, 'splits/psst-dev.sentids'),
     DEV_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'splits/psst-dev-ud-split.sentids')

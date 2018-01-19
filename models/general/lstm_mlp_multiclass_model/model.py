@@ -253,7 +253,7 @@ class LstmMlpMulticlassModel(object):
                         mlp_cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * mlp_cur_out + dy.parameter(mlp_layer_params.b))
                     mlp_cur_out = dy.softmax(dy.parameter(softmax_params.W) * mlp_cur_out + dy.parameter(softmax_params.b))
                     output.append(mlp_cur_out)
-            outputs.append(output)9
+            outputs.append(output)
         return outputs
 
     def _build_loss(self, outputs, ys):

@@ -7,6 +7,12 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 import supersenses
 import spacy
+try:
+    nlp = spacy.load('en')
+except:
+    nlp = spacy.load('en_core_web_sm')
+
+
 from spacy.tokens import Doc
 from numpy import dot
 from numpy.linalg import norm
@@ -61,9 +67,24 @@ def enhance_ud_lemmas_word2vec():
 
     print('Enhanced with word2vec, %d words in total (%d skipped)' % (len(all_lemmas), len(missing_words)))
 
+def enhance_spacy_lemmas_word2vec():
+    # collect word2vec vectors for words in the data
+    all_lemmas = set()
+    for rec in records:
+        for tagged_token in rec.tagged_tokens:
+            all_lemmas.add(tagged_token.spacy_lemma)
+
+    wvm = Word2VecModel.load_google_model()
+    missing_words = wvm.collect_missing(all_lemmas)
+    with open(streusle.ENHANCEMENTS.SPACY_LEMMAS_WORD2VEC_PATH, 'wb') as f:
+        wvm.dump(all_lemmas, f, skip_missing=True)
+
+    with open(streusle.ENHANCEMENTS.SPACY_LEMMAS_WORD2VEC_MISSING_PATH, 'w') as f:
+        json.dump(missing_words, f, indent=2)
+
+    print('Enhanced with word2vec, %d words in total (%d skipped)' % (len(all_lemmas), len(missing_words)))
 
 def apply_spacy_pipeline(tokens):
-    nlp = spacy.load('en')
     doc = Doc(nlp.vocab, words=tokens)
     for name, pipe in nlp.pipeline:
         doc = pipe(doc)
@@ -245,14 +266,31 @@ def enhance_ud_dependency_trees():
         json.dump(trees, f, indent=2)
     print('Enhanced with spacy dep trees, %d trees in total' % (len(trees)))
 
+def enhance_spacy_lemmas():
+    def process(t):
+        ind, rec = t
+        doc = apply_spacy_pipeline([tt.token for tt in rec.tagged_tokens])
+        print('enhance lemmas: %d/%d' % (ind + 1, len(records)))
+        return [
+            token.lemma_ or None
+            for token in doc
+        ]
+
+    with ThreadPoolExecutor(1) as tpe:
+        lemmas_list = list(tpe.map(process, enumerate(records)))
+        lemmas = {rec.id: lemmas for rec, lemmas in zip(records, lemmas_list)}
+        with open(streusle.ENHANCEMENTS.SPACY_LEMMAS, 'w') as f:
+            json.dump(lemmas, f, indent=2)
 
 if __name__ == '__main__':
     # enhance_spacy_dependency_trees()
     # enhance_spacy_ners()
     # enhance_spacy_pos()
     # enhance_word2vec()
-    enhance_ud_lemmas_word2vec()
+    # enhance_ud_lemmas_word2vec()
     # enhance_dev_sentences()
     # enhance_ud_dependency_trees()
+    # enhance_spacy_lemmas()
+    enhance_spacy_lemmas_word2vec()
 
 

@@ -86,7 +86,6 @@ def enhance_spacy_ners():
         with open(streusle.ENHANCEMENTS.SPACY_NERS, 'w') as f:
             json.dump(ners, f, indent=2)
 
-
 def enhance_dev_sentences_old():
     def prod(vec1, vec2):
         return dot(vec1, vec2)
@@ -211,6 +210,7 @@ if __name__ == '__main__':
     # enhance_spacy_ners()
     # enhance_word2vec()
     # enhance_dev_sentences()
-    enhance_ud_dependency_trees()
+    # enhance_ud_dependency_trees()
+    enhance_spacy_lemmas()
 
 

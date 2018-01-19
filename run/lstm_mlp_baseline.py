@@ -1,4 +1,5 @@
 from evaluators.classifier_evaluator import ClassifierEvaluator
+from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
@@ -9,7 +10,8 @@ from run.dump_vocabs import dump_vocabularies
 from vocabulary import Vocabulary
 import supersenses
 import json
-
+import os
+from hyperparameters_tuner import union_settings, override_settings
 evaluator = ClassifierEvaluator()
 
 def run(train_records, dev_records, test_records, streusle_loader):
@@ -50,41 +52,31 @@ def run(train_records, dev_records, test_records, streusle_loader):
     # pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
     # pss_vocab.add_word(None)
     #
+    # spacy_lemmas_vocab = Vocabulary('SPACY_LEMMAS')
+    # spacy_lemmas_vocab.add_words(set([x.spacy_lemma for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+
     # dump_vocabularies([pp_vocab, spacy_dep_vocab, ud_dep_vocab, ud_pos_vocab, ner_vocab, token_vocab, pss_vocab, spacy_pos_vocab])
     # dump_vocabularies([spacy_ner_vocab])
+    # dump_vocabularies([spacy_lemmas_vocab])
     # dump_vocabularies([ud_lemmas_vocab])
 
     test_features()
 
     tuner = LstmMlpSupersensesModelHyperparametersTuner(
-        results_csv_path='/cs/labs/oabend/aviramstern/nathan_results.csv',
+        results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/nathan_results.csv',
         # results_csv_path='/tmp/nathan_results.csv',
         samples=train_samples,
         validation_samples=dev_samples,
         show_progress=True,
         show_epoch_eval=True,
-        tuner_domains_override=[
-            PS(name='labels_to_predict', values=[
-                ('supersense_role', 'supersense_func'),
-                ('supersense_role',),
-                ('supersense_func',),
+        tuner_domains=override_settings([
+            union_settings([
+                GOLD_ID_GOLD_PREP,
+                GOLD_ID_AUTO_PREP
             ]),
-            PS(name='mask_by',   values=['sample-ys']),
-            PS(name='use_token_internal', values=[True]),
-            PS(name='use_ud_lemma', values=[True]),
-            PS(name='use_pos', values=[True]),
-            PS(name='use_dep', values=[True]),
-            PS(name='use_spacy_ner', values=[True]),
-            PS(name='use_prep_onehot', values=[True]),
-            PS(name='deps_from', values=['ud']),
-            PS(name='pos_from',  values=['ud']),
-
-            # PS(name='mask_by', values=['sample-ys']),
-            # PS(name='learning_rate', values=[0.1]),
-            # PS(name='learning_rate_decay', values=[0.01]),
-            # PS(name='mlp_dropout_p', values=[0.1])
-            PS(name='epochs', values=[1])
-        ],
+            [PS(name='epochs', values=[1])]
+        ]),
+        dump_models=False
     )
 
     best_params, best_results = tuner.tune(n_executions=1)
@@ -99,7 +91,7 @@ def run(train_records, dev_records, test_records, streusle_loader):
     ll_samples = [predictor.sample_to_lowlevel(x) for x in dev_samples]
     evaluator.evaluate(ll_samples, examples_to_show=5)
 
-    print('Predictor: loaded5')
+    print('Predictor: loaded')
 
     evaluator = ClassifierEvaluator(predictor=loaded_predictor.model)
     ll_samples = [loaded_predictor.sample_to_lowlevel(x) for x in dev_samples]

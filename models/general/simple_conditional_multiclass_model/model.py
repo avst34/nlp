@@ -17,15 +17,20 @@ class MostFrequentClassModel:
     def build_masker(self):
         if self.mask_by is None:
             return lambda x: True
-        field = self.mask_by.split(':')[0].strip()
-        values = [x.strip() for x in self.mask_by.split(':')[1].split(',')]
-        return lambda x: x[field] in values
+        elif self.mask_by == 'sample-ys':
+            return lambda x, y: y is not None and any(y)
+        else:
+            field = self.mask_by.split(':')[0].strip()
+            values = [x.strip() for x in self.mask_by.split(':')[1].split(',')]
+            return lambda x, y: x[field] in values
 
-    def mask_xs(self, xs):
-        return [self.masker(x) for x in xs]
+    def mask(self, xs, ys=None):
+        if not ys:
+            ys = [None] * len(xs)
+        return [self.masker(x, y) for x, y in zip(xs, ys)]
 
     def mask_sample(self, sample):
-        return MostFrequentClassModel.Sample(sample.xs, sample.ys, mask=self.mask_xs(sample.xs))
+        return MostFrequentClassModel.Sample(sample.xs, sample.ys, mask=self.mask(sample.xs, sample.ys))
 
     def tuplize_x(self, x):
         return tuple([x[k] for k in sorted(x.keys()) if k in self.features])
@@ -42,7 +47,7 @@ class MostFrequentClassModel:
 
         self._cond_counts = {}
         for sample in train:
-            mask = self.mask_xs(sample.xs)
+            mask = self.mask(sample.xs, sample.ys)
             for ind, (x, y) in enumerate(zip(sample.xs, sample.ys)):
                 if mask[ind] and (self.include_empty or any(y)):
                     xtup = self.tuplize_x(x)

@@ -21,9 +21,11 @@ class LstmMlpSupersensesModel:
                      spacy_dep,
                      spacy_head_ind,
                      spacy_ner,
+                     spacy_lemma,
                      ud_dep,
                      ud_head_ind,
                      ud_lemma):
+            self.spacy_lemma = spacy_lemma
             self.token = token
             self.ind = ind
             self.is_part_of_mwe = is_part_of_mwe
@@ -102,8 +104,8 @@ class LstmMlpSupersensesModel:
                      use_spacy_ner,
                      use_prep_onehot,
                      use_token_internal,
-                     use_ud_lemma,
-                     update_ud_lemmas_embd,
+                     lemmas_from, # 'spacy' or 'ud'
+                     update_lemmas_embd,
                      token_embd_dim,
                      token_internal_embd_dim,
                      ud_pos_embd_dim,
@@ -125,8 +127,8 @@ class LstmMlpSupersensesModel:
                      mask_by, # MASK_BY_SAMPLE_YS or MASK_BY_POS_PREFIX + 'pos1,pos2,...'
                      mask_mwes
                      ):
-            self.update_ud_lemmas_embd = update_ud_lemmas_embd
-            self.use_ud_lemma = use_ud_lemma
+            self.update_lemmas_embd = update_lemmas_embd
+            self.lemmas_from = lemmas_from
             self.spacy_ner_embd_dim = spacy_ner_embd_dim
             self.spacy_deps_embd_dim = spacy_deps_embd_dim
             self.ud_deps_embd_dim = ud_deps_embd_dim
@@ -164,6 +166,7 @@ class LstmMlpSupersensesModel:
                 assert_pos(pos)
             assert(deps_from in ['spacy', 'ud'])
             assert(pos_from in ['spacy', 'ud'])
+            assert(lemmas_from in ['spacy', 'ud'])
 
         def is_mask_by_sample_ys(self):
             return self.mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS
@@ -202,7 +205,7 @@ class LstmMlpSupersensesModel:
                     'input_embedding_dims': {f.name: f.dim for f in self.features.list_features_with_embedding()},
                     'n_labels_to_predict': len(self.hyperparameters.labels_to_predict)
              },
-             del_keys=['use_token', 'use_ud_lemma', 'update_ud_lemmas_embd', 'use_pos', 'use_gold_pos', 'use_spacy_pos', 'use_dep', 'use_spacy_ner', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
+             del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_pos', 'use_gold_pos', 'use_spacy_pos', 'use_dep', 'use_spacy_ner', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
                        'ud_pos_embd_dim', 'spacy_pos_embd_dim', 'ud_deps_embd_dim', 'spacy_deps_embd_dim', 'spacy_ner_embd_dim',
                        'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'deps_from', 'pos_from', 'mask_mwes']))
         )

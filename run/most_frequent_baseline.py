@@ -9,7 +9,7 @@ def streusle_record_to_most_frequent_class_model_sample(record, class_names):
         xs=[
             {
                 "token": tagged_token.token,
-                "pos": tagged_token.pos
+                "pos": tagged_token.ud_xpos
             }
             for tagged_token in record.tagged_tokens
         ],
@@ -31,13 +31,13 @@ def run(train_records, test_records):
 
                     scm = MostFrequentClassModel(include_empty=include_empty,
                                                  features=features,
-                                                 mask_by='pos:IN,PRP$,RB,TO', n_labels_to_predict=len(class_names))
+                                                 mask_by='sample-ys', n_labels_to_predict=len(class_names))
                     predictor = scm.fit(train_samples, validation_samples=dev_samples, evaluator=None)
                     predictors.append(predictor)
 
                 scm = MostFrequentClassModel(include_empty=False,
                                              features=[],
-                                             mask_by='pos:IN,PRP$,RB,TO',
+                                             mask_by='sample-ys',
                                              n_labels_to_predict=1)
                 dev_samples = [scm.mask_sample(streusle_record_to_most_frequent_class_model_sample(r, class_names=sum(class_names_grp, []))) for r in test_records]
                 print('Most Frequent PSS evaluation [Features: %s, include empty: %s, classes: %s]:' % (repr(features),

@@ -54,10 +54,11 @@ class LstmMlpSupersensesModelHyperparametersTuner:
     def __init__(self,
                  samples,
                  results_csv_path,
-                 tuner_domains_override=None,
+                 tuner_domains=TUNER_DOMAINS,
                  validation_samples=None,
                  show_progress=True,
                  show_epoch_eval=True,
+                 dump_models=True,
                  evaluator=ClassifierEvaluator(),
                  tuner_score_getter=lambda evaluations: max([e['f1'] or 0 for e in evaluations]),
                  tuner_results_getter=extract_classifier_evaluator_results):
@@ -67,14 +68,11 @@ class LstmMlpSupersensesModelHyperparametersTuner:
 
         assert evaluator is not None
 
-        tuner_domains_override = tuner_domains_override or []
-        tuner_domains_override_names = set([d.name for d in tuner_domains_override])
-        tuner_domains = [d for d in TUNER_DOMAINS if d.name not in tuner_domains_override_names] + tuner_domains_override
-
         self.tuner = HyperparametersTuner(results_csv_path=results_csv_path,
                                           params_settings=tuner_domains, executor=self._execute,
                                           csv_row_builder=build_csv_rows, shared_csv=True,
-                                          lock_file_path=results_csv_path + '.lock')
+                                          lock_file_path=results_csv_path + '.lock',
+                                          dump_models=dump_models)
 
         self.fit_kwargs = {
             'samples': samples,

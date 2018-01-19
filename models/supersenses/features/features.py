@@ -10,7 +10,8 @@ def build_features(hyperparameters):
     hp = hyperparameters
     return Features([
         Feature('token-word2vec',   FeatureType.ENUM, vocabs.TOKENS,     embeddings.TOKENS_WORD2VEC,  default_zero_vec=True,   extractor=lambda tok, sent: tok.token,     mount_point=LSTM, enable=hp.use_token, update=hp.update_token_embd, masked_only=False),
-        Feature('token.ud-lemma-word2vec',  FeatureType.ENUM, vocabs.UD_LEMMAS,  embeddings.UD_LEMMAS_WORD2VEC,  default_zero_vec=True, update=hp.update_ud_lemmas_embd, extractor=lambda tok, sent: tok.ud_lemma, mount_point=LSTM,  enable=hp.use_ud_lemma, masked_only=False),
+        Feature('token.ud-lemma-word2vec',  FeatureType.ENUM, vocabs.UD_LEMMAS,  embeddings.UD_LEMMAS_WORD2VEC,  default_zero_vec=True, update=hp.update_lemmas_embd, extractor=lambda tok, sent: tok.ud_lemma, mount_point=LSTM,  enable=hp.lemmas_from == 'ud', masked_only=False),
+        Feature('token.spacy-lemma-word2vec',  FeatureType.ENUM, vocabs.SPACY_LEMMAS,  embeddings.SPACY_LEMMAS_WORD2VEC,  default_zero_vec=True, update=hp.update_lemmas_embd, extractor=lambda tok, sent: tok.spacy_lemma, mount_point=LSTM,  enable=hp.lemmas_from == 'spacy', masked_only=False),
         Feature('token-internal',   FeatureType.ENUM, vocabs.TOKENS,     embeddings.AUTO,              extractor=lambda tok, sent: tok.token,     mount_point=LSTM, enable=hp.use_token_internal, dim=hp.token_internal_embd_dim, update=True, masked_only=False),
         Feature('token.ud-pos',     FeatureType.ENUM, vocabs.UD_POS,     embeddings.AUTO,  dim=hp.ud_pos_embd_dim,  update=True,        extractor=lambda tok, sent: tok.ud_pos, mount_point=MLP,  enable=hp.use_pos and hp.pos_from == 'ud'),
         Feature('token.spacy-pos',     FeatureType.ENUM, vocabs.SPACY_POS,     embeddings.AUTO,    dim=hp.spacy_pos_embd_dim,  update=True,        extractor=lambda tok, sent: tok.spacy_pos,   mount_point=MLP,  enable=hp.use_pos and hp.pos_from == 'spacy'),
