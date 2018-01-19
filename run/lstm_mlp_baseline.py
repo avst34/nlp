@@ -80,22 +80,22 @@ def run(train_records, dev_records, test_records, streusle_loader):
     )
 
     best_params, best_results = tuner.tune(n_executions=1)
-    predictor = best_results.predictor
-
-    predictor.save('/tmp/predictor')
-    loaded_predictor = LstmMlpSupersensesModel.load('/tmp/predictor')
-
-    print('Predictor: original')
-
-    evaluator = ClassifierEvaluator(predictor=predictor.model)
-    ll_samples = [predictor.sample_to_lowlevel(x) for x in dev_samples]
-    evaluator.evaluate(ll_samples, examples_to_show=5)
-
-    print('Predictor: loaded')
-
-    evaluator = ClassifierEvaluator(predictor=loaded_predictor.model)
-    ll_samples = [loaded_predictor.sample_to_lowlevel(x) for x in dev_samples]
-    evaluator.evaluate(ll_samples, examples_to_show=5)
+    # predictor = best_results.predictor
+    #
+    # predictor.save('/tmp/predictor')
+    # loaded_predictor = LstmMlpSupersensesModel.load('/tmp/predictor')
+    #
+    # print('Predictor: original')
+    #
+    # evaluator = ClassifierEvaluator(predictor=predictor.model)
+    # ll_samples = [predictor.sample_to_lowlevel(x) for x in dev_samples]
+    # evaluator.evaluate(ll_samples, examples_to_show=5)
+    #
+    # print('Predictor: loaded')
+    #
+    # evaluator = ClassifierEvaluator(predictor=loaded_predictor.model)
+    # ll_samples = [loaded_predictor.sample_to_lowlevel(x) for x in dev_samples]
+    # evaluator.evaluate(ll_samples, examples_to_show=5)
 
 
     # tuner.sample_execution(json.loads(
