@@ -73,8 +73,7 @@ def run(train_records, dev_records, test_records, streusle_loader):
             union_settings([
                 GOLD_ID_GOLD_PREP,
                 GOLD_ID_AUTO_PREP
-            ]),
-            [PS(name='epochs', values=[1])]
+            ])
         ]),
         dump_models=False
     )
