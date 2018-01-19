@@ -30,11 +30,15 @@ def union_settings(settings_list):
         for setting in settings:
             group_by_name[setting.name].append(setting)
 
+    for name, settings in group_by_name.items():
+        assert any({s.task_param for s in settings}) == all({s.task_param for s in settings})
+
     return [
         HyperparametersTuner.ParamSettings(
             name=name,
             values=list({v for s in settings for v in s.values}),
             enabled=any({s.enabled for s in settings}),
+            task_param=any({s.task_param for s in settings}),
         )
         for name, settings in group_by_name.items()
     ]
@@ -135,11 +139,11 @@ class HyperparametersTuner:
             if not os.path.exists(self.models_base_path):
                 os.mkdir(self.models_base_path)
 
-            if os.path.exists(self.csv_file_path):
-                prevs = csv_to_objs(self.csv_file_path)
-                current_highest_score = max([float(prev['Tuner Score']) for prev in prevs if all([prev[param] == str(params[param]) for param in self.task_param_names])])
-            else:
-                current_highest_score = 0
+            current_highest_score = 0
+            if self.dump_models \
+                and os.path.exists(self.csv_file_path):
+                    prevs = csv_to_objs(self.csv_file_path)
+                    current_highest_score = max([float(prev['Tuner Score']) for prev in prevs if all([prev[param] == str(params[param]) for param in self.task_param_names])])
 
             with open(self.csv_file_path, open_flags) as csv_f:
                 csv_writer = csv.writer(csv_f)
@@ -161,5 +165,6 @@ class HyperparametersTuner:
                     self.emitted_csv_rows += 1
                 self.emitted_results += 1
 
-            if result.score > current_highest_score:
-                result.predictor.save(self.models_base_path + '/' + execution_id)
+            if self.dump_models:
+                if result.score > current_highest_score:
+                    result.predictor.save(self.models_base_path + '/' + execution_id)

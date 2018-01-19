@@ -3,7 +3,7 @@ def format_list(l):
 
 def dump_vocabularies(vocabs):
     for vocab in vocabs:
-        with open('models/supersenses/vocabs/' + vocab.name.lower() + '.py', 'w') as out_f:
+        with open('models/supersenses/vocabs/' + vocab.name.lower() + '.py', 'w', encoding='utf-8') as out_f:
             out_f.write("""from vocabulary import Vocabulary
             
 %s = Vocabulary('%s', %s)

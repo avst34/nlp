@@ -404,9 +404,11 @@ class LstmMlpMulticlassModel(object):
         with open(base_path + '.embds', 'w') as f:
             json.dump({name: pythonize_embds(embds) for name, embds in self.input_embeddings.items()}, f)
 
-        os.remove(base_path + ".zip")
+        zip_path = base_path + '.zip'
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
         files = glob(base_path + ".*") + [base_path]
-        with zipfile.ZipFile(base_path + ".zip", "w", zipfile.ZIP_DEFLATED) as zh:
+        with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zh:
             for fname in files:
                 print("writing to zip..", fname)
                 zh.write(fname, arcname=os.path.basename(fname))

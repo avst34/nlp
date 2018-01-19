@@ -48,6 +48,7 @@ def build_csv_rows(params, result):
     rows = [[x[1] for x in row_tuples] for row_tuples in rows_tuples]
     return headers, rows
 
+
 class LstmMlpSupersensesModelHyperparametersTuner:
 
     def __init__(self,

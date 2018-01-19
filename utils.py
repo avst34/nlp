@@ -25,6 +25,7 @@ def csv_to_objs(csv_file_path):
             if ind == 0:
                 keys = row
             else:
-                objs.append({k: row[i] for i, k in enumerate(keys)})
+                if row:
+                    objs.append({k: row[i] for i, k in enumerate(keys)})
     return objs
 
