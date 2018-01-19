@@ -48,7 +48,6 @@ class LstmMlpSupersensesModel:
         def __init__(self, supersense_role=None, supersense_func=None):
             self.supersense_role = supersense_role
             self.supersense_func = supersense_func
-            assert self.supersense_func and self.supersense_role or not(self.supersense_func or self.supersense_role)
 
         def to_dict(self):
             return self.__dict__

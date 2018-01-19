@@ -34,14 +34,13 @@ def build_csv_rows(params, result):
                     if not is_best_epoch and not is_last_epoch:
                         continue
                 row_tuples = \
-                    [("Tuner Score", result.score)] + \
                     [("Epoch", epoch)] + \
                     [("Last Epoch", "Yes" if is_last_epoch else "No")] + \
                     [("Best Epoch", "Yes" if is_best_epoch else "No")] + \
                     [("Scope", scope)] + \
                     [("Class", klass)] + \
                     sorted({k: scores[k] for k, v in scores.items()}.items()) + \
-                    sorted(params.items()) + \
+                    [(k, str(v)) for k, v in sorted(params.items())] + \
                     [("Hyperparams Json", json.dumps(params) if len(rows_tuples) == 0 else "")]
                 rows_tuples.append(row_tuples)
 
@@ -71,10 +70,12 @@ class LstmMlpSupersensesModelHyperparametersTuner:
         tuner_domains_override_names = set([d.name for d in tuner_domains_override])
         tuner_domains = [d for d in TUNER_DOMAINS if d.name not in tuner_domains_override_names] + tuner_domains_override
 
-        self.tuner = HyperparametersTuner(results_csv_path=results_csv_path,
-                                          params_settings=tuner_domains, executor=self._execute,
-                                          csv_row_builder=build_csv_rows, shared_csv=True,
-                                          lock_file_path=results_csv_path + '.lock')
+        self.tuner = HyperparametersTuner(
+            results_csv_path=results_csv_path,
+            params_settings=tuner_domains, executor=self._execute,
+            csv_row_builder=build_csv_rows, shared_csv=True,
+            lock_file_path=results_csv_path + '.lock'
+        )
 
         self.fit_kwargs = {
             'samples': samples,

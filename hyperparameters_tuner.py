@@ -6,13 +6,16 @@ import threading
 import json
 import random
 from collections import OrderedDict
+
+import os
+
 from lockfile import Lockfile
+from utils import csv_to_objs
 
 
 def build_csv_row(params, result):
     assert isinstance(result, HyperparametersTuner.ExecutionResult)
     row_tuples = \
-        [("Tuner Score", result.score)] + \
         sorted(result.result_data.items()) + \
         sorted(params.items()) + \
         [("Hyperparams Json", json.dumps(params))]
@@ -26,7 +29,8 @@ class HyperparametersTuner:
 
     class ParamSettings:
 
-        def __init__(self, name, values, enabled=True):
+        def __init__(self, name, values, enabled=True, task_param=False):
+            self.task_param = task_param
             self.name = name
             self.values = values
             self.enabled = enabled
@@ -40,7 +44,7 @@ class HyperparametersTuner:
             self.score = score
             self.result_data = result_data
 
-    def __init__(self, params_settings, executor, results_csv_path, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None):
+    def __init__(self, params_settings, executor, results_csv_path, models_base_path=None, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None):
         assert all([isinstance(ps, HyperparametersTuner.ParamSettings) for ps in params_settings])
         self.shared_csv = shared_csv
         if shared_csv:
@@ -51,14 +55,16 @@ class HyperparametersTuner:
         self.params_settings = params_settings
         self.executor = executor
         self.csv_row_builder = csv_row_builder
-        self.csv_file_path = None
         self.emitted_csv_rows = None
         self.emitted_result1s = None
         self.executor_id = self.gen_id()
 
         self.csv_file_path = results_csv_path
+        self.models_base_path = models_base_path or os.path.dirname(results_csv_path) + '/models'
         self.emitted_csv_rows = 0
         self.emitted_results = 0
+
+        self.task_param_names = [ps.name for ps in params_settings if ps.task_param]
 
 
     def sample_params(self):
@@ -73,7 +79,7 @@ class HyperparametersTuner:
         result = self.executor(enabled_params)
         execution_time = time.time() - start_time
         assert isinstance(result, HyperparametersTuner.ExecutionResult)
-        self.emit_result_to_csv(params, result, execution_time)
+        self.emit_result(params, result, execution_time)
         return params, result
 
     def sample_executions(self, n_executions, mapper=map):
@@ -99,22 +105,31 @@ class HyperparametersTuner:
         else:
             return self.emitted_results + 1
 
-    def emit_result_to_csv(self, params, result, execution_time_secs):
+    def emit_result(self, params, result, execution_time_secs):
         assert isinstance(result, HyperparametersTuner.ExecutionResult)
         execution_id = self.gen_execution_id()
         open_flags = 'a' if self.shared_csv or self.emitted_results > 0 else 'w'
         with self.csv_lock:
+            if not os.path.exists(self.models_base_path):
+                os.mkdir(self.models_base_path)
+
+            if os.path.exists(self.csv_file_path):
+                prevs = csv_to_objs(self.csv_file_path)
+                current_highest_score = max([float(prev['Tuner Score']) for prev in prevs if all([prev[param] == str(params[param]) for param in self.task_param_names])])
+            else:
+                current_highest_score = 0
+
             with open(self.csv_file_path, open_flags) as csv_f:
                 csv_writer = csv.writer(csv_f)
                 headers, rows = self.csv_row_builder(params, result)
-                headers = ['Time', 'Total Execution Time', 'Executor ID', 'Execution ID'] + headers
+                headers = ['Time', 'Total Execution Time', 'Executor ID', 'Execution ID', 'Tuner Score'] + headers
                 rows = [
                     [time.strftime("%Y-%m-%d %H:%M:%S"), "%02dd%02dh%02dm%02ds" % (int(execution_time_secs / (24*60*60)),
                                                                                int(execution_time_secs % (24*60*60) / (60*60)),
                                                                                int(execution_time_secs % (60*60) / 60),
                                                                                int(execution_time_secs % 60),
                                                                                ),
-                     self.executor_id, execution_id] + row for row in rows
+                     self.executor_id, execution_id, result.score] + row for row in rows
                 ]
                 if csv_f.tell() == 0:
                     csv_writer.writerow(headers)
@@ -123,3 +138,6 @@ class HyperparametersTuner:
                     csv_writer.writerow(row)
                     self.emitted_csv_rows += 1
                 self.emitted_results += 1
+
+            if result.score > current_highest_score:
+                result.predictor.save(self.models_base_path + '/' + execution_id)

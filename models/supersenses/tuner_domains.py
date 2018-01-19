@@ -10,16 +10,16 @@ TUNER_DOMAINS_TUNING = [
         ('supersense_role', 'supersense_func'),
         ('supersense_role',),
         ('supersense_func',)
-    ]),
+    ], task_param=True),
     PS(name='use_token', values=[True]),
-    PS(name='use_ud_lemma', values=[True, False]),
+    PS(name='use_ud_lemma', values=[True, False], task_param=True),
     PS(name='update_ud_lemmas_embd', values=[True, False]),
     PS(name='use_token_internal', values=[True]),
     PS(name='use_pos', values=[True, False]),
     PS(name='use_dep', values=[True, False]),
     PS(name='use_spacy_ner', values=[True, False]),
-    PS(name='deps_from', values=['ud', 'spacy']),
-    PS(name='pos_from', values=['ud', 'spacy']),
+    PS(name='deps_from', values=['ud', 'spacy'], task_param=True),
+    PS(name='pos_from', values=['ud', 'spacy'], task_param=True),
     PS(name='use_prep_onehot', values=[True, False]),
     PS(name='token_embd_dim', values=[300]),
     PS(name='token_internal_embd_dim', values=[10, 25, 50, 100, 300]),
@@ -40,8 +40,8 @@ TUNER_DOMAINS_TUNING = [
     PS(name='epochs', values=[80]),
     PS(name='learning_rate', values=np.logspace(-2, 0, 6)),
     PS(name='learning_rate_decay', values=np.r_[0, np.logspace(-5, -1, 9)]),
-    PS(name='mask_by', values=['sample-ys', 'pos:IN,PRP$,RB,TO']),
-    PS(name='mask_mwes', values=[False]),
+    PS(name='mask_by', values=['sample-ys', 'pos:IN,PRP$,RB,TO'], task_param=True),
+    PS(name='mask_mwes', values=[False], task_param=True),
     PS(name='dynet_random_seed', values=[os.environ['DYNET_RANDOM_SEED']], enabled=False)
 ]
 
