@@ -1,4 +1,5 @@
 import os
+import copy
 import sys
 import csv
 import json
@@ -68,7 +69,8 @@ SPACY_LEMMAS = load_json(ENHANCEMENTS.SPACY_LEMMAS, {})
 SPACY_POS = load_json(ENHANCEMENTS.SPACY_POS, {})
 
 class TaggedToken:
-    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, is_part_of_wmwe, is_part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, spacy_lemma, ud_lemma):
+    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, is_part_of_wmwe, is_part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, spacy_lemma, ud_lemma, ud_id):
+        self.ud_id = ud_id
         self.spacy_lemma = spacy_lemma
         self.token = token
         self.ind = ind
@@ -104,6 +106,9 @@ class TaggedToken:
         if self.supersense_role and self.supersense_func:
             supersense_combined = self.supersense_role + '|' + self.supersense_func
         self.supersense_combined = supersense_combined
+
+        assert not self.is_part_of_mwe or not(not self.is_first_mwe_token and self.supersense_combined)
+
 
 
 class StreusleRecord:
@@ -150,6 +155,7 @@ class StreusleRecord:
 
         self.tagged_tokens = [
             TaggedToken(
+                ud_id=tok_data['#'],
                 token=tok_data['word'],
                 ind=i,
                 token_word2vec=W2V.get(tok_data['word']),
@@ -172,6 +178,23 @@ class StreusleRecord:
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
 
+    def build_data_with_supersenses(self, supersenses, allow_new=False):
+        # supersenses - [(role, func), (role, func), ...]
+        assert len(self.tagged_tokens) == len(supersenses)
+        format_supersense = lambda ss: 'p.' + ss
+        data = copy.deepcopy(self.data)
+        for token, (role, func) in zip(self.tagged_tokens, supersenses):
+            found = False
+            for we in sum([data['swes'].values(), data['smwes'].values(), data['wmwes'].values()], []):
+                if we['s1'] and not we['s1'].startswith('p.'):
+                    continue
+                if we['toknums'][0] == token.ud_id:
+                   we['s1'] = format_supersense(role)
+                   we['s2'] = format_supersense(func)
+                   found = True
+            if not allow_new and not found:
+                raise Exception("Couldn't find a match for system supersense in data")
+        return data
 
 class StreusleLoader(object):
 

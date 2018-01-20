@@ -1,4 +1,5 @@
 from evaluators.classifier_evaluator import ClassifierEvaluator
+from evaluators.streusle_evaluator import StreusleEvaluator
 from hyperparameters_tuner import HyperparametersTuner
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 import json
@@ -58,23 +59,30 @@ class LstmMlpSupersensesModelHyperparametersTuner:
                  validation_samples=None,
                  show_progress=True,
                  show_epoch_eval=True,
-                 dump_models=True,
+                 dump_models=False,
+                 dump_pss_eval=True,
                  evaluator=ClassifierEvaluator(),
                  tuner_score_getter=lambda evaluations: max([e['f1'] or 0 for e in evaluations]),
                  tuner_results_getter=extract_classifier_evaluator_results):
+        self.dump_models = dump_models
+        self.dump_pss_eval = dump_pss_eval
         self.fit_kwargs = None
         self.tuner_results_getter = tuner_results_getter
         self.tuner_score_getter = tuner_score_getter
 
         assert evaluator is not None
 
-
+        def dump_result(output_dir, result):
+            if self.dump_models:
+                result.predictor.save(output_dir + '/model')
+            if self.dump_pss_eval:
+                StreusleEvaluator(result.predictor).evaluate(validation_samples, output_tsv_path=output_dir + '/psseval_out.tsv')
 
         self.tuner = HyperparametersTuner(results_csv_path=results_csv_path,
                                           params_settings=tuner_domains, executor=self._execute,
                                           csv_row_builder=build_csv_rows, shared_csv=True,
                                           lock_file_path=results_csv_path + '.lock',
-                                          dump_models=dump_models)
+                                          dump_result=dump_result)
 
         self.fit_kwargs = {
             'samples': samples,
@@ -83,8 +91,6 @@ class LstmMlpSupersensesModelHyperparametersTuner:
             'show_epoch_eval': show_epoch_eval,
             'evaluator': evaluator
         }
-
-
 
     def _execute(self, hyperparameters):
         lstm_mlp_model = LstmMlpSupersensesModel(hyperparameters=LstmMlpSupersensesModel.HyperParameters(**hyperparameters))

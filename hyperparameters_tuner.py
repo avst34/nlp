@@ -69,9 +69,9 @@ class HyperparametersTuner:
             self.score = score
             self.result_data = result_data
 
-    def __init__(self, params_settings, executor, results_csv_path, models_base_path=None, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None, dump_models=True):
+    def __init__(self, params_settings, executor, results_csv_path, models_base_path=None, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None, dump_result=None):
         assert all([isinstance(ps, HyperparametersTuner.ParamSettings) for ps in params_settings])
-        self.dump_models = dump_models
+        self.dump_result = dump_result
         self.shared_csv = shared_csv
         if shared_csv:
             assert lock_file_path is not None
@@ -86,12 +86,11 @@ class HyperparametersTuner:
         self.executor_id = self.gen_id()
 
         self.csv_file_path = results_csv_path
-        self.models_base_path = models_base_path or os.path.dirname(results_csv_path) + '/models'
+        self.results_base_path = models_base_path or os.path.dirname(results_csv_path) + '/results'
         self.emitted_csv_rows = 0
         self.emitted_results = 0
 
         self.task_param_names = [ps.name for ps in params_settings if ps.task_param]
-
 
     def sample_params(self):
         return OrderedDict({
@@ -136,8 +135,8 @@ class HyperparametersTuner:
         execution_id = self.gen_execution_id()
         open_flags = 'a' if self.shared_csv or self.emitted_results > 0 else 'w'
         with self.csv_lock:
-            if not os.path.exists(self.models_base_path):
-                os.mkdir(self.models_base_path)
+            if not os.path.exists(self.results_base_path):
+                os.mkdir(self.results_base_path)
 
             current_highest_score = 0
             if self.dump_models \
@@ -165,6 +164,8 @@ class HyperparametersTuner:
                     self.emitted_csv_rows += 1
                 self.emitted_results += 1
 
-            if self.dump_models:
+            if self.dump_result:
                 if result.score > current_highest_score:
-                    result.predictor.save(self.models_base_path + '/' + execution_id)
+                    os.mkdir(self.results_base_path + '/' + execution_id)
+                    self.dump_result(self.results_base_path + '/' + execution_id, result)
+                    # result.predictor.save(self.results_base_path + '/' + execution_id)

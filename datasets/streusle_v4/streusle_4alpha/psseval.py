@@ -10,8 +10,8 @@ from supersenses import coarsen_pss
 Evaluation script for adposition supersense disambiguation (also includes possessives).
 With --json, outputs result as JSON; otherwise outputs a TSV file for viewing in a spreadsheet editor.
 The first positional argument is the gold standard; subsequent arguments are system outputs,
-and each of these must have a filename of the form BASENAME.goldid.conllulex
-or BASENAME.autoid.conllulex
+and each of these must have a filename of the form BASENAME.goldid.{conllulex,json}
+or BASENAME.autoid.{conllulex,json}.
 Sentences must be in the same order in all files.
 
 Invoke with -h to see command-line options.
@@ -42,8 +42,8 @@ def compare_sets_Acc(gold, pred):
     return c
 
 def eval_sys(sysF, gold_sents, ss_mapper):
-    goldid = sysF.name.endswith('.goldid.conllulex')
-    if not goldid and not sysF.name.endswith('.autoid.conllulex'):
+    goldid = (sysF.name.split('.')[-2]=='goldid')
+    if not goldid and sysF.name.split('.')[-2]!='autoid':
         raise ValueError(f'File path of system output not specified for gold vs. auto identification of units to be labeled: {sysF.name}')
 
     compare_sets = compare_sets_Acc if goldid else compare_sets_PRF
@@ -108,25 +108,27 @@ def eval_sys(sysF, gold_sents, ss_mapper):
 
     return scores
 
-def to_tsv(all_sys_scores):
+def to_tsv(all_sys_scores, depth, file=sys.stdout):
     for k in ('All','MWE','MWP'):
-        print(k)
-        print('\tGold ID:\tRole\tFxn\tRole,Fxn\t\tID\t\t\t\tRole\t\t\t\tFxn\t\t\t\tRole,Fxn\t\t')
-        print('Sys\tN\tAcc\tAcc\tAcc' + '\t\tP\tR\tF'*4)
+        print(k, file=file)
+        print('D='+str(depth)+'\tGold ID:\tRole\tFxn\tRole,Fxn\t\tID\t\t\t\tRole\t\t\t\tFxn\t\t\t\tRole,Fxn\t\t', file=file)
+        print('Sys\tN\tAcc\tAcc\tAcc' + '\t\tP\tR\tF'*4, file=file)
         for sys,(gidscores,aidscores) in all_sys_scores.items():
-            print(sys, end='\t')
-            print(gidscores[k]["Role"]["N"], end='\t')
+            print(sys, end='\t', file=file)
+            print(gidscores[k]["Role"]["N"], end='\t', file=file)
             for criterion in ('Role', 'Fxn', 'Role,Fxn'):
-                print(f'{gidscores[k][criterion]["Acc"]}', end='\t')
-            print('', end='\t')
+                print(f'{gidscores[k][criterion]["Acc"]}', end='\t', file=file)
+            print('', end='\t', file=file)
             for criterion in ('ID', 'Role', 'Fxn', 'Role,Fxn'):
                 prf = aidscores[k][criterion]
-                print(f'{prf["P"]}\t{prf["R"]}\t{prf["F"]}\t', end='\t')
-            print()
-        print()
+                print(f'{prf["P"]}\t{prf["R"]}\t{prf["F"]}\t', end='\t', file=file)
+            print(file=file)
+        print(file=file)
 
-def to_json(all_sys_scores):
-    print(json.dumps(all_sys_scores))
+def to_json(all_sys_scores, depth):
+    scores = dict(all_sys_scores)
+    scores["_meta"] = {"depth": depth}
+    print(json.dumps(scores))
 
 def main(args):
     goldF = args.goldfile
@@ -143,23 +145,23 @@ def main(args):
     for sysF in sysFs:
         sysscores = eval_sys(sysF, gold_sents, ss_mapper)
         syspath = sysF.name
-        basename = syspath[:-len('.goldid.conllulex')]
+        basename = syspath.rsplit('.', 2)[0]
         if basename not in all_sys_scores:
             all_sys_scores[basename] = [defaultdict(lambda: defaultdict(Counter)),defaultdict(lambda: defaultdict(Counter))]
-        if syspath.endswith('.goldid.conllulex'):
+        if syspath.split('.')[-2]=='goldid':
             all_sys_scores[basename][0] = sysscores
         else:
             all_sys_scores[basename][1] = sysscores
 
     # Print output
-    args.output_format(all_sys_scores)
+    args.output_format(all_sys_scores, depth=args.depth)
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Evaluate system output for preposition supersense disambiguation against a gold standard.')
     parser.add_argument('goldfile', type=argparse.FileType('r'),
-                        help='gold standard .conllulex file')
+                        help='gold standard .conllulex or .json file')
     parser.add_argument('sysfile', type=argparse.FileType('r'), nargs='+',
-                        help='system prediction file: BASENAME.goldid.conllulex or BASENAME.autoid.conllulex')
+                        help='system prediction file: BASENAME.{goldid,autoid}.{conllulex,json}')
     parser.add_argument('--depth', metavar='D', type=int, choices=range(1,5), default=4,
                         help='depth of hierarchy at which to cluster supersense labels (default: 4, i.e. no collapsing)')
     # parser.add_argument('--prec-rank', metavar='K', type=int, default=1,
