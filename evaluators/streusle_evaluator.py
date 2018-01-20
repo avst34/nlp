@@ -34,7 +34,7 @@ class StreusleEvaluator:
                 for sample in streusle_samples:
                     streusle_record = record_by_id[sample.sample_id]
                     predictions = self.predictor.predict(sample.xs, mask=self.predictor.get_sample_mask(sample.xs, sample.ys))
-                    predictions = [(p.supsesnse_role, p.supersense_func) for p in predictions]
+                    predictions = [(p.supersense_role, p.supersense_func) for p in predictions]
                     sent_data = streusle_record.build_data_with_supersenses(predictions, allow_new=False)
                     sys_data.append(sent_data)
                 json.dump(sys_data, sys_f)

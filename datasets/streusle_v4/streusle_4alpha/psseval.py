@@ -4,7 +4,7 @@ import os, sys, fileinput, re, json, argparse
 from collections import defaultdict, Counter
 
 from conllulex2json import load_sents
-from supersenses import coarsen_pss
+from streusle_supersenses import coarsen_pss
 
 """
 Evaluation script for adposition supersense disambiguation (also includes possessives).

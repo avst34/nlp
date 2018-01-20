@@ -139,10 +139,10 @@ class HyperparametersTuner:
                 os.mkdir(self.results_base_path)
 
             current_highest_score = 0
-            if self.dump_models \
+            if self.dump_result \
                 and os.path.exists(self.csv_file_path):
                     prevs = csv_to_objs(self.csv_file_path)
-                    current_highest_score = max([float(prev['Tuner Score']) for prev in prevs if all([prev[param] == str(params[param]) for param in self.task_param_names])])
+                    current_highest_score = max([float(prev['Tuner Score']) for prev in prevs if all([prev[param] == str(params[param]) for param in self.task_param_names])] + [0])
 
             with open(self.csv_file_path, open_flags) as csv_f:
                 csv_writer = csv.writer(csv_f)

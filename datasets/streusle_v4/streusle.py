@@ -181,16 +181,18 @@ class StreusleRecord:
     def build_data_with_supersenses(self, supersenses, allow_new=False):
         # supersenses - [(role, func), (role, func), ...]
         assert len(self.tagged_tokens) == len(supersenses)
-        format_supersense = lambda ss: 'p.' + ss
+        format_supersense = lambda ss: 'p.' + ss if ss else None
         data = copy.deepcopy(self.data)
         for token, (role, func) in zip(self.tagged_tokens, supersenses):
             found = False
-            for we in sum([data['swes'].values(), data['smwes'].values(), data['wmwes'].values()], []):
-                if we['s1'] and not we['s1'].startswith('p.'):
+            if not role and not func:
+                continue
+            for we in sum([list(data['swes'].values()), list(data['smwes'].values()), list(data['wmwes'].values())], []):
+                if we.get('ss') and not we['ss'].startswith('p.'):
                     continue
                 if we['toknums'][0] == token.ud_id:
-                   we['s1'] = format_supersense(role)
-                   we['s2'] = format_supersense(func)
+                   we['ss'] = format_supersense(role)
+                   we['ss2'] = format_supersense(func)
                    found = True
             if not allow_new and not found:
                 raise Exception("Couldn't find a match for system supersense in data")
