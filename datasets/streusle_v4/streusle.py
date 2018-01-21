@@ -4,7 +4,7 @@ import sys
 import csv
 import json
 from pprint import pprint
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import supersenses
 from vocabulary import Vocabulary, VocabularyBuilder
 from word2vec import Word2VecModel
@@ -14,7 +14,7 @@ sys.path.append(STREUSLE_DIR)
 print(STREUSLE_DIR)
 from .streusle_4alpha import conllulex2json
 
-ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'UD_LEMMAS_WORD2VEC_PATH', 'UD_LEMMAS_WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'SPACY_POS', 'DEV_SET_SENTIDS', 'DEV_SET_SENTIDS_UD_SPLIT', 'TEST_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES', 'SPACY_LEMMAS', 'SPACY_LEMMAS_WORD2VEC_PATH', 'SPACY_LEMMAS_WORD2VEC_MISSING_PATH'])(
+ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'UD_LEMMAS_WORD2VEC_PATH', 'UD_LEMMAS_WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'SPACY_POS', 'TRAIN_SET_SENTIDS_UD_SPLIT', 'DEV_SET_SENTIDS_UD_SPLIT', 'TEST_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES', 'SPACY_LEMMAS', 'SPACY_LEMMAS_WORD2VEC_PATH', 'SPACY_LEMMAS_WORD2VEC_MISSING_PATH'])(
     WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'word2vec.pickle'),
     WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'word2vec_missing.json'),
     UD_LEMMAS_WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'ud_lemmas_word2vec.pickle'),
@@ -26,10 +26,17 @@ ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_P
     SPACY_LEMMAS_WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'spacy_lemmas_word2vec.json'),
     SPACY_LEMMAS_WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'spacy_lemmas_word2vec_missing.json'),
     UD_DEP_TREES=os.path.join(STREUSLE_DIR, 'ud_dep_trees.json'),
-    DEV_SET_SENTIDS=os.path.join(STREUSLE_DIR, 'splits/psst-dev.sentids'),
-    DEV_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'splits/psst-dev-ud-split.sentids'),
-    TEST_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'splits/psst-test-ud-split.sentids')
+    TRAIN_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'ud_train_sent_ids.txt'),
+    DEV_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'ud_dev_sent_ids.txt'),
+    TEST_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'ud_test_sent_ids.txt')
 )
+
+def sentid_to_streusle_id(sent_id):
+    # reviews-046906-0001
+    _, id1, id2 = sent_id.split('-')
+    while id2.startswith('0'):
+        id2 = id2[1:]
+    return "ewtb.r." + id1 + "." + id2
 
 def load_word2vec(path):
     w2v = Word2VecModel({})
@@ -143,7 +150,7 @@ class StreusleRecord:
 
         def extract_supersense_pair(ss1, ss2):
             def process(ss):
-                if ss in ['_', '??', '`$']:
+                if ss in ['_', '??', '`$', None]:
                     return None
                 return filter_supersense(ss.split('.')[1] if ss != '_' else None)
             ss1 = process(ss1)
@@ -152,6 +159,10 @@ class StreusleRecord:
                 ss2 = ss1
             assert all([ss1, ss2]) or not any([ss1, ss2])
             return [ss1, ss2]
+
+        tok_ss = defaultdict(lambda: (None, None))
+        for we in sum([list(data['swes'].values()), list(data['smwes'].values()), list(data['wmwes'].values())], []):
+            tok_ss[we['toknums'][0]] = extract_supersense_pair(we.get('ss'), we.get('ss2'))
 
         self.tagged_tokens = [
             TaggedToken(
@@ -169,8 +180,8 @@ class StreusleRecord:
                 ud_dep=self.ud_dep_tree[i].dep if self.ud_dep_tree else None,
                 spacy_ner=spacy_ners[i] if spacy_ners else None,
                 spacy_lemma=spacy_lemmas[i] if spacy_lemmas else None,
-                supersense_role=extract_supersense_pair(tok_data['ss'], tok_data['ss2'])[0],
-                supersense_func=extract_supersense_pair(tok_data['ss'], tok_data['ss2'])[1],
+                supersense_role=tok_ss[tok_data['#']][0],
+                supersense_func=tok_ss[tok_data['#']][1],
                 is_part_of_smwe=self.data['smwes'].get(i+1) is not None,
                 is_part_of_wmwe=self.data['wmwes'].get(i+1) is not None,
                 is_first_mwe_token=(self.data['smwes'].get(i + 1, {}).get('toknums') or self.data['wmwes'].get(i + 1, {}).get('toknums') or [None])[0] == tok_data['#']
@@ -225,20 +236,30 @@ class StreusleLoader(object):
                 assert not SPACY_POS or SPACY_POS.get(sent['streusle_sent_id'])
                 assert not UD_DEP_TREES or UD_DEP_TREES.get(sent['streusle_sent_id'])
                 records.append(record)
-        test_sentids = self._load_test_sentids()
-        dev_sentids = self._load_dev_sentids()
+        test_sentids = self._load_test_ids()
+        dev_sentids = self._load_dev_ids()
+        train_sentids = self._load_train_ids()
+
         test_records = [r for r in records if r.id in test_sentids]
         dev_records = [r for r in records if r.id in dev_sentids]
-        train_records = [r for r in records if r.id not in test_sentids and r.id not in dev_sentids]
+        train_records = [r for r in records if r.id in train_sentids]
+        assert len(test_records) == len(test_sentids)
+        assert len(dev_records) == len(dev_sentids)
+        assert len(train_records) == len(train_sentids)
+        assert len(train_records) + len(dev_records) + len(test_records) == len(records)
         return train_records, dev_records, test_records
 
-    def _load_test_sentids(self):
+    def _load_test_ids(self):
         with open(os.path.join(ENHANCEMENTS.TEST_SET_SENTIDS_UD_SPLIT), 'r') as f:
-            return set([x.strip() for x in f.readlines()])
+            return set([sentid_to_streusle_id(x.strip().replace('# sent_id = ', '')) for x in f.readlines()])
 
-    def _load_dev_sentids(self):
+    def _load_dev_ids(self):
         with open(os.path.join(ENHANCEMENTS.DEV_SET_SENTIDS_UD_SPLIT), 'r') as f:
-            return set([x.strip() for x in f.readlines()])
+            return set([sentid_to_streusle_id(x.strip().replace('# sent_id = ', '')) for x in f.readlines()])
+
+    def _load_train_ids(self):
+        with open(os.path.join(ENHANCEMENTS.TRAIN_SET_SENTIDS_UD_SPLIT), 'r') as f:
+            return set([sentid_to_streusle_id(x.strip().replace('# sent_id = ', '')) for x in f.readlines()])
 
     @staticmethod
     def get_dist(records, all_supersenses=supersenses.PREPOSITION_SUPERSENSES_SET):

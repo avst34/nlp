@@ -57,7 +57,7 @@ def eval_sys(sysF, gold_sents, ss_mapper):
         # all units with a PSS label
         c = scores['All']
         goldunits = sent['punits']
-        predunits = {tuple(e['toknums']): (e['lexcat'], e['ss'], e['ss2']) for e in list(syssent['swes'].values())+list(syssent['smwes'].values()) if e['ss'] and e['ss'].startswith('p.')}
+        predunits = {tuple(e['toknums']): (e['lexcat'], e['ss'], e['ss2']) for e in list(syssent['swes'].values())+list(syssent['smwes'].values()) if e['ss'] and e['ss'].startswith('p.') or e['ss2'] and e['ss2'].startswith('p.')}
         c['ID'] += compare_sets(set(goldunits.keys()), set(predunits.keys()))
         c['Role,Fxn'] += compare_sets({(k,r,f) for k,(lc,r,f) in goldunits.items()},
                                       {(k,r,f) for k,(lc,r,f) in predunits.items()})
@@ -95,8 +95,11 @@ def eval_sys(sysF, gold_sents, ss_mapper):
         if goldid:
             for criterion in ('Role','Fxn','Role,Fxn'):
                 c = scores[k][criterion]
-                assert scores[k][criterion]['N']>0,(k,criterion,scores[k][criterion])
-                c['Acc'] = c['correct'] / c['N']
+                # assert scores[k][criterion]['N']>0,(k,criterion,scores[k][criterion])
+                if scores[k][criterion]['N']>0:
+                    c['Acc'] = c['correct'] / c['N']
+                else:
+                    c['Acc'] = None
         else:
             for criterion in ('ID','Role','Fxn','Role,Fxn'):
                 c = scores[k][criterion]

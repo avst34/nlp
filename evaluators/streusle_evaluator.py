@@ -15,10 +15,10 @@ class StreusleEvaluator:
     def  __init__(self, predictor):
         self.predictor = predictor
 
-    def evaluate(self, streusle_samples, output_tsv_path=None):
+    def evaluate(self, streusle_samples, output_tsv_path=None, ident='goldid'):
         rand = str(int(time.time() * 1000))
         gold_fname = 'gold_' + rand + '.json'
-        sys_fname = 'sys_' + rand + '.json'
+        sys_fname = 'sys_' + rand + '.' + ident + '.json'
 
         if output_tsv_path:
             keep_output_file = True
@@ -40,19 +40,21 @@ class StreusleEvaluator:
                 json.dump(sys_data, sys_f)
 
             class Args:
-                def __init__(self, params):
-                    for k, v in params.items():
+                def __init__(self, **kwargs):
+                    for k, v in kwargs.items():
                         setattr(self, k, v)
 
             with open(output_tsv_path, 'w') as output_f:
-                def to_tsv_wrap(*args, **kwargs):
-                    return psseval.to_tsv(*args, **kwargs, file=output_f)
-                psseval.    main(Args(dict(
-                    goldfile=gold_fname,
-                    sysfile=sys_fname,
-                    depth=4,
-                    output_format=to_tsv_wrap
-                )))
+                with open(gold_fname, 'r') as gold_f:
+                    with open(sys_fname, 'r') as sys_f:
+                        def to_tsv_wrap(*args, **kwargs):
+                            return psseval.to_tsv(*args, **kwargs, file=output_f)
+                        psseval.    main(Args(
+                            goldfile=gold_f,
+                            sysfile=[sys_f],
+                            depth=4,
+                            output_format=to_tsv_wrap
+                        ))
             with open(output_tsv_path, 'r') as output_f:
                 return output_f.read()
         finally:
