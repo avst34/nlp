@@ -44,7 +44,7 @@ def compare_sets_Acc(gold, pred):
 def eval_sys(sysF, gold_sents, ss_mapper):
     goldid = (sysF.name.split('.')[-2]=='goldid')
     if not goldid and sysF.name.split('.')[-2]!='autoid':
-        raise ValueError(f'File path of system output not specified for gold vs. auto identification of units to be labeled: {sysF.name}')
+        raise ValueError('File path of system output not specified for gold vs. auto identification of units to be labeled: ' + sysF.name)
 
     compare_sets = compare_sets_Acc if goldid else compare_sets_PRF
 
@@ -107,7 +107,7 @@ def eval_sys(sysF, gold_sents, ss_mapper):
                 c['R'] = c['correct'] / c['Rdenom']
                 c['F'] = f1(c['P'], c['R'])
 
-    assert len(gold_sents)==iSent+1,f'Mismatch in number of sentences: {len(gold_sents)} gold, {iSent+1} system from {sysFP}'
+    assert len(gold_sents)==iSent+1,'Mismatch in number of sentences: ' + str(len(gold_sents)) + ' gold, ' + str(iSent+1) + ' system from ' + sysFP
 
     return scores
 
@@ -120,11 +120,11 @@ def to_tsv(all_sys_scores, depth, file=sys.stdout):
             print(sys, end='\t', file=file)
             print(gidscores[k]["Role"]["N"], end='\t', file=file)
             for criterion in ('Role', 'Fxn', 'Role,Fxn'):
-                print(f'{gidscores[k][criterion]["Acc"]}', end='\t', file=file)
+                print(gidscores[k][criterion]["Acc"], end='\t', file=file)
             print('', end='\t', file=file)
             for criterion in ('ID', 'Role', 'Fxn', 'Role,Fxn'):
                 prf = aidscores[k][criterion]
-                print(f'{prf["P"]}\t{prf["R"]}\t{prf["F"]}\t', end='\t', file=file)
+                print(str(prf["P"]) + '\t' + str(prf["R"]) + '\t' + str(prf["F"]) + '\t', end='\t', file=file)
             print(file=file)
         print(file=file)
 
