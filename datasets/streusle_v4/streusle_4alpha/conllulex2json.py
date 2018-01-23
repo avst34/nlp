@@ -154,7 +154,7 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                    smweGroups, wmweGroups)
         if sent['mwe']!=s:
             caveat = ' (may be due to simplification)' if '$1' in sent['mwe'] else ''
-            print(f'MWE string mismatch{caveat}:', s,sent['mwe'],sent['sent_id'], file=sys.stderr)
+            print('MWE string mismatch' + caveat + ':', s,sent['mwe'],sent['sent_id'], file=sys.stderr)
 
     if ss_mapper is None:
         ss_mapper = lambda ss: ss
