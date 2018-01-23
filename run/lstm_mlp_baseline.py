@@ -64,8 +64,8 @@ def run(train_records, dev_records, test_records, streusle_loader):
 
     tuner = LstmMlpSupersensesModelHyperparametersTuner(
         results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/nathan_results.csv',
-        samples=train_samples[:100], # use all after testing
-        validation_samples=dev_samples[:10],
+        samples=train_samples, # use all after testing
+        validation_samples=dev_samples,
         show_progress=True,
         show_epoch_eval=True,
         tuner_domains=override_settings([
@@ -73,7 +73,7 @@ def run(train_records, dev_records, test_records, streusle_loader):
                 GOLD_ID_GOLD_PREP,
                 GOLD_ID_AUTO_PREP
             ]),
-            [PS(name='epochs', values=[1])] # remove after testing
+            # [PS(name='epochs', values=[1])] # remove after testing
         ]),
         dump_models=False
     )
