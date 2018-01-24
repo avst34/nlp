@@ -63,7 +63,7 @@ def run(train_records, dev_records, test_records, streusle_loader):
     test_features()
 
     tuner = LstmMlpSupersensesModelHyperparametersTuner(
-        results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/nathan_results.csv',
+        results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/results.csv',
         samples=train_samples, # use all after testing
         validation_samples=dev_samples,
         show_progress=True,

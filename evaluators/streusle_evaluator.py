@@ -49,7 +49,7 @@ class StreusleEvaluator:
                     with open(sys_fname, 'r') as sys_f:
                         def to_tsv_wrap(*args, **kwargs):
                             return psseval.to_tsv(*args, **kwargs, file=output_f)
-                        psseval.    main(Args(
+                        psseval.main(Args(
                             goldfile=gold_f,
                             sysfile=[sys_f],
                             depth=4,

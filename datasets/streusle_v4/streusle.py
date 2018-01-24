@@ -160,9 +160,16 @@ class StreusleRecord:
             assert all([ss1, ss2]) or not any([ss1, ss2])
             return [ss1, ss2]
 
+        wes = sum([list(data['swes'].values()), list(data['smwes'].values()), list(data['wmwes'].values())], [])
+        smwes_toknums = sum([we['toknums'] for we in self.data['smwes'].values()], [])
+        wmwes_toknums = sum([we['toknums'] for we in self.data['wmwes'].values()], [])
         tok_ss = defaultdict(lambda: (None, None))
-        for we in sum([list(data['swes'].values()), list(data['smwes'].values()), list(data['wmwes'].values())], []):
-            tok_ss[we['toknums'][0]] = extract_supersense_pair(we.get('ss'), we.get('ss2'))
+        for we in wes:
+            pair = extract_supersense_pair(we.get('ss'), we.get('ss2'))
+            cur = tok_ss[we['toknums'][0]]
+            tok_ss[we['toknums'][0]] = (cur[0] or pair[0], cur[1] or pair[1])
+
+        first_wes_ids = [we['toknums'][0] for we in wes]
 
         self.tagged_tokens = [
             TaggedToken(
@@ -182,12 +189,16 @@ class StreusleRecord:
                 spacy_lemma=spacy_lemmas[i] if spacy_lemmas else None,
                 supersense_role=tok_ss[tok_data['#']][0],
                 supersense_func=tok_ss[tok_data['#']][1],
-                is_part_of_smwe=self.data['smwes'].get(i+1) is not None,
-                is_part_of_wmwe=self.data['wmwes'].get(i+1) is not None,
-                is_first_mwe_token=(self.data['smwes'].get(i + 1, {}).get('toknums') or self.data['wmwes'].get(i + 1, {}).get('toknums') or [None])[0] == tok_data['#']
+                is_part_of_smwe=tok_data['#'] in smwes_toknums,
+                is_part_of_wmwe=tok_data['#'] in wmwes_toknums,
+                is_first_mwe_token=tok_data['#'] in first_wes_ids
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
+        assert {t.ud_id for t in self.pss_tokens} == {we['toknums'][0] for we in wes if (we.get('ss') or '').startswith('p.')}
+
+    def get_tok_by_ud_id(ud_id):
+        return [t for t in self.tagged_tokens if t.ud_id == ud_id][0]
 
     def build_data_with_supersenses(self, supersenses, allow_new=False):
         # supersenses - [(role, func), (role, func), ...]

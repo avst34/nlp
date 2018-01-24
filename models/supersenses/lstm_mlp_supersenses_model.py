@@ -45,6 +45,9 @@ class LstmMlpSupersensesModel:
         def from_dict(d):
             return LstmMlpSupersensesModel.SampleX(**d)
 
+        def __repr__(self):
+            return self.token
+
     class SampleY:
 
         def __init__(self, supersense_role=None, supersense_func=None):
@@ -222,7 +225,7 @@ class LstmMlpSupersensesModel:
     def sample_x_to_lowlevel(self, sample_x, sample_xs, x_mask):
         return LstmMlpMulticlassModel.SampleX(
             fields={
-                    f.name: f.extract(sample_x, sample_xs) for f in self.features.list_enum_features()
+                f.name: f.extract(sample_x, sample_xs) for f in self.features.list_enum_features()
                 if x_mask or not f.masked_only
             },
             neighbors={
