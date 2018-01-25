@@ -70,7 +70,7 @@ def run(train_records, dev_records, test_records, streusle_loader):
         show_epoch_eval=True,
         tuner_domains=override_settings([
             union_settings([
-                GOLD_ID_GOLD_PREP,
+                # GOLD_ID_GOLD_PREP,
                 GOLD_ID_AUTO_PREP
             ]),
             # [PS(name='epochs', values=[1])] # remove after testing
