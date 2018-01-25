@@ -24,7 +24,10 @@ class LstmMlpSupersensesModel:
                      spacy_lemma,
                      ud_dep,
                      ud_head_ind,
-                     ud_lemma):
+                     ud_lemma,
+                     autoid_markable,
+                     autoid_markable_mwe
+                     ):
             self.spacy_lemma = spacy_lemma
             self.token = token
             self.ind = ind
@@ -37,6 +40,8 @@ class LstmMlpSupersensesModel:
             self.ud_dep = ud_dep
             self.ud_head_ind = ud_head_ind
             self.ud_lemma = ud_lemma
+            self.autoid_markable = autoid_markable
+            self.autoid_markable_mwe = autoid_markable_mwe
 
         def to_dict(self):
             return self.__dict__
@@ -93,6 +98,7 @@ class LstmMlpSupersensesModel:
     class HyperParameters:
 
         MASK_BY_SAMPLE_YS = 'sample-ys'
+        MASK_BY_AUTO_ID = 'auto-id'
         MASK_BY_POS_PREFIX = 'pos:'
 
         def __init__(self,
@@ -126,7 +132,7 @@ class LstmMlpSupersensesModel:
                      epochs,
                      learning_rate,
                      learning_rate_decay,
-                     mask_by, # MASK_BY_SAMPLE_YS or MASK_BY_POS_PREFIX + 'pos1,pos2,...'
+                     mask_by, # MASK_BY_SAMPLE_YS or MASK_BY_AUTO_ID or MASK_BY_POS_PREFIX + 'pos1,pos2,...'
                      mask_mwes
                      ):
             self.update_lemmas_embd = update_lemmas_embd
@@ -162,7 +168,7 @@ class LstmMlpSupersensesModel:
             self.epochs = epochs
             self.mask_mwes = mask_mwes
 
-            assert(mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS
+            assert(mask_by in [LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS, LstmMlpSupersensesModel.HyperParameters.MASK_BY_AUTO_ID]
                    or mask_by.startswith(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX))
             for pos in (self.get_pos_mask() or []):
                 assert_pos(pos)
@@ -172,6 +178,9 @@ class LstmMlpSupersensesModel:
 
         def is_mask_by_sample_ys(self):
             return self.mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS
+
+        def is_mask_by_auto_id(self):
+            return self.mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_AUTO_ID
 
         def get_pos_mask(self):
             if not self.mask_by.startswith(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX):
@@ -248,6 +257,8 @@ class LstmMlpSupersensesModel:
             return False
         if self.hyperparameters.is_mask_by_sample_ys():
             return not sample_y.is_empty()
+        elif self.hyperparameters.is_mask_by_auto_id():
+            return sample_x.autoid_markable
         else:
             return self.get_sample_x_pos(sample_x) in self.hyperparameters.get_pos_mask()
 

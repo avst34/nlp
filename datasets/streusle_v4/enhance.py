@@ -5,6 +5,8 @@ import math
 import re
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
+import subprocess
+
 import supersenses
 import spacy
 try:
@@ -282,6 +284,10 @@ def enhance_spacy_lemmas():
         with open(streusle.ENHANCEMENTS.SPACY_LEMMAS, 'w') as f:
             json.dump(lemmas, f, indent=2)
 
+def enhance_pss_autoid():
+    with open('./streusle_4alpha/streusle_autoid.conllulex', 'w') as f:
+        subprocess.run(['python', './streusle_4alpha/identify.py', './streusle_4alpha/streusle.conllulex', '-m'], stdout=f)
+
 if __name__ == '__main__':
     # enhance_spacy_dependency_trees()
     # enhance_spacy_ners()
@@ -291,6 +297,7 @@ if __name__ == '__main__':
     # enhance_dev_sentences()
     # enhance_ud_dependency_trees()
     # enhance_spacy_lemmas()
-    enhance_spacy_lemmas_word2vec()
+    # enhance_spacy_lemmas_word2vec()
+    enhance_pss_autoid()
 
 

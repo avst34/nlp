@@ -210,6 +210,7 @@ def main(args):
         print("{}\t{}\t{}".format(p, r, f))
 
 if __name__ == "__main__":
+    # identify.py streusle.conllulex -m
     parser = argparse.ArgumentParser(description='finds markables heuristically by POS tags and annotates them with an asterisk (*), or two of them (**) for MWEs')
     parser.add_argument('file', type=str, help='path to the .conllulex file')
     parser.add_argument('-t', '--tagset', type=str, help='one of {UD, PTB}', default="PTB")

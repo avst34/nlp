@@ -1,5 +1,6 @@
+import os
 from evaluators.classifier_evaluator import ClassifierEvaluator
-from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP
+from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP, AUTO_ID_AUTO_PREP
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
@@ -10,7 +11,6 @@ from run.dump_vocabs import dump_vocabularies
 from vocabulary import Vocabulary
 import supersenses
 import json
-import os
 from hyperparameters_tuner import union_settings, override_settings
 evaluator = ClassifierEvaluator()
 
@@ -71,7 +71,8 @@ def run(train_records, dev_records, test_records, streusle_loader):
         tuner_domains=override_settings([
             union_settings([
                 # GOLD_ID_GOLD_PREP,
-                GOLD_ID_AUTO_PREP
+                # GOLD_ID_AUTO_PREP
+                AUTO_ID_AUTO_PREP
             ]),
             # [PS(name='epochs', values=[1])] # remove after testing
         ]),

@@ -76,7 +76,7 @@ SPACY_LEMMAS = load_json(ENHANCEMENTS.SPACY_LEMMAS, {})
 SPACY_POS = load_json(ENHANCEMENTS.SPACY_POS, {})
 
 class TaggedToken:
-    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, is_part_of_wmwe, is_part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, spacy_lemma, ud_lemma, ud_id):
+    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, is_part_of_wmwe, is_part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, spacy_lemma, ud_lemma, ud_id, autoid_markable, autoid_markable_mwe):
         self.ud_id = ud_id
         self.spacy_lemma = spacy_lemma
         self.token = token
@@ -96,6 +96,8 @@ class TaggedToken:
         self.ud_xpos = ud_xpos
         self.spacy_pos = spacy_pos
         self.ud_lemma = ud_lemma
+        self.autoid_markable = autoid_markable
+        self.autoid_markable_mwe = autoid_markable_mwe
 
         if (self.supersense_role is not None) != (self.supersense_role is not None):
             raise Exception("TaggedToken initialized with only one supersense")
@@ -191,7 +193,9 @@ class StreusleRecord:
                 supersense_func=tok_ss[tok_data['#']][1],
                 is_part_of_smwe=tok_data['#'] in smwes_toknums,
                 is_part_of_wmwe=tok_data['#'] in wmwes_toknums,
-                is_first_mwe_token=tok_data['#'] in first_wes_ids
+                is_first_mwe_token=tok_data['#'] in first_wes_ids,
+                autoid_markable=tok_data['autoid_markable'],
+                autoid_markable_mwe=tok_data['autoid_markable_mwe'],
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
@@ -226,7 +230,7 @@ class StreusleLoader(object):
         pass
 
     def load(self, only_with_supersenses=supersenses.PREPOSITION_SUPERSENSES_SET):
-        streusle_file = os.path.join(STREUSLE_DIR, 'streusle.conllulex')
+        streusle_file = os.path.join(STREUSLE_DIR, 'streusle_autoid.conllulex')
         print('Loading streusle data from ' + streusle_file)
         records = []
         with open(streusle_file, 'r', encoding='utf8') as f:

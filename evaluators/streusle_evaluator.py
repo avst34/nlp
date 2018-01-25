@@ -15,7 +15,7 @@ class StreusleEvaluator:
     def  __init__(self, predictor):
         self.predictor = predictor
 
-    def evaluate(self, streusle_samples, output_tsv_path=None, ident='goldid'):
+    def evaluate(self, streusle_samples, output_tsv_path=None, ident='autoid'):
         rand = str(int(time.time() * 1000))
         gold_fname = 'gold_' + rand + '.json'
         sys_fname = 'sys_' + rand + '.' + ident + '.json'

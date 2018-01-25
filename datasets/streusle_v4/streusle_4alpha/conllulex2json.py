@@ -183,6 +183,15 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                 sent['swes'] = defaultdict(lambda: {'lexlemma': None, 'lexcat': None, 'ss': None, 'ss2': None, 'toknum': None})
                 sent['smwes'] = defaultdict(lambda: {'lexlemma': None, 'lexcat': None, 'ss': None, 'ss2': None, 'toknums': []})
                 sent['wmwes'] = defaultdict(lambda: {'lexlemma': None, 'toknums': []})
+            autoid_markable = False
+            autoid_markable_mwe = False
+            if ln.endswith('*'):
+                autoid_markable = True
+                ln = ln[:-1]
+                if ln[:-1].endswith('*'):
+                    autoid_markable_mwe = True
+                ln = '\t'.join(ln.split('\t')[:-1])
+
             assert ln.count('\t')==18,ln
 
             cols = ln.split('\t')
@@ -202,6 +211,8 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
             else:
                 tokNum = int(tokNum)
             tok['#'] = tokNum
+            tok['autoid_markable'] = autoid_markable
+            tok['autoid_markable_mwe'] = autoid_markable_mwe
             tok['word'], tok['lemma'], tok['upos'], tok['xpos'] = conllu_cols[1:5]
             assert tok['lemma']!='_' and tok['upos']!='_',tok
             if morph_syn:

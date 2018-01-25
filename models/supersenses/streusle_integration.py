@@ -16,6 +16,8 @@ def streusle_record_to_lstm_model_sample(record):
             ud_dep=tagged_token.ud_dep,
             ud_head_ind=tagged_token.ud_head_ind,
             is_part_of_mwe=tagged_token.is_part_of_mwe,
+            autoid_markable=tagged_token.autoid_markable,
+            autoid_markable_mwe=tagged_token.autoid_markable_mwe
         ) for ind, tagged_token in enumerate(record.tagged_tokens)
         ],
         ys=[LstmMlpSupersensesModel.SampleY(
