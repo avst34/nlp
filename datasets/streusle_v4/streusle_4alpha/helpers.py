@@ -22,7 +22,7 @@ class Sentence:
 
 def sentences(filename):
     tokens, meta = [], []
-    with open(filename) as f:
+    with open(filename, encoding='utf8') as f:
         for line in f:
             line = line.strip()
             if not line:

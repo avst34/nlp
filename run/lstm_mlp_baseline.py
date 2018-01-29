@@ -1,6 +1,6 @@
 import os
 from evaluators.classifier_evaluator import ClassifierEvaluator
-from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP, AUTO_ID_AUTO_PREP
+from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP, AUTO_ID_AUTO_PREP, AUTO_ID_GOLD_PREP
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
@@ -72,9 +72,10 @@ def run(train_records, dev_records, test_records, streusle_loader):
             union_settings([
                 # GOLD_ID_GOLD_PREP,
                 # GOLD_ID_AUTO_PREP
-                AUTO_ID_AUTO_PREP
+                # AUTO_ID_AUTO_PREP
+                AUTO_ID_GOLD_PREP
             ]),
-            # [PS(name='epochs', values=[1])] # remove after testing
+            [PS(name='epochs', values=[1])] # remove after testing
         ]),
         dump_models=False
     )

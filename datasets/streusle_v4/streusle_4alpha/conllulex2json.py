@@ -38,6 +38,10 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                     lexe['ss'] = ss_mapper(lexe['ss'])
                 if lexe['ss2'] is not None:
                     lexe['ss2'] = ss_mapper(lexe['ss2'])
+                assert all(t>0 for t in lexe['toknums']),('Token offsets must be positive',lexe)
+            if 'wmwes' in sent:
+                for lexe in sent['wmwes'].values():
+                    assert all(t>0 for t in lexe['toknums']),('Token offsets must be positive',lexe)
 
             if not morph_syn:
                 for tok in sent['toks']:
@@ -81,6 +85,9 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                     assert ss2 is None
                 elif ss not in valid_ss or (lc in ('N','V'))!=(ss2 is None) or (ss2 is not None and ss2 not in valid_ss):
                     print('Invalid supersense(s) in lexical entry:', lexe, file=sys.stderr)
+                elif ss.startswith('p.'):
+                    assert ss2.startswith('p.')
+                    assert ss2 not in {'p.Experiencer', 'p.Stimulus', 'p.Originator', 'p.Recipient', 'p.SocialRel', 'p.OrgRole'},(f'{ss2} should never be function',lexe)
             else:
                 assert ss is None and ss2 is None and lexe not in ('N', 'V', 'P', 'INF.P', 'PP', 'POSS', 'PRON.POSS'),lexe
 
@@ -235,7 +242,7 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                 # Load STREUSLE-specific columns
 
                 tok['smwe'], tok['lexcat'], tok['lexlemma'], tok['ss'], tok['ss2'], \
-                tok['wmwe'], tok['wcat'], tok['wlemma'], tok['lextag'] = lex_cols
+                    tok['wmwe'], tok['wcat'], tok['wlemma'], tok['lextag'] = lex_cols
 
                 # map the supersenses in the lextag
                 lt = tok['lextag']

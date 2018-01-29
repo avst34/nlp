@@ -230,7 +230,7 @@ class StreusleLoader(object):
         pass
 
     def load(self, only_with_supersenses=supersenses.PREPOSITION_SUPERSENSES_SET):
-        streusle_file = os.path.join(STREUSLE_DIR, 'streusle_autoid.conllulex')
+        streusle_file = os.path.join(STREUSLE_DIR, 'streusle.conllulex')
         print('Loading streusle data from ' + streusle_file)
         records = []
         with open(streusle_file, 'r', encoding='utf8') as f:
