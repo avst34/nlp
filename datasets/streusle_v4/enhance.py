@@ -1,3 +1,4 @@
+import os
 from collections import namedtuple
 import random
 import math
@@ -265,22 +266,16 @@ def enhance_dev_sentences_old():
     loader.dump_split_dist('/tmp/split.csv')
 
 
-def enhance_dev_sentences():
-    records = train_records + dev_records
-    dev = random.sample(records, len(test_records))
-    with open(streusle.ENHANCEMENTS.DEV_SET_SENTIDS, 'w') as f:
-        f.write("\n".join([r.id for r in dev]))
-
-
 def enhance_ud_dependency_trees():
+    UD_BASE = os.environ.get('UD_BASE') or '/cs/labs/oabend/aviramstern/ud/UD_English'
     UD_FILES = [
-        '/cs/labs/oabend/aviramstern/ud/UD_English/en-ud-dev.conllu',
-        '/cs/labs/oabend/aviramstern/ud/UD_English/en-ud-test.conllu',
-        '/cs/labs/oabend/aviramstern/ud/UD_English/en-ud-train.conllu'
+        UD_BASE + '/en-ud-dev.conllu',
+        UD_BASE + '/en-ud-test.conllu',
+        UD_BASE + '/en-ud-train.conllu'
     ]
     sents = {}
     for f_path in UD_FILES:
-        with open(f_path, 'r') as f:
+        with open(f_path, 'r', encoding='utf8') as f:
             sents.update(conllu_parser.parse(f.read()))
 
     trees = {}

@@ -44,7 +44,7 @@ def compare_sets_Acc(gold, pred):
 def eval_sys(sysF, gold_sents, ss_mapper):
     goldid = (sysF.name.split('.')[-2]=='goldid')
     if not goldid and sysF.name.split('.')[-2]!='autoid':
-        raise ValueError(f'File path of system output not specified for gold vs. auto identification of units to be labeled: {sysF.name}')
+        raise ValueError('File path of system output not specified for gold vs. auto identification of units to be labeled: ' + sysF.name)
 
     compare_sets = compare_sets_Acc if goldid else compare_sets_PRF
 
@@ -57,7 +57,7 @@ def eval_sys(sysF, gold_sents, ss_mapper):
         # all units with a PSS label
         c = scores['All']
         goldunits = sent['punits']
-        predunits = {tuple(e['toknums']): (e['lexcat'], e['ss'], e['ss2']) for e in list(syssent['swes'].values())+list(syssent['smwes'].values()) if e['ss'] and e['ss'].startswith('p.')}
+        predunits = {tuple(e['toknums']): (e['lexcat'], e['ss'], e['ss2']) for e in list(syssent['swes'].values())+list(syssent['smwes'].values()) if e['ss'] and e['ss'].startswith('p.') or e['ss2'] and e['ss2'].startswith('p.')}
         c['ID'] += compare_sets(set(goldunits.keys()), set(predunits.keys()))
         c['Role,Fxn'] += compare_sets({(k,r,f) for k,(lc,r,f) in goldunits.items()},
                                       {(k,r,f) for k,(lc,r,f) in predunits.items()})
@@ -95,8 +95,11 @@ def eval_sys(sysF, gold_sents, ss_mapper):
         if goldid:
             for criterion in ('Role','Fxn','Role,Fxn'):
                 c = scores[k][criterion]
-                assert scores[k][criterion]['N']>0,(k,criterion,scores[k][criterion])
-                c['Acc'] = c['correct'] / c['N']
+                # assert scores[k][criterion]['N']>0,(k,criterion,scores[k][criterion])
+                if scores[k][criterion]['N']>0:
+                    c['Acc'] = c['correct'] / c['N']
+                else:
+                    c['Acc'] = None
         else:
             for criterion in ('ID','Role','Fxn','Role,Fxn'):
                 c = scores[k][criterion]
@@ -104,7 +107,7 @@ def eval_sys(sysF, gold_sents, ss_mapper):
                 c['R'] = c['correct'] / c['Rdenom']
                 c['F'] = f1(c['P'], c['R'])
 
-    assert len(gold_sents)==iSent+1,f'Mismatch in number of sentences: {len(gold_sents)} gold, {iSent+1} system from {sysFP}'
+    assert len(gold_sents)==iSent+1,'Mismatch in number of sentences: ' + str(len(gold_sents)) + ' gold, ' + str(iSent+1) + ' system from ' + sysFP
 
     return scores
 
@@ -117,11 +120,11 @@ def to_tsv(all_sys_scores, depth, file=sys.stdout):
             print(sys, end='\t', file=file)
             print(gidscores[k]["Role"]["N"], end='\t', file=file)
             for criterion in ('Role', 'Fxn', 'Role,Fxn'):
-                print(f'{gidscores[k][criterion]["Acc"]}', end='\t', file=file)
+                print("%.1f" % gidscores[k][criterion]["Acc"], end='\t', file=file)
             print('', end='\t', file=file)
             for criterion in ('ID', 'Role', 'Fxn', 'Role,Fxn'):
                 prf = aidscores[k][criterion]
-                print(f'{prf["P"]}\t{prf["R"]}\t{prf["F"]}\t', end='\t', file=file)
+                print("%.1f" % prf["P"] + '\t' + "%.1f" % prf["R"] + '\t' + "%.1f" % prf["F"] + '\t', end='\t', file=file)
             print(file=file)
         print(file=file)
 
