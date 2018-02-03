@@ -43,7 +43,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
   "xs": [
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 3,
       "is_part_of_mwe": True,
       "token": "If",
@@ -59,7 +58,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 3,
       "is_part_of_mwe": False,
       "token": "you",
@@ -75,7 +73,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 3,
       "is_part_of_mwe": False,
       "token": "are",
@@ -91,7 +88,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "serious",
@@ -107,7 +103,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 5,
       "is_part_of_mwe": False,
       "token": "about",
@@ -123,7 +118,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 3,
       "is_part_of_mwe": False,
       "token": "working",
@@ -139,7 +133,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 5,
       "is_part_of_mwe": False,
       "token": "out",
@@ -155,7 +148,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 11,
       "is_part_of_mwe": False,
       "token": "in",
@@ -171,7 +163,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 11,
       "is_part_of_mwe": False,
       "token": "a",
@@ -187,7 +178,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 10,
       "is_part_of_mwe": False,
       "token": "non-commercial",
@@ -203,7 +193,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 11,
       "is_part_of_mwe": False,
       "token": "like",
@@ -219,7 +208,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 5,
       "is_part_of_mwe": False,
       "token": "atmosphere",
@@ -235,7 +223,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "then",
@@ -251,7 +238,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "you",
@@ -267,7 +253,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "have",
@@ -283,7 +268,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "chosen",
@@ -299,7 +283,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 18,
       "is_part_of_mwe": False,
       "token": "The",
@@ -315,7 +298,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 18,
       "is_part_of_mwe": False,
       "token": "best",
@@ -331,7 +313,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": "place",
@@ -347,7 +328,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
       "ud_head_ind": 20,
       "is_part_of_mwe": False,
       "token": "to",
@@ -363,8 +343,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
-      "ud_head_ind": 18,
       "ud_head_ind": 18,
       "is_part_of_mwe": False,
       "token": "be",
@@ -380,8 +358,6 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "autoid_markable": False,
-      "autoid_markable_mwe": False,
-      "ud_head_ind": 15,
       "ud_head_ind": 15,
       "is_part_of_mwe": False,
       "token": ".",

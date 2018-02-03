@@ -25,9 +25,7 @@ class LstmMlpSupersensesModel:
                      ud_dep,
                      ud_head_ind,
                      ud_lemma,
-                     autoid_markable,
-                     autoid_markable_mwe
-                     ):
+                     autoid_markable):
             self.spacy_lemma = spacy_lemma
             self.token = token
             self.ind = ind
@@ -41,7 +39,6 @@ class LstmMlpSupersensesModel:
             self.ud_head_ind = ud_head_ind
             self.ud_lemma = ud_lemma
             self.autoid_markable = autoid_markable
-            self.autoid_markable_mwe = autoid_markable_mwe
 
         def to_dict(self):
             return self.__dict__

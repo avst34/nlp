@@ -167,5 +167,5 @@ class HyperparametersTuner:
             if self.dump_result:
                 if result.score > current_highest_score or True:
                     os.mkdir(self.results_base_path + '/' + execution_id)
-                    self.dump_result(self.results_base_path + '/' + execution_id, result)
+                    self.dump_result(self.results_base_path + '/' + execution_id, result, params)
                     # result.predictor.save(self.results_base_path + '/' + execution_id)

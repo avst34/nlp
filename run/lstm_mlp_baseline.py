@@ -74,7 +74,7 @@ def run(train_records, dev_records, test_records, streusle_loader):
                 # GOLD_ID_AUTO_PREP
                 AUTO_ID_AUTO_PREP
             ]),
-            # [PS(name='epochs', values=[1])] # remove after testing
+            [PS(name='epochs', values=[50])] # remove after testing
         ]),
         dump_models=False
     )

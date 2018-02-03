@@ -16,6 +16,7 @@ class StreusleEvaluator:
         self.predictor = predictor
 
     def evaluate(self, streusle_samples, output_tsv_path=None, ident='autoid'):
+        assert ident in ['autoid', 'goldid']
         rand = str(int(time.time() * 1000))
         gold_fname = 'gold_' + rand + '.json'
         sys_fname = 'sys_' + rand + '.' + ident + '.json'
@@ -35,7 +36,7 @@ class StreusleEvaluator:
                     streusle_record = record_by_id[sample.sample_id]
                     predictions = self.predictor.predict(sample.xs, mask=self.predictor.get_sample_mask(sample.xs, sample.ys))
                     predictions = [(p.supersense_role, p.supersense_func) for p in predictions]
-                    sent_data = streusle_record.build_data_with_supersenses(predictions, allow_new=False)
+                    sent_data = streusle_record.build_data_with_supersenses(predictions, ident)
                     sys_data.append(sent_data)
                 json.dump(sys_data, sys_f)
 

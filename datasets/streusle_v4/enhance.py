@@ -7,8 +7,13 @@ from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 
 import subprocess
 
+import os
+
 import supersenses
 import spacy
+
+from utils import parse_conll
+
 try:
     nlp = spacy.load('en')
 except:
@@ -33,6 +38,7 @@ elif len(records_list) == 3:
     train_records, dev_records, test_records = records_list
 
 records = sum(records_list, [])
+id_to_record = {r.id: r for r in records}
 print("records: %d" % len(records))
 
 def enhance_word2vec():
@@ -86,6 +92,23 @@ def enhance_spacy_lemmas_word2vec():
 
     print('Enhanced with word2vec, %d words in total (%d skipped)' % (len(all_lemmas), len(missing_words)))
 
+def enhance_corenlp_lemmas_word2vec():
+    # collect word2vec vectors for words in the data
+    all_lemmas = set()
+    for rec in records:
+        for tagged_token in rec.tagged_tokens:
+            all_lemmas.add(tagged_token.corenlp_lemma)
+
+    wvm = Word2VecModel.load_google_model()
+    missing_words = wvm.collect_missing(all_lemmas)
+    with open(streusle.ENHANCEMENTS.CORENLP_LEMMAS_WORD2VEC_PATH, 'wb') as f:
+        wvm.dump(all_lemmas, f, skip_missing=True)
+
+    with open(streusle.ENHANCEMENTS.CORENLP_LEMMAS_WORD2VEC_MISSING_PATH, 'w') as f:
+        json.dump(missing_words, f, indent=2)
+
+    print('Enhanced with word2vec, %d words in total (%d skipped)' % (len(all_lemmas), len(missing_words)))
+
 def apply_spacy_pipeline(tokens):
     doc = Doc(nlp.vocab, words=tokens)
     for name, pipe in nlp.pipeline:
@@ -93,17 +116,18 @@ def apply_spacy_pipeline(tokens):
     return doc
 
 
-TreeNode = namedtuple('TreeNode', ['head_ind', 'dep'])
+TreeNode = namedtuple('TreeNode', ['id', 'head_id', 'dep'])
 
 
 def enhance_spacy_dependency_trees():
     trees = {}
     for ind, rec in enumerate(records):
         doc = apply_spacy_pipeline([tt.token for tt in rec.tagged_tokens])
-        trees[rec.id] = [
-            TreeNode(head_ind=token.head.i, dep=token.dep_)
-            for token in doc
-        ]
+        assert len(doc) == len(rec.tagged_tokens)
+        trees[rec.id] = {
+            streusle_token.ud_id: TreeNode(id=streusle_token.ud_id, head_id=rec.tagged_tokens[spacy_token.head.i].ud_id, dep=spacy_token.dep_)
+            for spacy_token, streusle_token in zip(doc, rec.tagged_tokens)
+        }
         print('enhance_dependency_trees: %d/%d' % (ind + 1, len(records)))
     with open(streusle.ENHANCEMENTS.SPACY_DEP_TREES, 'w') as f:
         json.dump(trees, f, indent=2)
@@ -122,19 +146,29 @@ def enhance_spacy_ners():
 
     with ThreadPoolExecutor(1) as tpe:
         ners_list = list(tpe.map(process, enumerate(records)))
-        ners = {rec.id: ners for rec, ners in zip(records, ners_list)}
+        ners = {rec.id: {tok.ud_id: ner for tok, ner in zip(rec.tagged_tokens, ners)} for rec, ners in zip(records, ners_list) }
         with open(streusle.ENHANCEMENTS.SPACY_NERS, 'w') as f:
             json.dump(ners, f, indent=2)
 
-
-def enhance_spacy_pos():
-    with open(streusle.ENHANCEMENTS.SPACY_POS, 'r') as f:
-        current = json.load(f)
-
+def enhance_spacy_lemmas():
     def process(t):
         ind, rec = t
-        if current.get(rec.id):
-            return current[rec.id]
+        doc = apply_spacy_pipeline([tt.token for tt in rec.tagged_tokens])
+        print('enhance lemmas: %d/%d' % (ind + 1, len(records)))
+        return [
+            token.lemma_ or None
+            for token in doc
+        ]
+
+    with ThreadPoolExecutor(1) as tpe:
+        lemmas_list = list(tpe.map(process, enumerate(records)))
+        lemmas = {rec.id: {tok.ud_id: lemma for tok, lemma in zip(rec.tagged_tokens, rec_lemmas)} for rec, rec_lemmas in zip(records, lemmas_list) }
+        with open(streusle.ENHANCEMENTS.SPACY_LEMMAS, 'w') as f:
+            json.dump(lemmas, f, indent=2)
+
+def enhance_spacy_pos():
+    def process(t):
+        ind, rec = t
         doc = apply_spacy_pipeline([tt.token for tt in rec.tagged_tokens])
         print('enhance spacy pos: %d/%d' % (ind + 1, len(records)))
         return [
@@ -145,9 +179,9 @@ def enhance_spacy_pos():
 
     with ThreadPoolExecutor(1) as tpe:
         pos_list = list(tpe.map(process, enumerate(records)))
-        pos = {rec.id: pos for rec, pos in zip(records, pos_list)}
+        poses = {rec.id: {tok.ud_id: pos for tok, pos in zip(rec.tagged_tokens, rec_poses)} for rec, rec_poses in zip(records, pos_list)}
         with open(streusle.ENHANCEMENTS.SPACY_POS, 'w') as f:
-            json.dump(pos, f, indent=2)
+            json.dump(poses, f, indent=2)
 
 
 def enhance_dev_sentences_old():
@@ -258,46 +292,116 @@ def enhance_ud_dependency_trees():
         if match:
             assert(all([tok['id'] is not None for tok in sent]))
             streusle_id = "ewtb.r." + match.group(1) + '.' + match.group(2)
-            tok_id_to_ind = {tok['id']: ind for ind, tok in enumerate(sent)}
-            trees[streusle_id] = [
-                TreeNode(head_ind=tok_id_to_ind[token['head']] if token['head'] else tok_id_to_ind[token['id']], dep=token['deprel'])
+            trees[streusle_id] = {
+                token['id']: TreeNode(id=token['id'], head_id=token['head'] if token['head'] else token['id'], dep=token['deprel'])
                 for token in sent
-            ]
+            }
         print('enhance_dependency_trees: %d/%d' % (ind + 1, len(sents)))
     with open(streusle.ENHANCEMENTS.UD_DEP_TREES, 'w') as f:
         json.dump(trees, f, indent=2)
     print('Enhanced with spacy dep trees, %d trees in total' % (len(trees)))
 
-def enhance_spacy_lemmas():
-    def process(t):
-        ind, rec = t
-        doc = apply_spacy_pipeline([tt.token for tt in rec.tagged_tokens])
-        print('enhance lemmas: %d/%d' % (ind + 1, len(records)))
-        return [
-            token.lemma_ or None
-            for token in doc
-        ]
+def enhance_corenlp_dependency_trees():
+    sents = parse_conll(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
 
-    with ThreadPoolExecutor(1) as tpe:
-        lemmas_list = list(tpe.map(process, enumerate(records)))
-        lemmas = {rec.id: lemmas for rec, lemmas in zip(records, lemmas_list)}
-        with open(streusle.ENHANCEMENTS.SPACY_LEMMAS, 'w') as f:
-            json.dump(lemmas, f, indent=2)
+    trees = {}
+    for ind, sent in enumerate(sents):
+        assert(all([tok['id'] is not None for tok in sent['tokens']]))
+        streusle_id = sent['metadata']['streusle_sent_id']
+        trees[streusle_id] = {
+            token['id']: TreeNode(id=token['id'], head_id=token['head'] if token['head'] else token['id'], dep=token['deprel'])
+            for token in sent['tokens']
+        }
+        print('enhance_dependency_trees: %d/%d' % (ind + 1, len(sents)))
+    with open(streusle.ENHANCEMENTS.CORENLP_DEP_TREES, 'w') as f:
+        json.dump(trees, f, indent=2)
+    print('Enhanced with corenlp dep trees, %d trees in total' % (len(trees)))
+
+def enhance_corenlp_lemmas():
+    sents = parse_conll(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
+    lemmas = {
+        sent['metadata']['streusle_sent_id']: {tok['id']: tok['lemma'] for tok in sent['tokens']} for sent in sents
+    }
+    with open(streusle.ENHANCEMENTS.CORENLP_LEMMAS, 'w') as f:
+        json.dump(lemmas, f, indent=2)
+
+def enhance_corenlp_ners():
+    sents = parse_conll(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
+    lemmas = {
+        sent['metadata']['streusle_sent_id']: {tok['id']: tok['ner'] for tok in sent['tokens']} for sent in sents
+    }
+    with open(streusle.ENHANCEMENTS.CORENLP_NERS, 'w') as f:
+        json.dump(lemmas, f, indent=2)
+
+def enhance_corenlp_pos():
+    sents = parse_conll(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
+    lemmas = {
+        sent['metadata']['streusle_sent_id']: {tok['id']: tok['pos'] for tok in sent['tokens']} for sent in sents
+    }
+    with open(streusle.ENHANCEMENTS.CORENLP_POS, 'w') as f:
+        json.dump(lemmas, f, indent=2)
 
 def enhance_pss_autoid():
     with open('./streusle_4alpha/streusle_autoid.conllulex', 'w') as f:
         subprocess.run(['python', './streusle_4alpha/identify.py', './streusle_4alpha/streusle.conllulex', '-m'], stdout=f)
 
+
+def enhance_stanford_core_nlp():
+    with open('./streusle_4alpha/streusle.conllulex', 'r') as f:
+        lines = f.readlines()
+        texts = [x.replace('# text = ', '').strip() for x in lines if x.startswith('# text = ')]
+        sent_ids = [x.replace('# sent_id = ', '').strip() for x in lines if x.startswith('# sent_id = ')]
+        streusle_sent_ids = [x.replace('# streusle_sent_id = ', '').strip() for x in lines if x.startswith('# streusle_sent_id = ')]
+        mwes = [x.replace('# mwe = ', '').strip() for x in lines if x.startswith('# mwe = ')]
+
+    input_files = []
+    for streusle_id in streusle_sent_ids:
+        inp_file = '/tmp/input_' + streusle_id + '.txt'
+        with open(inp_file, 'w') as f:
+            rec = id_to_record[streusle_id]
+            assert not any([t for t in rec.tagged_tokens if " " in t.token])
+            assert not any([t for t in rec.tagged_tokens if "." in str(t.ud_id)])
+            f.write(' '.join([t.token for t in rec.tagged_tokens]))
+        input_files.append(inp_file)
+
+    with open('/tmp/input_files.txt', 'w') as f:
+        f.write('\n'.join(input_files))
+
+    os.chdir('/tmp')
+    # os.system('java -mx3g edu.stanford.nlp.pipeline.StanfordCoreNLP -outputFormat conll -filelist /tmp/input_files.txt -depparse BasicDependenciesAnnotation -ssplit.isOneSentence true -tokenize.whitespace true')
+
+    outs = []
+    for input_file in input_files:
+        with open(input_file + '.conll', 'r') as f:
+            s = f.read().split('\n')
+        outs.append(s)
+
+    with open(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT, 'w') as f:
+        for text, sent_id, streusle_sent_id, mwe, out in zip(texts, sent_ids, streusle_sent_ids, mwes, outs):
+            lines = [
+                        '# sent_id = ' + sent_id,
+                        '# text = ' + text,
+                        '# streusle_sent_id = ' + streusle_sent_id,
+                        '# mwe = ' + mwe
+                    ] + out
+            f.write('\n'.join(lines))
+
 if __name__ == '__main__':
     # enhance_spacy_dependency_trees()
     # enhance_spacy_ners()
     # enhance_spacy_pos()
-    # enhance_word2vec()
-    # enhance_ud_lemmas_word2vec()
-    # enhance_dev_sentences()
+    # # enhance_dev_sentences()
     # enhance_ud_dependency_trees()
     # enhance_spacy_lemmas()
-    # enhance_spacy_lemmas_word2vec()
-    enhance_pss_autoid()
+    # # enhance_pss_autoid()
+    # # enhance_stanford_core_nlp()
+    # enhance_corenlp_ners()
+    # enhance_corenlp_pos()
+    # enhance_corenlp_lemmas()
+    # enhance_corenlp_dependency_trees()
 
+    enhance_word2vec()
+    enhance_spacy_lemmas_word2vec()
+    enhance_ud_lemmas_word2vec()
+    enhance_corenlp_lemmas_word2vec()
 

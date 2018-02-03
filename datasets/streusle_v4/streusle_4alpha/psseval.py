@@ -103,9 +103,15 @@ def eval_sys(sysF, gold_sents, ss_mapper):
         else:
             for criterion in ('ID','Role','Fxn','Role,Fxn'):
                 c = scores[k][criterion]
-                c['P'] = c['correct'] / c['Pdenom']
-                c['R'] = c['correct'] / c['Rdenom']
-                c['F'] = f1(c['P'], c['R'])
+                if c['Pdenom'] > 0:
+                    c['P'] = c['correct'] / c['Pdenom']
+                    c['R'] = c['correct'] / c['Rdenom']
+                    c['F'] = f1(c['P'], c['R'])
+                else:
+                    c['P'] = None
+                    c['R'] = None
+                    c['F'] = None
+
 
     assert len(gold_sents)==iSent+1,'Mismatch in number of sentences: ' + str(len(gold_sents)) + ' gold, ' + str(iSent+1) + ' system from ' + sysFP
 

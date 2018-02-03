@@ -72,11 +72,12 @@ class LstmMlpSupersensesModelHyperparametersTuner:
 
         assert evaluator is not None
 
-        def dump_result(output_dir, result):
+        def dump_result(output_dir, result, params):
             if self.dump_models:
                 result.predictor.save(output_dir + '/model')
             if self.dump_pss_eval:
-                StreusleEvaluator(result.predictor).evaluate(validation_samples, output_tsv_path=output_dir + '/psseval_out.tsv')
+                ident = 'goldid' if params['mask_by'] == 'sample-ys' else 'autoid'
+                StreusleEvaluator(result.predictor).evaluate(validation_samples, output_tsv_path=output_dir + '/psseval_out.tsv', ident=ident)
 
         self.tuner = HyperparametersTuner(results_csv_path=results_csv_path,
                                           params_settings=tuner_domains, executor=self._execute,

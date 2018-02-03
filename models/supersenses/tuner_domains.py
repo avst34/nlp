@@ -8,8 +8,8 @@ PS = HyperparametersTuner.ParamSettings
 TUNER_DOMAINS_TUNING = [
     PS(name='labels_to_predict', values=[
         ('supersense_role', 'supersense_func'),
-        ('supersense_role',),
-        ('supersense_func',)
+        # ('supersense_role',),
+        # ('supersense_func',)
     ], task_param=True),
     PS(name='use_token', values=[True]),
     PS(name='lemmas_from', values=['ud', 'spacy'], task_param=True),

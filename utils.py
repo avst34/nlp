@@ -29,3 +29,28 @@ def csv_to_objs(csv_file_path):
                     objs.append({k: row[i] for i, k in enumerate(keys)})
     return objs
 
+def parse_conll(conll_file):
+    with open(conll_file, 'r') as f:
+        conll = f.read()
+
+    sents = [x for x in conll.split('\n\n') if x]
+    parsed_sents = []
+    for sent in sents:
+        lines = sent.split('\n')
+        parsed = {
+            'metadata': dict([x[2:].split(' = ') for x in lines if x.startswith('#')]),
+            'tokens': [
+                {
+                    'id': int(cols[0]),
+                    'token': cols[1],
+                    'lemma': cols[2],
+                    'pos': cols[3],
+                    'ner': cols[4],
+                    'head': int(cols[5]),
+                    'deprel': cols[6],
+                } for l in lines if l and l[0] != '#' for cols in [[x if x != '_' else None for x in l.split('\t')]]
+            ]
+        }
+        parsed_sents.append(parsed)
+
+    return parsed_sents

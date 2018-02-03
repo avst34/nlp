@@ -183,21 +183,15 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                 sent['swes'] = defaultdict(lambda: {'lexlemma': None, 'lexcat': None, 'ss': None, 'ss2': None, 'toknum': None})
                 sent['smwes'] = defaultdict(lambda: {'lexlemma': None, 'lexcat': None, 'ss': None, 'ss2': None, 'toknums': []})
                 sent['wmwes'] = defaultdict(lambda: {'lexlemma': None, 'toknums': []})
-            autoid_markable = False
-            autoid_markable_mwe = False
-            if ln.endswith('*'):
-                autoid_markable = True
-                ln = ln[:-1]
-                if ln[:-1].endswith('*'):
-                    autoid_markable_mwe = True
-                ln = '\t'.join(ln.split('\t')[:-1])
+                sent['autoid_swes'] = defaultdict(lambda: {'lexlemma': None, 'lexcat': None, 'ss': None, 'ss2': None, 'toknum': None})
+                sent['autoid_smwes'] = defaultdict(lambda: {'lexlemma': None, 'lexcat': None, 'ss': None, 'ss2': None, 'toknums': []})
 
-            assert ln.count('\t')==18,ln
+            assert ln.count('\t') in [18, 19],ln
 
             cols = ln.split('\t')
             conllu_cols = cols[:10]
-            lex_cols = cols[10:]
-
+            lex_cols = cols[10:19]
+            autoid_col = cols[19]
             # Load CoNLL-U columns
 
             tok = {}
@@ -211,9 +205,8 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
             else:
                 tokNum = int(tokNum)
             tok['#'] = tokNum
-            tok['autoid_markable'] = autoid_markable
-            tok['autoid_markable_mwe'] = autoid_markable_mwe
             tok['word'], tok['lemma'], tok['upos'], tok['xpos'] = conllu_cols[1:5]
+            tok['autoid'] = autoid_col
             assert tok['lemma']!='_' and tok['upos']!='_',tok
             if morph_syn:
                 tok['feats'], tok['head'], tok['deprel'], tok['edeps'] = conllu_cols[5:9]
@@ -270,10 +263,32 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                     sent['swes'][tokNum]['ss'] = ss_mapper(tok['ss']) if tok['ss']!='_' else None
                     sent['swes'][tokNum]['ss2'] = ss_mapper(tok['ss2']) if tok['ss2']!='_' else None
                     sent['swes'][tokNum]['toknums'] = [tokNum]
+
+                if ':' in tok['autoid']:
+                    autoid = tok['autoid'].replace('*', '')
+                    mwe_group, mwe_position = list(map(int, autoid.split(':')))
+                    assert mwe_position != 1 or tok['autoid'].endswith('**')
+                    autoid = mwe_group, mwe_position
+                    sent['autoid_smwes'][mwe_group]['toknums'].append(tokNum)
+                    assert sent['autoid_smwes'][mwe_group]['toknums'].index(tokNum)==mwe_position-1,(autoid,sent['autoid_smwes'])
+                    if mwe_position==1:
+                        sent['autoid_smwes'][mwe_group]['lexlemma'] = None
+                        sent['autoid_smwes'][mwe_group]['lexcat'] = None
+                elif "*" in tok['autoid']:
+                    assert tok['autoid'] == '*'
+                    sent['autoid_swes'][tokNum]['lexlemma'] = tok['lexlemma']
+                    if tok['lexcat'] != '_':
+                        sent['autoid_swes'][tokNum]['lexcat'] = tok['lexcat']
+                    sent['autoid_swes'][tokNum]['ss'] = None
+                    sent['autoid_swes'][tokNum]['ss2'] = None
+                    sent['autoid_swes'][tokNum]['toknums'] = [tokNum]
+
+
                 del tok['lexlemma']
                 del tok['lexcat']
                 del tok['ss']
                 del tok['ss2']
+                del tok['autoid']
 
                 if tok['wmwe']!='_':
                     wmwe_group, wmwe_position = list(map(int, tok['wmwe'].split(':')))

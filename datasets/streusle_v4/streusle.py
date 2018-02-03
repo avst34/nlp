@@ -14,7 +14,7 @@ sys.path.append(STREUSLE_DIR)
 print(STREUSLE_DIR)
 from .streusle_4alpha import conllulex2json
 
-ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'UD_LEMMAS_WORD2VEC_PATH', 'UD_LEMMAS_WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'SPACY_NERS', 'SPACY_POS', 'TRAIN_SET_SENTIDS_UD_SPLIT', 'DEV_SET_SENTIDS_UD_SPLIT', 'TEST_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES', 'SPACY_LEMMAS', 'SPACY_LEMMAS_WORD2VEC_PATH', 'SPACY_LEMMAS_WORD2VEC_MISSING_PATH'])(
+ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'UD_LEMMAS_WORD2VEC_PATH', 'UD_LEMMAS_WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'CORENLP_DEP_TREES', 'SPACY_NERS', 'CORENLP_NERS', 'SPACY_POS', 'CORENLP_POS', 'TRAIN_SET_SENTIDS_UD_SPLIT', 'DEV_SET_SENTIDS_UD_SPLIT', 'TEST_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES', 'SPACY_LEMMAS', 'CORENLP_LEMMAS', 'SPACY_LEMMAS_WORD2VEC_PATH', 'CORENLP_LEMMAS_WORD2VEC_PATH', 'SPACY_LEMMAS_WORD2VEC_MISSING_PATH', 'CORENLP_LEMMAS_WORD2VEC_MISSING_PATH', 'STANFORD_CORE_NLP_OUTPUT'])(
     WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'word2vec.pickle'),
     WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'word2vec_missing.json'),
     UD_LEMMAS_WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'ud_lemmas_word2vec.pickle'),
@@ -23,8 +23,15 @@ ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_P
     SPACY_NERS=os.path.join(STREUSLE_DIR, 'spacy_ners.json'),
     SPACY_POS=os.path.join(STREUSLE_DIR, 'spacy_pos.json'),
     SPACY_LEMMAS=os.path.join(STREUSLE_DIR, 'spacy_lemmas.json'),
-    SPACY_LEMMAS_WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'spacy_lemmas_word2vec.json'),
+    SPACY_LEMMAS_WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'spacy_lemmas_word2vec.pickle'),
     SPACY_LEMMAS_WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'spacy_lemmas_word2vec_missing.json'),
+    CORENLP_DEP_TREES=os.path.join(STREUSLE_DIR, 'corenlp_dep_trees.json'),
+    CORENLP_NERS=os.path.join(STREUSLE_DIR, 'corenlp_ners.json'),
+    CORENLP_POS=os.path.join(STREUSLE_DIR, 'corenlp_pos.json'),
+    CORENLP_LEMMAS=os.path.join(STREUSLE_DIR, 'corenlp_lemmas.json'),
+    CORENLP_LEMMAS_WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'corenlp_lemmas_word2vec.pickle'),
+    CORENLP_LEMMAS_WORD2VEC_MISSING_PATH=os.path.join(STREUSLE_DIR, 'corenlp_lemmas_word2vec_missing.json'),
+    STANFORD_CORE_NLP_OUTPUT=os.path.join(STREUSLE_DIR, 'streusle.corenlp.conll'),
     UD_DEP_TREES=os.path.join(STREUSLE_DIR, 'ud_dep_trees.json'),
     TRAIN_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'ud_train_sent_ids.txt'),
     DEV_SET_SENTIDS_UD_SPLIT=os.path.join(STREUSLE_DIR, 'ud_dev_sent_ids.txt'),
@@ -48,13 +55,14 @@ def load_word2vec(path):
 W2V = load_word2vec(ENHANCEMENTS.WORD2VEC_PATH)
 UD_LEMMAS_W2V = load_word2vec(ENHANCEMENTS.UD_LEMMAS_WORD2VEC_PATH)
 SPACY_LEMMAS_W2V = load_word2vec(ENHANCEMENTS.SPACY_LEMMAS_WORD2VEC_PATH)
+CORENLP_LEMMAS_W2V = load_word2vec(ENHANCEMENTS.CORENLP_LEMMAS_WORD2VEC_PATH)
 
-TreeNode = namedtuple('TreeNode', ['head_ind', 'dep'])
+TreeNode = namedtuple('TreeNode', ['id', 'head_id', 'dep'])
 def load_dep_tree(tree_json_path):
     if os.path.exists(tree_json_path):
         with open(tree_json_path, 'r') as f:
             return {
-                rec_id: [TreeNode(head_ind=node[0], dep=node[1]) for node in tree_nodes]
+                rec_id: {node[0]: TreeNode(id=node[0], head_id=node[1], dep=node[2]) for node in tree_nodes.values()}
                 for rec_id, tree_nodes in json.load(f).items()
             }
     else:
@@ -64,6 +72,8 @@ def load_json(path, default=None):
     if os.path.exists(path):
         with open(path) as f:
             obj = json.load(f)
+        for k, v in obj.items():
+            obj[k] = {int(k1): v1 for k1, v1 in v.items()}
     else:
         obj = default
     return obj
@@ -71,12 +81,39 @@ def load_json(path, default=None):
 
 SPACY_DEP_TREES = load_dep_tree(ENHANCEMENTS.SPACY_DEP_TREES)
 UD_DEP_TREES = load_dep_tree(ENHANCEMENTS.UD_DEP_TREES)
+CORENLP_DEP_TREES = load_dep_tree(ENHANCEMENTS.CORENLP_DEP_TREES)
 SPACY_NERS = load_json(ENHANCEMENTS.SPACY_NERS, {})
+CORENLP_NERS = load_json(ENHANCEMENTS.CORENLP_NERS, {})
 SPACY_LEMMAS = load_json(ENHANCEMENTS.SPACY_LEMMAS, {})
+CORENLP_LEMMAS = load_json(ENHANCEMENTS.CORENLP_LEMMAS, {})
 SPACY_POS = load_json(ENHANCEMENTS.SPACY_POS, {})
+CORENLP_POS = load_json(ENHANCEMENTS.CORENLP_POS, {})
 
 class TaggedToken:
-    def __init__(self, token, ind, token_word2vec, supersense_role, supersense_func, spacy_head_ind, spacy_dep, ud_head_ind, ud_dep, is_part_of_wmwe, is_part_of_smwe, is_first_mwe_token, spacy_ner, ud_upos, ud_xpos, spacy_pos, spacy_lemma, ud_lemma, ud_id, autoid_markable, autoid_markable_mwe):
+    def __init__(self, token,
+                 ind,
+                 token_word2vec,
+                 supersense_role,
+                 supersense_func,
+                 spacy_head_ind, spacy_dep,
+                 corenlp_head_ind, corenlp_dep,
+                 ud_head_ind, ud_dep,
+                 is_part_of_wmwe, is_part_of_smwe, is_first_mwe_token,
+                 spacy_ner,
+                 corenlp_ner,
+                 ud_upos, ud_xpos,
+                 spacy_pos,
+                 corenlp_pos,
+                 spacy_lemma,
+                 corenlp_lemma,
+                 ud_lemma, ud_id, autoid_markable, we_toknums, autoid_we_toknums):
+        self.corenlp_ner = corenlp_ner
+        self.corenlp_lemma = corenlp_lemma
+        self.corenlp_pos = corenlp_pos
+        self.corenlp_dep = corenlp_dep
+        self.corenlp_head_ind = corenlp_head_ind
+        self.autoid_we_toknums = autoid_we_toknums
+        self.we_toknums = we_toknums
         self.ud_id = ud_id
         self.spacy_lemma = spacy_lemma
         self.token = token
@@ -97,7 +134,6 @@ class TaggedToken:
         self.spacy_pos = spacy_pos
         self.ud_lemma = ud_lemma
         self.autoid_markable = autoid_markable
-        self.autoid_markable_mwe = autoid_markable_mwe
 
         if (self.supersense_role is not None) != (self.supersense_role is not None):
             raise Exception("TaggedToken initialized with only one supersense")
@@ -130,6 +166,10 @@ class StreusleRecord:
                  spacy_ners,
                  spacy_lemmas,
                  spacy_pos,
+                 corenlp_dep_tree,
+                 corenlp_ners,
+                 corenlp_lemmas,
+                 corenlp_pos,
                  ud_dep_tree,
                  only_supersenses=None):
         super().__init__()
@@ -163,6 +203,7 @@ class StreusleRecord:
             return [ss1, ss2]
 
         wes = sum([list(data['swes'].values()), list(data['smwes'].values()), list(data['wmwes'].values())], [])
+        we_toknums = {we['toknums'][0]: we['toknums'] for we in wes}
         smwes_toknums = sum([we['toknums'] for we in self.data['smwes'].values()], [])
         wmwes_toknums = sum([we['toknums'] for we in self.data['wmwes'].values()], [])
         tok_ss = defaultdict(lambda: (None, None))
@@ -173,6 +214,12 @@ class StreusleRecord:
 
         first_wes_ids = [we['toknums'][0] for we in wes]
 
+        autoid_wes = sum([list(data['autoid_swes'].values()), list(data['autoid_smwes'].values())], [])
+        autoid_we_toknums = {we['toknums'][0]: we['toknums'] for we in autoid_wes}
+        autoid_first_wes_ids = [we['toknums'][0] for we in autoid_wes]
+
+        id_to_ind = {tok['#']: ind for ind, tok in enumerate(self.data['toks'])}
+
         self.tagged_tokens = [
             TaggedToken(
                 ud_id=tok_data['#'],
@@ -181,21 +228,27 @@ class StreusleRecord:
                 token_word2vec=W2V.get(tok_data['word']),
                 ud_upos=tok_data['upos'],
                 ud_xpos=tok_data['xpos'],
-                spacy_pos=spacy_pos[i] if spacy_pos else None,
+                spacy_pos=spacy_pos[tok_data['#']] if spacy_pos else None,
+                corenlp_pos=corenlp_pos[tok_data['#']] if corenlp_pos else None,
                 ud_lemma=tok_data['lemma'],
-                spacy_head_ind=self.spacy_dep_tree[i].head_ind if self.spacy_dep_tree else None,
-                spacy_dep=self.spacy_dep_tree[i].dep if self.spacy_dep_tree else None,
-                ud_head_ind=self.ud_dep_tree[i].head_ind if self.ud_dep_tree else None,
-                ud_dep=self.ud_dep_tree[i].dep if self.ud_dep_tree else None,
-                spacy_ner=spacy_ners[i] if spacy_ners else None,
-                spacy_lemma=spacy_lemmas[i] if spacy_lemmas else None,
+                spacy_head_ind=id_to_ind.get(self.spacy_dep_tree[tok_data['#']].head_id) if self.spacy_dep_tree else None,
+                corenlp_head_ind=id_to_ind.get(corenlp_dep_tree[tok_data['#']].head_id) if corenlp_dep_tree else None,
+                spacy_dep=self.spacy_dep_tree[tok_data['#']].dep if self.spacy_dep_tree else None,
+                corenlp_dep=corenlp_dep_tree[tok_data['#']].dep if corenlp_dep_tree else None,
+                ud_head_ind=id_to_ind.get(self.ud_dep_tree[tok_data['#']].head_id) if self.ud_dep_tree else None,
+                ud_dep=self.ud_dep_tree[tok_data['#']].dep if self.ud_dep_tree else None,
+                spacy_ner=spacy_ners[tok_data['#']] if spacy_ners else None,
+                corenlp_ner=corenlp_ners[tok_data['#']] if corenlp_ners else None,
+                spacy_lemma=spacy_lemmas[tok_data['#']] if spacy_lemmas else None,
+                corenlp_lemma=corenlp_lemmas[tok_data['#']] if corenlp_lemmas else None,
                 supersense_role=tok_ss[tok_data['#']][0],
                 supersense_func=tok_ss[tok_data['#']][1],
                 is_part_of_smwe=tok_data['#'] in smwes_toknums,
                 is_part_of_wmwe=tok_data['#'] in wmwes_toknums,
+                we_toknums=we_toknums.get(tok_data['#']),
+                autoid_we_toknums=autoid_we_toknums.get(tok_data['#']),
                 is_first_mwe_token=tok_data['#'] in first_wes_ids,
-                autoid_markable=tok_data['autoid_markable'],
-                autoid_markable_mwe=tok_data['autoid_markable_mwe'],
+                autoid_markable=tok_data['#'] in autoid_first_wes_ids,
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
@@ -204,24 +257,49 @@ class StreusleRecord:
     def get_tok_by_ud_id(ud_id):
         return [t for t in self.tagged_tokens if t.ud_id == ud_id][0]
 
-    def build_data_with_supersenses(self, supersenses, allow_new=False):
+    def build_data_with_supersenses(self, supersenses, ident):
         # supersenses - [(role, func), (role, func), ...]
+        assert ident in ['autoid', 'goldid']
         assert len(self.tagged_tokens) == len(supersenses)
         format_supersense = lambda ss: 'p.' + ss if ss else None
         data = copy.deepcopy(self.data)
+
+        for we_type in ['swes', 'wmwes', 'smwes', 'autoid_swes', 'autoid_smwes']:
+            for k, we in data[we_type].items():
+                we['we_id'] = k
+                we['we_type'] = we_type
+
+        orig = {
+            'swes': data['swes'],
+            'wmwes': data['wmwes'],
+            'smwes': data['smwes']
+        }
+        data['swes'] = {}
+        data['wmwes'] = {}
+        data['smwes'] = {}
         for token, (role, func) in zip(self.tagged_tokens, supersenses):
-            found = False
+            found_we = None
             if not role and not func:
                 continue
-            for we in sum([list(data['swes'].values()), list(data['smwes'].values()), list(data['wmwes'].values())], []):
+            if ident == 'goldid':
+                wes = sum([list(orig['swes'].values()), list(orig['smwes'].values()), list(orig['wmwes'].values())], [])
+            else:
+                wes = sum([list(data['autoid_swes'].values()), list(data['autoid_smwes'].values())], [])
+            for we in wes:
                 if we.get('ss') and not we['ss'].startswith('p.'):
                     continue
                 if we['toknums'][0] == token.ud_id:
-                   we['ss'] = format_supersense(role)
-                   we['ss2'] = format_supersense(func)
-                   found = True
-            if not allow_new and not found:
-                raise Exception("Couldn't find a match for system supersense in data")
+                   found_we = we
+            if not found_we:
+                raise Exception("Couldn't find a match for system supersense in data (" + ident + ")")
+            new_we = {
+                'toknums': found_we['toknums'],
+                'lexcat': found_we.get('lexcat'),
+                'ss': format_supersense(role),
+                'ss2': format_supersense(func)
+            }
+            data[found_we['we_type'].replace('autoid_', '')][found_we['we_id']] = new_we
+
         return data
 
 class StreusleLoader(object):
@@ -244,11 +322,19 @@ class StreusleLoader(object):
                                         spacy_ners=SPACY_NERS.get(sent['streusle_sent_id']),
                                         spacy_lemmas=SPACY_LEMMAS.get(sent['streusle_sent_id']),
                                         spacy_pos=SPACY_POS.get(sent['streusle_sent_id']),
+                                        corenlp_dep_tree=CORENLP_DEP_TREES.get(sent['streusle_sent_id']),
+                                        corenlp_ners=CORENLP_NERS.get(sent['streusle_sent_id']),
+                                        corenlp_lemmas=CORENLP_LEMMAS.get(sent['streusle_sent_id']),
+                                        corenlp_pos=CORENLP_POS.get(sent['streusle_sent_id']),
                                         only_supersenses=only_with_supersenses)
                 assert not SPACY_DEP_TREES or SPACY_DEP_TREES.get(sent['streusle_sent_id'])
                 assert not SPACY_NERS or SPACY_NERS.get(sent['streusle_sent_id'])
                 assert not SPACY_LEMMAS or SPACY_LEMMAS.get(sent['streusle_sent_id'])
                 assert not SPACY_POS or SPACY_POS.get(sent['streusle_sent_id'])
+                assert not CORENLP_DEP_TREES or CORENLP_DEP_TREES.get(sent['streusle_sent_id'])
+                assert not CORENLP_NERS or CORENLP_NERS.get(sent['streusle_sent_id'])
+                assert not CORENLP_LEMMAS or CORENLP_LEMMAS.get(sent['streusle_sent_id'])
+                assert not CORENLP_POS or CORENLP_POS.get(sent['streusle_sent_id'])
                 assert not UD_DEP_TREES or UD_DEP_TREES.get(sent['streusle_sent_id'])
                 records.append(record)
         test_sentids = self._load_test_ids()
@@ -308,4 +394,3 @@ wordVocabularyBuilder = VocabularyBuilder(lambda record: [x.token for x in recor
 posVocabularyBuilder = VocabularyBuilder(lambda record: [x.pos for x in record.tagged_tokens if x.pos])
 ssVocabularyBuilder = VocabularyBuilder(lambda record: [x.supersense for x in record.tagged_tokens if x.supersense])
 depsVocabularyBuilder = VocabularyBuilder(lambda record: [x.dep for x in record.tagged_tokens if x.dep])
-
