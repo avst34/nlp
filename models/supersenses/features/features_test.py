@@ -11,7 +11,8 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     use_dep=True,
     deps_from='spacy', # 'spacy' or 'ud'
     pos_from='spacy', # 'spacy' or 'ud'
-    use_spacy_ner=True,
+    ners_from='spacy', # 'spacy' or 'ud'
+    use_ner=True,
     use_prep_onehot=True,
     use_token_internal=True,
     lemmas_from='ud',
@@ -19,11 +20,9 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     update_token_embd=True,
     token_embd_dim=200,
     token_internal_embd_dim=30,
-    ud_pos_embd_dim=20,
-    spacy_pos_embd_dim=20,
-    ud_deps_embd_dim=20,
-    spacy_deps_embd_dim=20,
-    spacy_ner_embd_dim=20,
+    pos_embd_dim=20,
+    deps_embd_dim=20,
+    ner_embd_dim=20,
     mlp_layers=2,
     mlp_layer_dim=60,
     mlp_activation='tanh',
@@ -468,12 +467,18 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
 get_token = lambda ind: test_sample.xs[ind] if ind is not None else None
 tokens = lambda inds: [get_token(ind) for ind in inds]
 
-test_sample_ud_parents = tokens([3, 3, 3, 15, 5, 3, 5, 11, 11, 10, 11, 5, 15, 15, 15, None, 18, 18, 15, 20, 18, 15])
-test_sample_spacy_parents = tokens([2, 2, 15, 2, 3, 4, 5, 5, 9, 11, 11, 7, 15, 15, 15, None, 18, 18, 15, 20, 18, 15])
-test_sample_spacy_grandparents = tokens([15, 15, None, 15, 2, 3, 4, 4, 11, 7, 7, 5, None, None, None, None, 15, 15, None, 18, 15, None])
-test_sample_ud_grandparents = tokens([15, 15, 15, None, 3, 15, 3, 5, 5, 11, 5, 3, None, None, None, None, 15, 15, None, 18, 15, None])
+test_sample_parents = {
+    'ud': tokens([3, 3, 3, 15, 5, 3, 5, 11, 11, 10, 11, 5, 15, 15, 15, None, 18, 18, 15, 20, 18, 15]),
+    'spacy': tokens([2, 2, 15, 2, 3, 4, 5, 5, 9, 11, 11, 7, 15, 15, 15, None, 18, 18, 15, 20, 18, 15])
+}
+test_sample_grandparents = {
+    'ud': tokens([15, 15, 15, None, 3, 15, 3, 5, 5, 11, 5, 3, None, None, None, None, 15, 15, None, 18, 15, None]),
+    'spacy': tokens([15, 15, None, 15, 2, 3, 4, 4, 11, 7, 7, 5, None, None, None, None, 15, 15, None, 18, 15, None])
+}
 test_sample_spacy_pobj_child = tokens([None, None, None, None, None, None, None, 11, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
-test_sample_spacy_has_children = [False, False, True, True, True, True, False, True, False, True, False, True, False, False, False, True, False, False, True, False, True, False]
+test_sample_has_children = {
+    'spacy': [False, False, True, True, True, True, False, True, False, True, False, True, False, False, False, True, False, False, True, False, True, False]
+}
 test_sample_capitalized_word_follows = [False, False, False, False, False, False, False, False, False, False, False, False, False, False, True, True, False, False, False, False, False, False]
 
 features = build_features(hps)
@@ -485,147 +490,124 @@ def test_token_word2vec(feature):
     for ind, x in enumerate(test_sample.xs):
         assert feature.extract(x, test_sample.xs) == x.token
 
-def test_token_ud_lemma_word2vec(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert feature.extract(x, test_sample.xs) == x.ud_lemma
+def test_token_lemma_word2vec(feature_name):
+    for lemmas_from in LstmMlpSupersensesModel.HyperParameters.LEMMAS_FROM:
+      feature = build_features(hps, {'lemmas_from': lemmas_from}).get_feature(feature_name)
+      for ind, x in enumerate(test_sample.xs):
+          assert feature.extract(x, test_sample.xs) == x.lemma(lemmas_from)
 
-def test_token_spacy_lemma_word2vec(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert feature.extract(x, test_sample.xs) == x.spacy_lemma
-
-def test_token_internal(feature):
+def test_token_internal(feature_name):
+    feature = build_features(hps).get_feature(feature_name)
     for ind, x in enumerate(test_sample.xs):
         assert feature.extract(x, test_sample.xs) == x.token
 
-def test_token_ud_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert feature.extract(x, test_sample.xs) == x.ud_pos
+def test_token_pos(feature_name):
+    for pos_from in LstmMlpSupersensesModel.HyperParameters.POS_FROM:
+        feature = build_features(hps, {'pos_from': pos_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+          assert feature.extract(x, test_sample.xs) == x.pos(pos_from)
 
-def test_token_spacy_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert feature.extract(x, test_sample.xs) == x.spacy_pos
+def test_token_dep(feature_name):
+    for deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+            assert feature.extract(x, test_sample.xs) == x.dep(deps_from)
 
-def test_token_ud_dep(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert feature.extract(x, test_sample.xs) == x.ud_dep
-
-def test_token_spacy_dep(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert feature.extract(x, test_sample.xs) == x.spacy_dep
-
-def test_token_spacy_ner(feature):
+def test_token_ner(feature_name):
+    feature = build_features(hps).get_feature(feature_name)
     for ind, x in enumerate(test_sample.xs):
         assert feature.extract(x, test_sample.xs) == x.spacy_ner
 
-def test_prep_onehot(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert feature.extract(x, test_sample.xs) == (x.token if vocabs.PREPS.has_word(x.token) else None)
+# def test_prep_onehot(featur_namee):
+#     for ind, x in enumerate(test_sample.xs):
+#         assert feature.extract(x, test_sample.xs) == (x.token if vocabs.PREPS.has_word(x.token) else None)
+#
+def test_parent(feature_name):
+    for deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+              assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_parents[deps_from][ind], 'ind')
 
-def test_ud_parent(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_parents[ind], 'ind')
+def test_parent_pos(feature_name):
+  for deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM:
+    for pos_from in LstmMlpSupersensesModel.HyperParameters.POS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from, 'pos_from': pos_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+              assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_parents[deps_from][ind], pos_from + '_pos')
 
-def test_ud_parent_ud_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_parents[ind], 'ud_pos')
+def test_parent_dep(feature_name):
+  for deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+            assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_parents[deps_from][ind], deps_from + '_dep')
 
-def test_ud_parent_spacy_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_parents[ind], 'spacy_pos')
+def test_parent_ner(feature_name):
+  for deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM:
+    for ners_from in LstmMlpSupersensesModel.HyperParameters.NERS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from, 'ners_from': ners_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+            assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_parents[deps_from][ind], ners_from + '_ner')
 
-def test_ud_parent_ud_dep(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_parents[ind], 'ud_dep')
+def test_grandparent(feature_name):
+  for deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM:
+      feature = build_features(hps, {'deps_from': deps_from}).get_feature(feature_name)
+      for ind, x in enumerate(test_sample.xs):
+            assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_grandparents[deps_from][ind], 'ind')
 
-def test_ud_parent_spacy_ner(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_parents[ind], 'spacy_ner')
+def test_grandparent_pos(feature_name):
+  for deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM:
+    for pos_from in LstmMlpSupersensesModel.HyperParameters.POS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from, 'pos_from': pos_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+          assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_grandparents[deps_from][ind], pos_from + '_pos')
 
-def test_ud_grandparent(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_grandparents[ind], 'ind')
+def test_grandparent_dep(feature_name):
+  for deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+            assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_grandparents[deps_from][ind], deps_from + '_dep')
 
-def test_ud_grandparent_ud_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_grandparents[ind], 'ud_pos')
+def test_grandparent_ner(feature_name):
+  for deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM:
+    for ners_from in LstmMlpSupersensesModel.HyperParameters.NERS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from, 'ners_from': ners_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+            assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_grandparents[deps_from][ind], ners_from + '_ner')
 
-def test_ud_grandparent_spacy_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_grandparents[ind], 'spacy_pos')
+def test_spacy_pobj_child(feature_name):
+  deps_from = 'spacy'
+  feature = build_features(hps, {'deps_from': deps_from}).get_feature(feature_name)
+  for ind, x in enumerate(test_sample.xs):
+      assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], 'ind')
 
-def test_ud_grandparent_ud_dep(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_grandparents[ind], 'ud_dep')
+def test_spacy_pobj_child_pos(feature_name):
+    deps_from = 'spacy'
+    for pos_from in LstmMlpSupersensesModel.HyperParameters.POS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from, 'pos_from': pos_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+            assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], pos_from + '_pos')
 
-def test_ud_grandparent_spacy_ner(feature):
+def test_spacy_pobj_child_dep(feature_name):
+    deps_from = 'spacy'
+    feature = build_features(hps, {'deps_from': deps_from}).get_feature(feature_name)
     for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_ud_grandparents[ind], 'spacy_ner')
+        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], deps_from + '_dep')
 
-def test_spacy_parent(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_parents[ind], 'ind')
+def test_spacy_pobj_child_ner(feature_name):
+    deps_from = 'spacy'
+    for ners_from in LstmMlpSupersensesModel.HyperParameters.NERS_FROM:
+        feature = build_features(hps, {'deps_from': deps_from, 'ners_from': ners_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+            assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], ners_from + '_ner')
 
-def test_spacy_parent_ud_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_parents[ind], 'ud_pos')
+def test_has_children(feature_name):
+    for deps_from in ['spacy']:
+        feature = build_features(hps, {'deps_from': deps_from}).get_feature(feature_name)
+        for ind, x in enumerate(test_sample.xs):
+            assert feature.extract(x, test_sample.xs) == str(test_sample_has_children[deps_from][ind])
 
-def test_spacy_parent_spacy_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_parents[ind], 'spacy_pos')
-
-def test_spacy_parent_spacy_dep(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_parents[ind], 'spacy_dep')
-
-def test_spacy_parent_spacy_ner(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_parents[ind], 'spacy_ner')
-
-def test_spacy_grandparent(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'ind')
-
-def test_spacy_grandparent_ud_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'ud_pos')
-
-def test_spacy_grandparent_spacy_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'spacy_pos')
-
-def test_spacy_grandparent_spacy_dep(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'spacy_dep')
-
-def test_spacy_grandparent_spacy_ner(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_grandparents[ind], 'spacy_ner')
-
-def test_spacy_pobj_child(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], 'ind')
-
-def test_spacy_pobj_child_ud_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], 'ud_pos')
-
-def test_spacy_pobj_child_spacy_pos(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], 'spacy_pos')
-
-def test_spacy_pobj_child_spacy_dep(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], 'spacy_dep')
-
-def test_spacy_pobj_child_spacy_ner(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_spacy_pobj_child[ind], 'spacy_ner')
-
-def test_spacy_has_children(feature):
-    for ind, x in enumerate(test_sample.xs):
-        assert feature.extract(x, test_sample.xs) == str(test_sample_spacy_has_children[ind])
-
-def test_capitalized_word_follows(feature):
+def test_capitalized_word_follows(feature_name):
+    feature = build_features(hps).get_feature(feature_name)
     for ind, x in enumerate(test_sample.xs):
         assert feature.extract(x, test_sample.xs) == str(test_sample_capitalized_word_follows[ind])
 
@@ -633,53 +615,35 @@ def test_capitalized_word_follows(feature):
 tests = {
     'token-word2vec': test_token_word2vec,
     'token-internal': test_token_internal,
-    'token.ud-lemma-word2vec': test_token_ud_lemma_word2vec,
-    'token.spacy-lemma-word2vec': test_token_spacy_lemma_word2vec,
-    'token.ud-pos': test_token_ud_pos,
-    'token.spacy-pos': test_token_spacy_pos,
-    'token.ud-dep': test_token_ud_dep,
-    'token.spacy-dep': test_token_spacy_dep,
-    'token.spacy-ner': test_token_spacy_ner,
+    'token.lemma-word2vec': test_token_lemma_word2vec,
+    'token.pos': test_token_pos,
+    'token.dep': test_token_dep,
+    'token.ner': test_token_ner,
 
     # 'prep-onehot': test_prep_onehot,
     'capitalized-word-follows': test_capitalized_word_follows,
 
-    'token-ud-parent': test_ud_parent,
-    'token-ud-parent.ud-pos': test_ud_parent_ud_pos,
-    'token-ud-parent.spacy-pos': test_ud_parent_spacy_pos,
-    'token-ud-parent.ud-dep': test_ud_parent_ud_dep,
-    'token-ud-parent.spacy-ner': test_ud_parent_spacy_ner,
+    'token-parent': test_parent,
+    'token-parent.pos': test_parent_pos,
+    'token-parent.dep': test_parent_dep,
+    'token-parent.ner': test_parent_ner,
 
-    'token-ud-grandparent': test_ud_grandparent,
-    'token-ud-grandparent.ud-pos': test_ud_grandparent_ud_pos,
-    'token-ud-grandparent.spacy-pos': test_ud_grandparent_spacy_pos,
-    'token-ud-grandparent.ud-dep': test_ud_grandparent_ud_dep,
-    'token-ud-grandparent.spacy-ner': test_ud_grandparent_spacy_ner,
-
-    'token-spacy-parent': test_spacy_parent,
-    'token-spacy-parent.ud-pos': test_spacy_parent_ud_pos,
-    'token-spacy-parent.spacy-pos': test_spacy_parent_spacy_pos,
-    'token-spacy-parent.spacy-dep': test_spacy_parent_spacy_dep,
-    'token-spacy-parent.spacy-ner': test_spacy_parent_spacy_ner,
-
-    'token-spacy-grandparent': test_spacy_grandparent,
-    'token-spacy-grandparent.ud-pos': test_spacy_grandparent_ud_pos,
-    'token-spacy-grandparent.spacy-pos': test_spacy_grandparent_spacy_pos,
-    'token-spacy-grandparent.spacy-dep': test_spacy_grandparent_spacy_dep,
-    'token-spacy-grandparent.spacy-ner': test_spacy_grandparent_spacy_ner,
+    'token-grandparent': test_grandparent,
+    'token-grandparent.pos': test_grandparent_pos,
+    'token-grandparent.dep': test_grandparent_dep,
+    'token-grandparent.ner': test_grandparent_ner,
 
     'token-spacy-pobj-child': test_spacy_pobj_child,
-    'token-spacy-pobj-child.ud-pos': test_spacy_pobj_child_ud_pos,
-    'token-spacy-pobj-child.spacy-pos': test_spacy_pobj_child_spacy_pos,
-    'token-spacy-pobj-child.spacy-dep': test_spacy_pobj_child_spacy_dep,
-    'token-spacy-pobj-child.spacy-ner': test_spacy_pobj_child_spacy_ner,
+    'token-spacy-pobj-child.pos': test_spacy_pobj_child_pos,
+    'token-spacy-pobj-child.dep': test_spacy_pobj_child_dep,
+    'token-spacy-pobj-child.ner': test_spacy_pobj_child_ner,
 
-    'token-spacy-has-children': test_spacy_has_children
+    'token-has-children': test_has_children
 }
 
 def test_features():
     for feature in features.list():
-        tests[feature.name](feature)
+        tests[feature.name](feature.name)
 
 if __name__ == '__main__':
     test_features()

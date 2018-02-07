@@ -13,8 +13,8 @@ def raise_none(f):
 
 
 @raise_none
-def get_parent(tok, sent, field):
-    parent = sent[getattr(tok, field)]
+def get_parent(tok, sent, deps_from):
+    parent = sent[tok.head_ind(deps_from)]
     if parent != tok:
         return parent
     else:
@@ -22,21 +22,22 @@ def get_parent(tok, sent, field):
 
 
 @raise_none
-def get_grandparent(tok, sent, field):
-    parent = get_parent(tok, sent, field)
+def get_grandparent(tok, sent, deps_from):
+    parent = get_parent(tok, sent, deps_from)
     if parent:
-        return get_parent(parent, sent, field)
+        return get_parent(parent, sent, deps_from)
 
 
 @raise_none
-def get_children(tok, sent, field):
-    return [t for t in sent if getattr(t, field) == tok.ind and t != tok]
+def get_children(tok, sent, deps_from):
+    return [t for t in sent if t.head_ind(deps_from) == tok.ind and t != tok]
 
 
 @raise_none
-def get_child_of_type(tok, sent, child_type, head_field, type_field):
-    children = [tok for tok in get_children(tok, sent, head_field) if getattr(tok, type_field) == child_type]
+def get_child_of_type(tok, sent, child_type, deps_from):
+    children = [tok for tok in get_children(tok, sent, deps_from) if tok.dep(deps_from) == child_type]
     return children[0] if len(children) else None
+
 
 def is_capitalized(tok):
     return tok.token and tok.token[0] in string.ascii_uppercase
