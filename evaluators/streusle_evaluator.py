@@ -7,7 +7,9 @@ from models.supersenses.streusle_integration import streusle_record_to_lstm_mode
 
 from datasets.streusle_v4.streusle import StreusleLoader
 
-records = sum(StreusleLoader().load(), [])
+STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/streusle_4alpha'
+
+records = sum(StreusleLoader().load(STREUSLE_BASE + '/streusle.conllulex'), [])
 record_by_id = {r.id: r for r in records}
 
 class StreusleEvaluator:

@@ -266,7 +266,7 @@ class LstmMlpMulticlassModel(object):
                     for mlp_layer_params in mlp_params:
                         mlp_cur_out = dy.dropout(mlp_cur_out, mlp_dropout_p)
                         mlp_cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * mlp_cur_out + dy.parameter(mlp_layer_params.b))
-                    mlp_cur_out = dy.softmax(dy.parameter(softmax_params.W) * mlp_cur_out + dy.parameter(softmax_params.b))
+                    mlp_cur_out = dy.log_softmax(dy.parameter(softmax_params.W) * mlp_cur_out + dy.parameter(softmax_params.b))
                     output.append(mlp_cur_out)
             outputs.append(output)
         return outputs
@@ -280,7 +280,7 @@ class LstmMlpMulticlassModel(object):
                 assert len([label_y is None for label_y in y]) in [0, len(y)], "Got a sample with partial None labels"
                 for label_out, label_y in zip(out, y):
                     ss_ind = self.output_vocabulary.get_index(label_y)
-                    loss = -dy.log(dy.pick(label_out, ss_ind))
+                    loss = -dy.pick(label_out, ss_ind)
                     losses.append(loss)
         if len(losses):
             loss = dy.esum(losses)

@@ -29,10 +29,7 @@ def csv_to_objs(csv_file_path):
                     objs.append({k: row[i] for i, k in enumerate(keys)})
     return objs
 
-def parse_conll(conll_file):
-    with open(conll_file, 'r') as f:
-        conll = f.read()
-
+def parse_conll(conll):
     sents = [x for x in conll.split('\n\n') if x]
     parsed_sents = []
     for sent in sents:
@@ -54,3 +51,9 @@ def parse_conll(conll_file):
         parsed_sents.append(parsed)
 
     return parsed_sents
+
+def parse_conll_file(conll_file):
+    with open(conll_file, 'r') as f:
+        conll = f.read()
+    return parse_conll(conll)
+

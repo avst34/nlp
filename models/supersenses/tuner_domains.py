@@ -12,22 +12,19 @@ TUNER_DOMAINS_TUNING = [
         # ('supersense_func',)
     ], task_param=True),
     PS(name='use_token', values=[True]),
-    PS(name='lemmas_from', values=['ud', 'spacy'], task_param=True),
     PS(name='update_lemmas_embd', values=[True, False]),
     PS(name='use_token_internal', values=[True]),
     PS(name='use_pos', values=[True]),
     PS(name='use_dep', values=[True]),
-    PS(name='use_spacy_ner', values=[True]),
-    PS(name='deps_from', values=['ud', 'spacy'], task_param=True),
-    PS(name='pos_from', values=['ud', 'spacy'], task_param=True),
+    PS(name='use_ner', values=[True]),
+    PS(name='use_govobj', values=[True]),
     PS(name='use_prep_onehot', values=[False]),
     PS(name='token_embd_dim', values=[300]),
     PS(name='token_internal_embd_dim', values=[10, 25, 50, 100, 300]),
-    PS(name='ud_pos_embd_dim', values=[5, 10, 25]),
-    PS(name='spacy_pos_embd_dim', values=[5, 10]),
-    PS(name='ud_deps_embd_dim', values=[5, 10, 25]),
-    PS(name='spacy_deps_embd_dim', values=[5, 10, 25]),
-    PS(name='spacy_ner_embd_dim', values=[5, 10]),
+    PS(name='pos_embd_dim', values=[5, 10, 25]),
+    PS(name='deps_embd_dim', values=[5, 10, 25]),
+    PS(name='ner_embd_dim', values=[5, 10]),
+    PS(name='govobj_config_embd_dim', values=[3]),
     PS(name='update_token_embd', values=[True, False]),
     PS(name='mlp_layers', values=[2]),
     PS(name='mlp_layer_dim', values=[20, 40, 80, 100]),
@@ -42,7 +39,8 @@ TUNER_DOMAINS_TUNING = [
     PS(name='learning_rate_decay', values=np.r_[0, np.logspace(-5, -1, 9)]),
     PS(name='mask_by', values=['sample-ys', 'pos:IN,PRP$,RB,TO'], task_param=True),
     PS(name='mask_mwes', values=[False], task_param=True),
-    PS(name='dynet_random_seed', values=[os.environ['DYNET_RANDOM_SEED']], enabled=False)
+    PS(name='dynet_random_seed', values=[os.environ['DYNET_RANDOM_SEED']], enabled=False),
+    PS(name='allow_empty_prediction', values=[True, False])
 ]
 
 

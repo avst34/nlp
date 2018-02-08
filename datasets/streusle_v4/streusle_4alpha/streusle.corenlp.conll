@@ -39882,7 +39882,7 @@
 # sent_id = reviews-211797-0003
 # text = They felt like they were going to fall off of me and it was very difficult to see what I would actually look like were I to purchase some of these dresses.
 # streusle_sent_id = ewtb.r.211797.3
-# mwe = They felt~like they were going_to fall off_of me and it was very difficult to see what_ I would actually look _like were I to purchase some of these dresses .
+# mwe = They felt~like they were going_to fall off_of me and it was very difficult to see what I would actually look like were I to purchase some of these dresses .
 1	They	they	PRP	O	2	nsubj
 2	felt	feel	VBD	O	0	ROOT
 3	like	like	IN	O	6	mark

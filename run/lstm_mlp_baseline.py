@@ -1,23 +1,41 @@
 import os
+import random
+
+from datasets.streusle_v4 import StreusleLoader
 from evaluators.classifier_evaluator import ClassifierEvaluator
-from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP, AUTO_ID_AUTO_PREP, AUTO_ID_GOLD_PREP
+from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP, AUTO_ID_AUTO_PREP, AUTO_ID_GOLD_PREP, \
+    TASK_SETTINGS
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 from models.supersenses.tuner_domains import PS
-from run.dump_vocabs import dump_vocabularies
+from run.dump_vocabs import dump_vocabs
 from vocabulary import Vocabulary
 import supersenses
 import json
 from hyperparameters_tuner import union_settings, override_settings
 evaluator = ClassifierEvaluator()
 
-def run(train_records, dev_records, test_records, streusle_loader):
+def run():
+
+    tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
+    task = random.choice(tasks)
+
+    loader = StreusleLoader()
+    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/streusle_4alpha'
+    train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
+    dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
+    test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
+
+    gold_dev_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.goldid.goldsyn.json', input_format='json')
+
     train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
     dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
     test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
+
+    gold_dev_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
 
     # pp_vocab = Vocabulary('PREPS')
     # pp_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys) if any([y.supersense_role, y.supersense_func])]))
@@ -25,6 +43,21 @@ def run(train_records, dev_records, test_records, streusle_loader):
     # spacy_dep_vocab = Vocabulary('SPACY_DEPS')
     # spacy_dep_vocab.add_words(set([x.spacy_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
     # spacy_dep_vocab.add_word(None)
+    #
+    # corenlp_dep_vocab = Vocabulary('CORENLP_DEPS')
+    # corenlp_dep_vocab.add_words(set([x.corenlp_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # corenlp_dep_vocab.add_word(None)
+    #
+    # corenlp_pos_vocab = Vocabulary('CORENLP_POS')
+    # corenlp_pos_vocab.add_words(set([x.corenlp_pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # corenlp_pos_vocab.add_word(None)
+    #
+    # corenlp_ner_vocab = Vocabulary('CORENLP_NER')
+    # corenlp_ner_vocab.add_words(set([x.corenlp_ner for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
+    # corenlp_ner_vocab.add_word(None)
+    #
+    # corenlp_lemmas_vocab = Vocabulary('CORENLP_LEMMAS')
+    # corenlp_lemmas_vocab.add_words(set([x.corenlp_lemma for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
     #
     # ud_dep_vocab = Vocabulary('UD_DEPS')
     # ud_dep_vocab.add_words(set([x.ud_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
@@ -59,23 +92,21 @@ def run(train_records, dev_records, test_records, streusle_loader):
     # dump_vocabularies([spacy_ner_vocab])
     # dump_vocabularies([spacy_lemmas_vocab])
     # dump_vocabularies([ud_lemmas_vocab])
+    # dump_vocabularies([corenlp_lemmas_vocab])
+    # dump_vocabularies([corenlp_dep_vocab, corenlp_ner_vocab, corenlp_pos_vocab])
 
     test_features()
 
     tuner = LstmMlpSupersensesModelHyperparametersTuner(
+        task_name=task,
         results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/results.csv',
         samples=train_samples, # use all after testing
         validation_samples=dev_samples,
         show_progress=True,
         show_epoch_eval=True,
         tuner_domains=override_settings([
-            union_settings([
-                # GOLD_ID_GOLD_PREP,
-                # GOLD_ID_AUTO_PREP
-                # AUTO_ID_AUTO_PREP
-                AUTO_ID_GOLD_PREP
-            ]),
-            [PS(name='epochs', values=[50])] # remove after testing
+            TASK_SETTINGS[task]
+            [PS(name='epochs', values=[100])] # remove after testing
         ]),
         dump_models=False
     )

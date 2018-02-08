@@ -4,6 +4,7 @@ import os, sys, fileinput, re, json
 from collections import defaultdict
 from itertools import chain
 
+import argparse
 from lexcatter import supersenses_for_lexcat, ALL_LEXCATS
 from tagging import sent_tags
 from mwerender import render
@@ -17,7 +18,7 @@ Also performs validation checks on the input.
 @since: 2017-12-29
 """
 
-def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
+def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="goldid", input_type=None):
     """Given a .conllulex or .json file, return an iterator over sentences.
     If a .conllulex file, performs consistency checks.
 
@@ -30,8 +31,11 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
     verbs, prepositions). Not applied if the supersense slot is empty.
     """
 
+    assert identification in ['goldid', 'autoid']
+    assert input_type in [None, 'json', 'conllulex']
+
     # If .json: just load the data
-    if inF.name.endswith('.json'):
+    if input_type is None and inF.name.endswith('.json') or input_type == 'json':
         for sent in json.load(inF):
             for lexe in chain(sent['swes'].values(), sent['smwes'].values()):
                 if lexe['ss'] is not None:
@@ -75,7 +79,7 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
 
         # check that lexical & weak MWE lemmas are correct
         for lexe in chain(sent['swes'].values(), sent['smwes'].values()):
-            assert lexe['lexlemma']==' '.join(sent['toks'][i-1]['lemma'] for i in lexe['toknums']),(lexe,sent['toks'][lexe['toknums'][0]-1])
+            # assert lexe['lexlemma']==' '.join(sent['toks'][i-1]['lemma'] for i in lexe['toknums']),(lexe,sent['toks'][lexe['toknums'][0]-1])
             lc = lexe['lexcat']
             if lc.endswith('!@'): lc_tbd += 1
             valid_ss = supersenses_for_lexcat(lc)
@@ -87,7 +91,7 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                     print('Invalid supersense(s) in lexical entry:', lexe, file=sys.stderr)
                 elif ss.startswith('p.'):
                     assert ss2.startswith('p.')
-                    assert ss2 not in {'p.Experiencer', 'p.Stimulus', 'p.Originator', 'p.Recipient', 'p.SocialRel', 'p.OrgRole'},(f'{ss2} should never be function',lexe)
+                    assert ss2 not in {'p.Experiencer', 'p.Stimulus', 'p.Originator', 'p.Recipient', 'p.SocialRel', 'p.OrgRole'},(ss2 + ' should never be function',lexe)
             else:
                 assert ss is None and ss2 is None and lexe not in ('N', 'V', 'P', 'INF.P', 'PP', 'POSS', 'PRON.POSS'),lexe
 
@@ -99,29 +103,33 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
             if lc.endswith('!@'): continue
             assert lc in ALL_LEXCATS,(sent['sent_id'],tok)
             if (xpos=='TO')!=lc.startswith('INF'):
-                assert upos=='SCONJ' and swe['lexlemma']=='for',(sent['sent_id'],swe,tok)
+                # assert upos=='SCONJ' and swe['lexlemma']=='for',(sent['sent_id'],swe,tok)
+                pass
             if (upos in ('NOUN', 'PROPN'))!=(lc=='N'):
                 try:
                     assert upos in ('SYM','X') or (lc in ('PRON','DISC')),(sent['sent_id'],swe,tok)
                 except AssertionError:
                     print('Suspicious lexcat/POS combination:', sent['sent_id'], swe, tok, file=sys.stderr)
             if (upos=='AUX')!=(lc=='AUX'):
-                assert tok['lemma']=='be' and lc=='V',(sent['sent_id'],tok)    # copula has upos=AUX
+                # assert tok['lemma']=='be' and lc=='V',(sent['sent_id'],tok)    # copula has upos=AUX
+                pass
             if (upos=='VERB')!=(lc=='V'):
                 if lc=='ADJ':
                     print('Word treated as VERB in UD, ADJ for supersenses:', sent['sent_id'], tok['word'], file=sys.stderr)
                 else:
-                    assert tok['lemma']=='be' and lc=='V',(sent['sent_id'],tok)    # copula has upos=AUX
+                    # assert tok['lemma']=='be' and lc=='V',(sent['sent_id'],tok)    # copula has upos=AUX
+                    pass
             if upos=='PRON':
                 assert lc=='PRON' or lc=='PRON.POSS',(sent['sent_id'],tok)
             if lc=='ADV':
-                assert upos=='ADV' or upos=='PART',(sent['sent_id'],tok)    # PART is for negations
+                # assert upos=='ADV' or upos=='PART',(sent['sent_id'],tok)    # PART is for negations
+                pass
             assert lc!='PP',('PP should only apply to strong MWEs',sent['sent_id'],tok)
         for smwe in sent['smwes'].values():
             assert len(smwe['toknums'])>1
         for wmwe in sent['wmwes'].values():
             assert len(wmwe['toknums'])>1,(sent['sent_id'],wmwe)
-            assert wmwe['lexlemma']==' '.join(sent['toks'][i-1]['lemma'] for i in wmwe['toknums']),(wmwe,sent['toks'][wmwe['toknums'][0]-1])
+            # assert wmwe['lexlemma']==' '.join(sent['toks'][i-1]['lemma'] for i in wmwe['toknums']),(wmwe,sent['toks'][wmwe['toknums'][0]-1])
         # we already checked that noninitial tokens in an MWE have _ as their lemma
 
         # check lextags
@@ -198,7 +206,10 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
             cols = ln.split('\t')
             conllu_cols = cols[:10]
             lex_cols = cols[10:19]
-            autoid_col = cols[19]
+            if len(cols) > 19:
+                autoid_col = cols[19]
+            else:
+                autoid_col = '-'
             # Load CoNLL-U columns
 
             tok = {}
@@ -214,7 +225,10 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
             tok['#'] = tokNum
             tok['word'], tok['lemma'], tok['upos'], tok['xpos'] = conllu_cols[1:5]
             tok['autoid'] = autoid_col
-            assert tok['lemma']!='_' and tok['upos']!='_',tok
+            # assert tok['lemma']!='_' and tok['upos']!='_',tok
+            tok['lemma'] = tok['lemma'] if tok['lemma'] != '_' else None
+            tok['upos'] = tok['upos'] if tok['upos'] != '_' else None
+            tok['xpos'] = tok['xpos'] if tok['xpos'] != '_' else None
             if morph_syn:
                 tok['feats'], tok['head'], tok['deprel'], tok['edeps'] = conllu_cols[5:9]
                 if tok['head']=='_':
@@ -263,7 +277,7 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                         assert tok['lexcat']=='_'
                 else:
                     tok['smwe'] = None
-                    assert tok['lexlemma']==tok['lemma'],(sent['sent_id'],tok['lexlemma'],tok['lemma'])
+                    # assert tok['lexlemma']==tok['lemma'],(sent['sent_id'],tok['lexlemma'],tok['lemma'])
                     sent['swes'][tokNum]['lexlemma'] = tok['lexlemma']
                     assert tok['lexcat'] and tok['lexcat']!='_'
                     sent['swes'][tokNum]['lexcat'] = tok['lexcat']
@@ -280,12 +294,11 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                     assert sent['autoid_smwes'][mwe_group]['toknums'].index(tokNum)==mwe_position-1,(autoid,sent['autoid_smwes'])
                     if mwe_position==1:
                         sent['autoid_smwes'][mwe_group]['lexlemma'] = None
-                        sent['autoid_smwes'][mwe_group]['lexcat'] = None
+                        sent['autoid_smwes'][mwe_group]['lexcat'] = 'PP'
                 elif "*" in tok['autoid']:
                     assert tok['autoid'] == '*'
-                    sent['autoid_swes'][tokNum]['lexlemma'] = tok['lexlemma']
-                    if tok['lexcat'] != '_':
-                        sent['autoid_swes'][tokNum]['lexcat'] = tok['lexcat']
+                    sent['autoid_swes'][tokNum]['lexlemma'] = None
+                    sent['autoid_swes'][tokNum]['lexcat'] = 'PP'
                     sent['autoid_swes'][tokNum]['ss'] = None
                     sent['autoid_swes'][tokNum]['ss2'] = None
                     sent['autoid_swes'][tokNum]['toknums'] = [tokNum]
@@ -319,7 +332,23 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
                 sent['etoks'].append(tok)
             else:
                 sent['toks'].append(tok)
-    if sent:
+
+    sent['autoid_swes'] = sent.get('autoid_swes') or {}
+    sent['autoid_smwes'] = sent.get('autoid_smwes') or {}
+
+    # autoid/goldid - pick one according to args. For autoid, fill in gold ss,ss2 if there's an exact match in gold id
+    if identification == 'autoid':
+        for auto_we in chain(sent['autoid_swes'].values(), sent['autoid_smwes'].values()):
+            matching_gold_wes = [we for we in chain(sent['swes'].values(), sent['smwes'].values()) if set(we['toknums']) == set(auto_we['toknums'])]
+            if matching_gold_wes:
+                gold_swe = matching_gold_wes[0]
+                auto_we['ss'], auto_we['ss2'] = gold_swe['ss'], gold_swe['ss2']
+        sent['swes'], sent['smwes'] = sent['autoid_swes'], sent['autoid_smwes']
+
+    del sent['autoid_smwes']
+    del sent['autoid_swes']
+
+    if sent and sent.get('toks'):
         _postproc_sent(sent)
         yield sent
 
@@ -327,13 +356,18 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None):
         print('Tokens with lexcat TBD:', lc_tbd, file=sys.stderr)
 
 if __name__=='__main__':
+    parser = argparse.ArgumentParser(description='Convert an conllulex file to json')
+    parser.add_argument('file', type=str, help='path to the .conllulex file')
+    parser.add_argument('-i', '--identification', type=str, default="goldid", help='goldid/autoid')
+    args = parser.parse_args()
+
     print('[')
     list_fields = ("toks", "etoks")
     dict_fields = ("swes", "smwes", "wmwes")
     first = True
-    fname = sys.argv[1]
+    fname = args.file
     with open(fname) as inF:
-        for sent in load_sents(inF):
+        for sent in load_sents(inF, args.identificaion):
             # specially format the output
             if first:
                 first = False

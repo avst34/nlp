@@ -13,8 +13,22 @@ def raise_none(f):
 
 
 @raise_none
-def get_parent(tok, sent, deps_from):
-    parent = sent[tok.head_ind(deps_from)]
+def get_tok(sent, ind):
+    if ind is None:
+        return None
+    return sent[ind]
+
+@raise_none
+def get_gov(tok, sent):
+    return get_tok(sent, tok.gov_ind)
+
+@raise_none
+def get_obj(tok, sent):
+    return get_tok(sent, tok.obj_ind)
+
+@raise_none
+def get_parent(tok, sent):
+    parent = sent[tok.ud_head_ind]
     if parent != tok:
         return parent
     else:
@@ -22,20 +36,20 @@ def get_parent(tok, sent, deps_from):
 
 
 @raise_none
-def get_grandparent(tok, sent, deps_from):
-    parent = get_parent(tok, sent, deps_from)
+def get_grandparent(tok, sent):
+    parent = get_parent(tok, sent)
     if parent:
-        return get_parent(parent, sent, deps_from)
+        return get_parent(parent, sent)
 
 
 @raise_none
-def get_children(tok, sent, deps_from):
-    return [t for t in sent if t.head_ind(deps_from) == tok.ind and t != tok]
+def get_children(tok, sent):
+    return [t for t in sent if t.ud_head_ind == tok.ind and t != tok]
 
 
 @raise_none
-def get_child_of_type(tok, sent, child_type, deps_from):
-    children = [tok for tok in get_children(tok, sent, deps_from) if tok.dep(deps_from) == child_type]
+def get_child_of_type(tok, sent, child_type):
+    children = [tok for tok in get_children(tok, sent) if tok.ud_dep == child_type]
     return children[0] if len(children) else None
 
 

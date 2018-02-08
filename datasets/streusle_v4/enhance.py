@@ -10,9 +10,12 @@ import subprocess
 
 import os
 
+import copy
+
 import supersenses
 import spacy
 
+from datasets.streusle_v4.streusle_4alpha.govobj import govobj
 from utils import parse_conll
 
 try:
@@ -31,16 +34,27 @@ import json
 
 import conllu_parser
 
-loader = streusle.StreusleLoader()
-records_list = loader.load()
-if len(records_list) == 2:
-    train_records, dev_records, test_records = records_list[0], [], records_list[1]
-elif len(records_list) == 3:
-    train_records, dev_records, test_records = records_list
 
-records = sum(records_list, [])
-id_to_record = {r.id: r for r in records}
-print("records: %d" % len(records))
+train_records, dev_records, test_records, id_to_record, records = [None, None, None, None, None]
+
+def reload_data():
+    global train_records
+    global dev_records
+    global test_records
+    global id_to_record
+    global records
+    loader = streusle.StreusleLoader()
+    records_list = loader.load()
+    if len(records_list) == 2:
+        train_records, dev_records, test_records = records_list[0], [], records_list[1]
+    elif len(records_list) == 3:
+        train_records, dev_records, test_records = records_list
+
+    records = sum(records_list, [])
+    id_to_record = {r.id: r for r in records}
+    print("records: %d" % len(records))
+
+reload_data()
 
 def enhance_word2vec():
     # collect word2vec vectors for words in the data
@@ -297,7 +311,7 @@ def enhance_ud_dependency_trees():
     print('Enhanced with spacy dep trees, %d trees in total' % (len(trees)))
 
 def enhance_corenlp_dependency_trees():
-    sents = parse_conll(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
+    sents = parse_conll_file(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
 
     trees = {}
     for ind, sent in enumerate(sents):
@@ -313,7 +327,7 @@ def enhance_corenlp_dependency_trees():
     print('Enhanced with corenlp dep trees, %d trees in total' % (len(trees)))
 
 def enhance_corenlp_lemmas():
-    sents = parse_conll(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
+    sents = parse_conll_file(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
     lemmas = {
         sent['metadata']['streusle_sent_id']: {tok['id']: tok['lemma'] for tok in sent['tokens']} for sent in sents
     }
@@ -321,7 +335,7 @@ def enhance_corenlp_lemmas():
         json.dump(lemmas, f, indent=2)
 
 def enhance_corenlp_ners():
-    sents = parse_conll(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
+    sents = parse_conll_file(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
     lemmas = {
         sent['metadata']['streusle_sent_id']: {tok['id']: tok['ner'] for tok in sent['tokens']} for sent in sents
     }
@@ -329,7 +343,7 @@ def enhance_corenlp_ners():
         json.dump(lemmas, f, indent=2)
 
 def enhance_corenlp_pos():
-    sents = parse_conll(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
+    sents = parse_conll_file(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT)
     lemmas = {
         sent['metadata']['streusle_sent_id']: {tok['id']: tok['pos'] for tok in sent['tokens']} for sent in sents
     }
@@ -363,40 +377,64 @@ def enhance_stanford_core_nlp():
         f.write('\n'.join(input_files))
 
     os.chdir('/tmp')
-    # os.system('java -mx3g edu.stanford.nlp.pipeline.StanfordCoreNLP -outputFormat conll -filelist /tmp/input_files.txt -depparse BasicDependenciesAnnotation -ssplit.isOneSentence true -tokenize.whitespace true')
+    for format in ['conll', 'conllu']:
+        os.system('java -mx3g edu.stanford.nlp.pipeline.StanfordCoreNLP -outputFormat ' + format + ' -filelist /tmp/input_files.txt -depparse BasicDependenciesAnnotation -ssplit.isOneSentence true -tokenize.whitespace true')
 
-    outs = []
-    for input_file in input_files:
-        with open(input_file + '.conll', 'r') as f:
-            s = f.read().split('\n')
-        outs.append(s)
+        outs = []
+        for input_file in input_files:
+            with open(input_file + '.' + format, 'r') as f:
+                s = f.read().split('\n')
+            outs.append(s)
 
-    with open(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT, 'w') as f:
-        for text, sent_id, streusle_sent_id, mwe, out in zip(texts, sent_ids, streusle_sent_ids, mwes, outs):
-            lines = [
-                        '# sent_id = ' + sent_id,
-                        '# text = ' + text,
-                        '# streusle_sent_id = ' + streusle_sent_id,
-                        '# mwe = ' + mwe
-                    ] + out
-            f.write('\n'.join(lines))
+        with open(streusle.ENHANCEMENTS.STANFORD_CORE_NLP_OUTPUT + '.' + format, 'w') as f:
+            for text, sent_id, streusle_sent_id, mwe, out in zip(texts, sent_ids, streusle_sent_ids, mwes, outs):
+                lines = [
+                            '# sent_id = ' + sent_id,
+                            '# text = ' + text,
+                            '# streusle_sent_id = ' + streusle_sent_id,
+                            '# mwe = ' + mwe
+                        ] + out
+                f.write('\n'.join(lines))
+
+
+def enhance_gov_obj():
+    record_govobjs = {}
+    for rec in records:
+        sents = govobj([copy.deepcopy(rec.data)])
+        data = sents[0]
+        record_govobjs[rec.id] = {
+            'swes': {
+                swe_id: swe.get('heuristic_relation') for swe_id, swe in data['swes'].items()
+            },
+            'smwes': {
+                swe_id: swe.get('heuristic_relation') for swe_id, swe in data['smwes'].items()
+            },
+        }
+
+    with open(streusle.ENHANCEMENTS.HEURISTIC_GOVOBJ, 'w') as f:
+        json.dump(record_govobjs, f, indent=2)
+
 
 if __name__ == '__main__':
+    # enhance_pss_autoid()
+    # reload_data()
     # enhance_spacy_dependency_trees()
     # enhance_spacy_ners()
     # enhance_spacy_pos()
-    # # enhance_dev_sentences()
     # enhance_ud_dependency_trees()
     # enhance_spacy_lemmas()
-    # # enhance_pss_autoid()
-    # # enhance_stanford_core_nlp()
+    # reload_data()
+    # enhance_stanford_core_nlp()
+    # reload_data()
     # enhance_corenlp_ners()
     # enhance_corenlp_pos()
     # enhance_corenlp_lemmas()
     # enhance_corenlp_dependency_trees()
-
-    enhance_word2vec()
-    enhance_spacy_lemmas_word2vec()
-    enhance_ud_lemmas_word2vec()
-    enhance_corenlp_lemmas_word2vec()
-
+    # reload_data()
+    # enhance_word2vec()
+    # enhance_spacy_lemmas_word2vec()
+    # enhance_ud_lemmas_word2vec()
+    # enhance_corenlp_lemmas_word2vec()
+    # reload_data()
+    # enhance_gov_obj()
+    enhance_gov_obj()

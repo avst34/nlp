@@ -10,7 +10,7 @@ from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import 
     LstmMlpSupersensesModelHyperparametersTuner
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 from models.supersenses.tuner_domains import PS
-from run.dump_vocabs import dump_vocabularies
+from run.dump_vocabs import dump_vocabs
 from vocabulary import Vocabulary
 import supersenses
 import json

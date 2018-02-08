@@ -69,8 +69,9 @@ class HyperparametersTuner:
             self.score = score
             self.result_data = result_data
 
-    def __init__(self, params_settings, executor, results_csv_path, models_base_path=None, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None, dump_result=None):
+    def __init__(self, task_name, params_settings, executor, results_csv_path, models_base_path=None, csv_row_builder=build_csv_row, shared_csv=False, lock_file_path=None, dump_result=None):
         assert all([isinstance(ps, HyperparametersTuner.ParamSettings) for ps in params_settings])
+        self.task_name = task_name
         self.dump_result = dump_result
         self.shared_csv = shared_csv
         if shared_csv:
@@ -147,9 +148,10 @@ class HyperparametersTuner:
             with open(self.csv_file_path, open_flags) as csv_f:
                 csv_writer = csv.writer(csv_f)
                 headers, rows = self.csv_row_builder(params, result)
-                headers = ['Time', 'Total Execution Time', 'Executor ID', 'Execution ID', 'Tuner Score'] + headers
+                headers = ['Task', 'Time', 'Total Execution Time', 'Executor ID', 'Execution ID', 'Tuner Score'] + headers
                 rows = [
-                    [time.strftime("%Y-%m-%d %H:%M:%S"), "%02dd%02dh%02dm%02ds" % (int(execution_time_secs / (24*60*60)),
+                    [self.task_name,
+                     time.strftime("%Y-%m-%d %H:%M:%S"), "%02dd%02dh%02dm%02ds" % (int(execution_time_secs / (24*60*60)),
                                                                                int(execution_time_secs % (24*60*60) / (60*60)),
                                                                                int(execution_time_secs % (60*60) / 60),
                                                                                int(execution_time_secs % 60),
@@ -168,4 +170,3 @@ class HyperparametersTuner:
                 if result.score > current_highest_score or True:
                     os.mkdir(self.results_base_path + '/' + execution_id)
                     self.dump_result(self.results_base_path + '/' + execution_id, result, params)
-                    # result.predictor.save(self.results_base_path + '/' + execution_id)

@@ -16,39 +16,27 @@ class LstmMlpSupersensesModel:
                      token,
                      ind,
                      is_part_of_mwe,
-                     ud_pos,
-                     spacy_pos,
-                     spacy_dep,
-                     spacy_head_ind,
-                     spacy_ner,
-                     spacy_lemma,
-                     corenlp_pos,
-                     corenlp_dep,
-                     corenlp_head_ind,
-                     corenlp_ner,
-                     corenlp_lemma,
+                     ud_upos,
+                     ud_xpos,
+                     ner,
                      ud_dep,
                      ud_head_ind,
-                     ud_lemma,
-                     autoid_markable):
-            self.corenlp_lemma = corenlp_lemma
-            self.corenlp_ner = corenlp_ner
-            self.corenlp_head_ind = corenlp_head_ind
-            self.corenlp_dep = corenlp_dep
-            self.corenlp_pos = corenlp_pos
-            self.spacy_lemma = spacy_lemma
+                     lemma,
+                     gov_ind, obj_ind, govobj_config,
+                     identified_for_pss):
+            self.govobj_config = govobj_config
+            self.obj_ind = obj_ind
+            self.gov_ind = gov_ind
+            self.lemma = lemma
+            self.ner = ner
+            self.ud_xpos = ud_xpos
+            self.ud_upos = ud_upos
             self.token = token
             self.ind = ind
             self.is_part_of_mwe = is_part_of_mwe
-            self.ud_pos = ud_pos
-            self.spacy_pos = spacy_pos
-            self.spacy_ner = spacy_ner
-            self.spacy_dep = spacy_dep
-            self.spacy_head_ind = spacy_head_ind
             self.ud_dep = ud_dep
             self.ud_head_ind = ud_head_ind
-            self.ud_lemma = ud_lemma
-            self.autoid_markable = autoid_markable
+            self.identified_for_pss = identified_for_pss
 
         def to_dict(self):
             return self.__dict__
@@ -59,24 +47,6 @@ class LstmMlpSupersensesModel:
 
         def __repr__(self):
             return self.token
-
-        def pos(self, type):
-            return self._get_attr(type, 'pos')
-
-        def ner(self, type):
-            return self._get_attr(type, 'ner')
-
-        def dep(self, type):
-            return self._get_attr(type, 'del')
-
-        def head_ind(self, type):
-            return self._get_attr(type, 'head_ind')
-
-        def lemma(self, type):
-            return self._get_attr(type, 'lemma')
-
-        def _get_attr(self, type, attr):
-            return getattr(self, type + '_' + attr)
 
     class SampleY:
 
@@ -122,34 +92,23 @@ class LstmMlpSupersensesModel:
 
     class HyperParameters:
 
-        MASK_BY_SAMPLE_YS = 'sample-ys'
-        MASK_BY_AUTO_ID = 'auto-id'
-        MASK_BY_POS_PREFIX = 'pos:'
-
-        DEPS_FROM = ['corenlp', 'ud', 'spacy']
-        POS_FROM = ['corenlp', 'ud', 'spacy']
-        LEMMAS_FROM = ['corenlp', 'ud', 'spacy']
-        NERS_FROM = ['corenlp', 'spacy']
-
         def __init__(self,
                      labels_to_predict,
                      use_token,
                      update_token_embd,
                      use_pos,
-                     pos_from,
                      use_dep,
-                     deps_from, # 'spacy', 'ud' 'corenlp'
                      use_ner,
-                     ners_from, # 'spacy', 'corenlp'
                      use_prep_onehot,
+                     use_govobj,
                      use_token_internal,
-                     lemmas_from, # 'spacy', 'ud', 'corenlp'
                      update_lemmas_embd,
                      token_embd_dim,
                      token_internal_embd_dim,
                      pos_embd_dim,
                      deps_embd_dim,
                      ner_embd_dim,
+                     govobj_config_embd_dim,
                      mlp_layers,
                      mlp_layer_dim,
                      mlp_activation,
@@ -161,13 +120,14 @@ class LstmMlpSupersensesModel:
                      epochs,
                      learning_rate,
                      learning_rate_decay,
-                     mask_by, # MASK_BY_SAMPLE_YS or MASK_BY_AUTO_ID or MASK_BY_POS_PREFIX + 'pos1,pos2,...'
-                     mask_mwes
+                     mask_mwes,
+                     allow_empty_prediction
                      ):
-            self.ners_from = ners_from
+            self.use_govobj = use_govobj
+            self.govobj_config_embd_dim = govobj_config_embd_dim
+            self.allow_empty_prediction = allow_empty_prediction
             self.use_ner = use_ner
             self.update_lemmas_embd = update_lemmas_embd
-            self.lemmas_from = lemmas_from
             self.ner_embd_dim = ner_embd_dim
             self.deps_embd_dim = deps_embd_dim
             self.pos_embd_dim = pos_embd_dim
@@ -183,9 +143,7 @@ class LstmMlpSupersensesModel:
             self.update_token_embd = update_token_embd
             self.use_token = use_token
             self.use_pos = use_pos
-            self.pos_from = pos_from
             self.use_dep = use_dep
-            self.deps_from = deps_from
             self.use_ner = use_ner
             self.token_embd_dim = token_embd_dim
             self.mlp_layers = mlp_layers
@@ -196,27 +154,6 @@ class LstmMlpSupersensesModel:
             self.mlp_dropout_p = mlp_dropout_p
             self.epochs = epochs
             self.mask_mwes = mask_mwes
-
-            assert(mask_by in [LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS, LstmMlpSupersensesModel.HyperParameters.MASK_BY_AUTO_ID]
-                   or mask_by.startswith(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX))
-            for pos in (self.get_pos_mask() or []):
-                assert_pos(pos)
-            assert(deps_from in LstmMlpSupersensesModel.HyperParameters.DEPS_FROM)
-            assert(pos_from in LstmMlpSupersensesModel.HyperParameters.POS_FROM)
-            assert(lemmas_from in LstmMlpSupersensesModel.HyperParameters.LEMMAS_FROM)
-            assert(ners_from in LstmMlpSupersensesModel.HyperParameters.NERS_FROM)
-
-        def is_mask_by_sample_ys(self):
-            return self.mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_SAMPLE_YS
-
-        def is_mask_by_auto_id(self):
-            return self.mask_by == LstmMlpSupersensesModel.HyperParameters.MASK_BY_AUTO_ID
-
-        def get_pos_mask(self):
-            if not self.mask_by.startswith(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX):
-                return None
-            opts = self.mask_by[len(LstmMlpSupersensesModel.HyperParameters.MASK_BY_POS_PREFIX):].split(',')
-            return opts
 
         def clone(self, override=None):
             override = override or {}
@@ -238,7 +175,7 @@ class LstmMlpSupersensesModel:
         self.model = LstmMlpMulticlassModel(
             input_vocabularies={feat.name: feat.vocab for feat in self.features.list_enum_features()},
             input_embeddings={feat.name: feat.embedding for feat in self.features.list_features_with_embedding(include_auto=False)},
-            output_vocabulary=vocabs.PSS_WITHOUT_NONE if self.hyperparameters.is_mask_by_sample_ys() else vocabs.PSS,
+            output_vocabulary=vocabs.PSS if self.hyperparameters.allow_empty_prediction else vocabs.PSS_WITHOUT_NONE,
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
                     'lstm_input_fields': names(self.features.list_lstm_features()),
                     'mlp_input_fields': names(self.features.list_mlp_features(include_refs=False)),
@@ -251,7 +188,7 @@ class LstmMlpSupersensesModel:
              },
              del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_pos', 'use_gold_pos', 'use_spacy_pos', 'use_dep', 'use_ner', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
                        'pos_embd_dim', 'deps_embd_dim', 'spacy_ner_embd_dim',
-                       'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'deps_from', 'pos_from', 'ner_from', 'mask_mwes']))
+                       'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'mask_mwes', 'allow_empty_prediction']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):

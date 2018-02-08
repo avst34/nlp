@@ -63,7 +63,9 @@ class LstmMlpSupersensesModelHyperparametersTuner:
                  dump_pss_eval=True,
                  evaluator=ClassifierEvaluator(),
                  tuner_score_getter=lambda evaluations: max([e['f1'] or 0 for e in evaluations]),
-                 tuner_results_getter=extract_classifier_evaluator_results):
+                 tuner_results_getter=extract_classifier_evaluator_results,
+                 task_name=''):
+        self.task_name = task_name
         self.dump_models = dump_models
         self.dump_pss_eval = dump_pss_eval
         self.fit_kwargs = None
@@ -76,10 +78,11 @@ class LstmMlpSupersensesModelHyperparametersTuner:
             if self.dump_models:
                 result.predictor.save(output_dir + '/model')
             if self.dump_pss_eval:
-                ident = 'goldid' if params['mask_by'] == 'sample-ys' else 'autoid'
+                ident = 'autoid'
                 StreusleEvaluator(result.predictor).evaluate(validation_samples, output_tsv_path=output_dir + '/psseval_out.tsv', ident=ident)
 
-        self.tuner = HyperparametersTuner(results_csv_path=results_csv_path,
+        self.tuner = HyperparametersTuner(task_name=task_name,
+                                          results_csv_path=results_csv_path,
                                           params_settings=tuner_domains, executor=self._execute,
                                           csv_row_builder=build_csv_rows, shared_csv=True,
                                           lock_file_path=results_csv_path + '.lock',
