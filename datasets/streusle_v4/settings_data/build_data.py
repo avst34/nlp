@@ -26,6 +26,13 @@ def run_pipeline(conllulex_train_path, conllulex_dev_path, conllulex_test_path, 
         'test': out_files[2]
     }
 
+    print('run_pipeline: extracting conlls')
+
+    conlls = {}
+
+    for stype, fpath in out_files.items():
+        conlls[stype] = run_corenlp_on_conllulex(fpath, format='conll')
+
     print('run_pipeline: preprocessing')
 
     if preprocessing == 'autosyn':
@@ -39,13 +46,6 @@ def run_pipeline(conllulex_train_path, conllulex_dev_path, conllulex_test_path, 
     if identification == 'autoid':
         for f in out_files.values():
             enrich_autoid(out_files['train'], f, identify_script_path, f)
-
-    print('run_pipeline: extracting conlls')
-
-    conlls = {}
-
-    for stype, fpath in out_files.items():
-        conlls[stype] = run_corenlp_on_conllulex(fpath, format='conll')
 
     print('run_pipeline: converting to json')
 
@@ -71,7 +71,7 @@ def run_pipeline(conllulex_train_path, conllulex_dev_path, conllulex_test_path, 
             recs = json.load(f)
         enriched_recs = enrich_ners(recs, conlls[stype])
         with open(fpath, 'w') as f:
-            json.dump(enriched_recs, f)
+            json.dump(enriched_recs, f, indent=2)
 
 
 def build_data(conllulex_train_path, conllulex_dev_path, conllulex_test_path, identify_script_path):
