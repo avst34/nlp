@@ -1,4 +1,6 @@
-from datasets.streusle_v4 import StreusleLoader, supersenses
+import os
+
+from datasets.streusle_v4 import StreusleLoader, supersenses, Word2VecModel
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 from vocabulary import Vocabulary
 
@@ -53,6 +55,14 @@ def build_vocabs():
 
     return [pp_vocab, ner_vocab, lemmas_vocab, ud_dep_vocab, ud_xpos_vocab, token_vocab, pss_vocab, govobj_config_vocab]
 
+def dump_w2v(vocabs):
+    wvm = Word2VecModel.load_google_model()
+    for name in ['TOKENS', 'LEMMAS']:
+        vocab = [v for v in vocabs if v.name == name][0]
+        with open('models/supersenses/embeddings/' + vocab.name.lower() + '_word2vec.pickle', 'wb') as f:
+            wvm.dump(vocab.all_words(), f, skip_missing=True)
+
 if __name__ == '__main__':
     vocabs = build_vocabs()
     dump_vocabs(vocabs)
+    dump_w2v(vocabs)

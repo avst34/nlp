@@ -68,6 +68,27 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
     def _postproc_sent(sent):
         nonlocal lc_tbd
 
+        sent['autoid_swes'] = sent.get('autoid_swes') or {}
+        sent['autoid_smwes'] = sent.get('autoid_smwes') or {}
+
+        # autoid/goldid - pick one according to args. For autoid, fill in gold ss,ss2 if there's an exact match in gold id
+        if identification == 'autoid':
+            for auto_we in chain(sent['autoid_swes'].values(), sent['autoid_smwes'].values()):
+                matching_gold_wes = [we for we in chain(sent['swes'].values(), sent['smwes'].values()) if set(we['toknums']) == set(auto_we['toknums'])]
+                if matching_gold_wes:
+                    gold_swe = matching_gold_wes[0]
+                    auto_we['ss'], auto_we['ss2'] = gold_swe['ss'], gold_swe['ss2']
+            sent['swes'], sent['smwes'] = sent['autoid_swes'], sent['autoid_smwes']
+            for tok in sent['toks']:
+                tok['smwe'] = tok.get('autoid_smwe')
+                if 'autoid_smwe' in tok:
+                    del tok['autoid_smwe']
+                tok['wmwe'] = None
+            sent['wmwes'] = {}
+
+        del sent['autoid_smwes']
+        del sent['autoid_swes']
+
         # check that tokens are numbered from 1, in order
         for i,tok in enumerate(sent['toks'], 1):
             assert tok['#']==i
@@ -120,7 +141,8 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
                     # assert tok['lemma']=='be' and lc=='V',(sent['sent_id'],tok)    # copula has upos=AUX
                     pass
             if upos=='PRON':
-                assert lc=='PRON' or lc=='PRON.POSS',(sent['sent_id'],tok)
+                # assert lc=='PRON' or lc=='PRON.POSS',(sent['sent_id'],tok)
+                pass
             if lc=='ADV':
                 # assert upos=='ADV' or upos=='PART',(sent['sent_id'],tok)    # PART is for negations
                 pass
@@ -141,11 +163,13 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
             if tok['smwe']:
                 smweNum, position = tok['smwe']
                 lexe = sent['smwes'][smweNum]
-            else:
+            elif tok['#'] in sent['swes']:
                 position = None
                 lexe = sent['swes'][tok['#']]
+            else:
+                lexe = None
 
-            if position is None or position==1:
+            if lexe and (position is None or position==1):
                 lexcat = lexe['lexcat']
                 fulllextag += '-'+lexcat
                 ss1, ss2 = lexe['ss'], lexe['ss2']
@@ -162,7 +186,7 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
                     if wcat and position==1:
                         fulllextag += '+'+wcat
 
-            assert tok['lextag']==fulllextag,(sent['sent_id'],fulllextag,tok)
+            # assert tok['lextag']==fulllextag,(sent['sent_id'],fulllextag,tok)
 
         # check rendered MWE string
         s = render([tok['word'] for tok in sent['toks']],
@@ -288,6 +312,7 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
                 if ':' in tok['autoid']:
                     autoid = tok['autoid'].replace('*', '')
                     mwe_group, mwe_position = list(map(int, autoid.split(':')))
+                    tok['autoid_smwe'] = mwe_group, mwe_position
                     assert mwe_position != 1 or tok['autoid'].endswith('**')
                     autoid = mwe_group, mwe_position
                     sent['autoid_smwes'][mwe_group]['toknums'].append(tokNum)
@@ -297,12 +322,12 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
                         sent['autoid_smwes'][mwe_group]['lexcat'] = 'PP'
                 elif "*" in tok['autoid']:
                     assert tok['autoid'] == '*'
+                    tok['autoid_smwe'] = None
                     sent['autoid_swes'][tokNum]['lexlemma'] = None
-                    sent['autoid_swes'][tokNum]['lexcat'] = 'PP'
+                    sent['autoid_swes'][tokNum]['lexcat'] = 'P'
                     sent['autoid_swes'][tokNum]['ss'] = None
                     sent['autoid_swes'][tokNum]['ss2'] = None
                     sent['autoid_swes'][tokNum]['toknums'] = [tokNum]
-
 
                 del tok['lexlemma']
                 del tok['lexcat']
@@ -332,21 +357,6 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
                 sent['etoks'].append(tok)
             else:
                 sent['toks'].append(tok)
-
-    sent['autoid_swes'] = sent.get('autoid_swes') or {}
-    sent['autoid_smwes'] = sent.get('autoid_smwes') or {}
-
-    # autoid/goldid - pick one according to args. For autoid, fill in gold ss,ss2 if there's an exact match in gold id
-    if identification == 'autoid':
-        for auto_we in chain(sent['autoid_swes'].values(), sent['autoid_smwes'].values()):
-            matching_gold_wes = [we for we in chain(sent['swes'].values(), sent['smwes'].values()) if set(we['toknums']) == set(auto_we['toknums'])]
-            if matching_gold_wes:
-                gold_swe = matching_gold_wes[0]
-                auto_we['ss'], auto_we['ss2'] = gold_swe['ss'], gold_swe['ss2']
-        sent['swes'], sent['smwes'] = sent['autoid_swes'], sent['autoid_smwes']
-
-    del sent['autoid_smwes']
-    del sent['autoid_swes']
 
     if sent and sent.get('toks'):
         _postproc_sent(sent)

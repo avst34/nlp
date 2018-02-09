@@ -119,7 +119,7 @@ def findgovobj(pexpr, sent):
         if config=='subordinating':
             otok = coptok   # subordinate copular clause: use copula as the object instead of the content predicate
         else:
-            assert not config
+            # assert not config
             config = 'predicative'
             # look for subject
             subjtok = findsubj(pptop, sent)
@@ -144,8 +144,6 @@ def govobj(data):
         for lexe in chain(sent['swes'].values(), sent['smwes'].values()):
             if lexe['lexcat'] in {'P','PP','INF.P','POSS','PRON.POSS'}:
                 gov = findgovobj(lexe, sent)
-        for lexe in chain(sent['autoid_swes'].values(), sent['autoid_smwes'].values()):
-            gov = findgovobj(lexe, sent)
     return data
 
 

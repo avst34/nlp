@@ -6,7 +6,7 @@ from datasets.streusle_v4.settings_data.run_corenlp_on_conllulex import run_core
 def substitute_conllulex_corenlp(conllulex_fpath):
     outs = run_corenlp_on_conllulex(conllulex_fpath, 'conllu')
 
-    with open(conllulex_fpath, 'r') as f:
+    with open(conllulex_fpath, 'r', encoding='utf8') as f:
         orig_lines = f.readlines()
 
     enriched_lines = []
@@ -29,6 +29,7 @@ def substitute_conllulex_corenlp(conllulex_fpath):
                 assert orig_cols[1] == conllu_cols[1]
                 enhanced_cols = conllu_cols[:10] + orig_cols[10:]
                 corenlp_tok_ind += 1
+            assert(len(enhanced_cols)) == 19
             enriched_lines.append('\t'.join(enhanced_cols))
 
 

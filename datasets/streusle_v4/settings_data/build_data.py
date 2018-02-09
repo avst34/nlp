@@ -38,7 +38,7 @@ def run_pipeline(conllulex_train_path, conllulex_dev_path, conllulex_test_path, 
     if preprocessing == 'autosyn':
         for f in out_files.values():
             enriched = substitute_conllulex_corenlp(f)
-            with open(f, 'w') as f:
+            with open(f, 'w', encoding='utf-8') as f:
                 f.write(enriched)
 
     print('run_pipeline: identification')
@@ -50,27 +50,27 @@ def run_pipeline(conllulex_train_path, conllulex_dev_path, conllulex_test_path, 
     print('run_pipeline: converting to json')
 
     for fpath in out_files.values():
-        with open(fpath, 'r') as f:
+        with open(fpath, 'r', encoding='utf-8') as f:
             sents = list(conllulex2json.load_sents(f, identification=identification, input_type='conllulex'))
-        with open(fpath, 'w') as f:
+        with open(fpath, 'w', encoding='utf-8') as f:
             json.dump(sents, f)
 
     print('run_pipeline: adding gov/obj')
 
     for fpath in out_files.values():
-        with open(fpath, 'r') as f:
+        with open(fpath, 'r', encoding='utf-8') as f:
             recs = json.load(f)
         govobj(recs)
-        with open(fpath, 'w') as f:
+        with open(fpath, 'w', encoding='utf-8') as f:
             json.dump(recs, f)
 
     print('run_pipeline: adding ner')
 
     for stype, fpath in out_files.items():
-        with open(fpath, 'r') as f:
+        with open(fpath, 'r', encoding='utf-8') as f:
             recs = json.load(f)
         enriched_recs = enrich_ners(recs, conlls[stype])
-        with open(fpath, 'w') as f:
+        with open(fpath, 'w', encoding='utf-8') as f:
             json.dump(enriched_recs, f, indent=2)
 
 
