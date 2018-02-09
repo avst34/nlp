@@ -3,6 +3,7 @@ import copy
 import sys
 import csv
 import json
+from itertools import chain
 from pprint import pprint
 from collections import namedtuple, defaultdict
 import supersenses
@@ -233,7 +234,7 @@ class StreusleRecord:
         format_supersense = lambda ss: 'p.' + ss if ss else None
         data = copy.deepcopy(self.data)
 
-        for we_type in ['swes', 'wmwes', 'smwes', 'autoid_swes', 'autoid_smwes']:
+        for we_type in ['swes', 'smwes']:
             for k, we in data[we_type].items():
                 we['we_id'] = k
                 we['we_type'] = we_type
@@ -250,10 +251,7 @@ class StreusleRecord:
             found_we = None
             if not role and not func:
                 continue
-            if ident == 'goldid':
-                wes = sum([list(orig['swes'].values()), list(orig['smwes'].values()), list(orig['wmwes'].values())], [])
-            else:
-                wes = sum([list(data['autoid_swes'].values()), list(data['autoid_smwes'].values())], [])
+            wes = chain(orig['swes'].values(), orig['smwes'].values())
             for we in wes:
                 if we.get('ss') and not we['ss'].startswith('p.'):
                     continue
