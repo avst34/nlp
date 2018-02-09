@@ -3,6 +3,35 @@ import os
 from datasets.streusle_v4.settings_data.run_corenlp_on_conllulex import run_corenlp_on_conllulex
 
 
+def fix_lexlemmas(enriched_lines):
+    fixed_lines = []
+    for ind, line in enumerate(enriched_lines):
+        if line.strip() and not line.startswith('#'):
+            cols = line.split('\t')
+            orig_lexlemma = cols[12]
+            if orig_lexlemma != '_':
+                smwe = cols[10]
+                if ':' in smwe:
+                    assert smwe.split(':')[1] == '1', smwe
+                    mweid = smwe.split(':')[0]
+                    next_lines = enriched_lines[ind + 1:]
+                    next_lines = next_lines[:next_lines.index('\n')]
+                    mwe_lines = [x for x in next_lines for mid in [x.split('\t')[10]] if ':' in mid and mid.split(':')[0] == mweid]
+                    mwe_lines.sort(key=lambda l: int(l.split('\t')[10].split(':')[1]))
+                    lemmas = [cols[2]] + [x.split('\t')[2] for x in mwe_lines]
+                    if '_' in lemmas:
+                        lexlemma = '_'
+                    else:
+                        lexlemma = ' '.join(lemmas)
+                else:
+                    lexlemma = cols[2]
+                print('lexlemma: "%s" -> "%s"' % (orig_lexlemma, lexlemma))
+                cols[12] = lexlemma
+                line = '\t'.join(cols)
+        fixed_lines.append(line)
+    return fixed_lines
+
+
 def substitute_conllulex_corenlp(conllulex_fpath):
     outs = run_corenlp_on_conllulex(conllulex_fpath, 'conllu')
 
@@ -32,6 +61,7 @@ def substitute_conllulex_corenlp(conllulex_fpath):
             assert(len(enhanced_cols)) == 19
             enriched_lines.append('\t'.join(enhanced_cols))
 
+    enriched_lines = fix_lexlemmas(enriched_lines)
 
     return ''.join(enriched_lines)
 

@@ -1,5 +1,5 @@
 from .ud_xpos import UD_XPOS
-from .ner import NER
+from .ners import NERS
 from .preps import PREPS
 from .pss import PSS
 from .pss_without_none import PSS_WITHOUT_NONE
@@ -7,3 +7,4 @@ from .ud_deps import UD_DEPS
 from .tokens import TOKENS
 from .lemmas import LEMMAS
 from .boolean import BOOLEAN
+from .govobj_configs import GOVOBJ_CONFIGS

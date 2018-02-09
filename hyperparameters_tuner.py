@@ -48,7 +48,7 @@ def override_settings(settings_list):
     for settings in settings_list:
         for setting in settings:
             override_by_name[setting.name] = setting
-    return override_by_name.values()
+    return list(override_by_name.values())
 
 class HyperparametersTuner:
 

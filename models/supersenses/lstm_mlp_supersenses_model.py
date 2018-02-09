@@ -96,8 +96,8 @@ class LstmMlpSupersensesModel:
                      labels_to_predict,
                      use_token,
                      update_token_embd,
-                     use_pos,
-                     use_dep,
+                     use_ud_xpos,
+                     use_ud_dep,
                      use_ner,
                      use_prep_onehot,
                      use_govobj,
@@ -105,8 +105,8 @@ class LstmMlpSupersensesModel:
                      update_lemmas_embd,
                      token_embd_dim,
                      token_internal_embd_dim,
-                     pos_embd_dim,
-                     deps_embd_dim,
+                     ud_xpos_embd_dim,
+                     ud_deps_embd_dim,
                      ner_embd_dim,
                      govobj_config_embd_dim,
                      mlp_layers,
@@ -129,10 +129,9 @@ class LstmMlpSupersensesModel:
             self.use_ner = use_ner
             self.update_lemmas_embd = update_lemmas_embd
             self.ner_embd_dim = ner_embd_dim
-            self.deps_embd_dim = deps_embd_dim
-            self.pos_embd_dim = pos_embd_dim
+            self.ud_deps_embd_dim = ud_deps_embd_dim
+            self.ud_xpos_embd_dim = ud_xpos_embd_dim
             self.lstm_dropout_p = lstm_dropout_p
-            self.mask_by = mask_by
             self.labels_to_predict = labels_to_predict
             self.token_internal_embd_dim = token_internal_embd_dim
             self.use_token_internal = use_token_internal
@@ -142,8 +141,8 @@ class LstmMlpSupersensesModel:
             self.mlp_activation = mlp_activation
             self.update_token_embd = update_token_embd
             self.use_token = use_token
-            self.use_pos = use_pos
-            self.use_dep = use_dep
+            self.use_ud_xpos = use_ud_xpos
+            self.use_ud_dep = use_ud_dep
             self.use_ner = use_ner
             self.token_embd_dim = token_embd_dim
             self.mlp_layers = mlp_layers
@@ -186,8 +185,8 @@ class LstmMlpSupersensesModel:
                     'input_embedding_dims': {f.name: f.dim for f in self.features.list_features_with_embedding()},
                     'n_labels_to_predict': len(self.hyperparameters.labels_to_predict)
              },
-             del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_pos', 'use_gold_pos', 'use_spacy_pos', 'use_dep', 'use_ner', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
-                       'pos_embd_dim', 'deps_embd_dim', 'spacy_ner_embd_dim',
+             del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_ud_dep', 'use_ner', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
+                       'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim',
                        'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'mask_mwes', 'allow_empty_prediction']))
         )
 
@@ -223,14 +222,15 @@ class LstmMlpSupersensesModel:
         return LstmMlpSupersensesModel.SampleY(**{label: ll_sample_y[ind] for ind, label in enumerate(labels)})
 
     def apply_mask(self, sample_x, sample_y):
-        if self.hyperparameters.mask_mwes and sample_x.is_part_of_mwe:
-            return False
-        if self.hyperparameters.is_mask_by_sample_ys():
-            return not sample_y.is_empty()
-        elif self.hyperparameters.is_mask_by_auto_id():
-            return sample_x.autoid_markable
-        else:
-            return self.get_sample_x_pos(sample_x) in self.hyperparameters.get_pos_mask()
+        return sample_x.identified_for_pss
+        # if self.hyperparameters.mask_mwes and sample_x.is_part_of_mwe:
+        #     return False
+        # if self.hyperparameters.is_mask_by_sample_ys():
+        #     return not sample_y.is_empty()
+        # elif self.hyperparameters.is_mask_by_auto_id():
+        #     return sample_x.autoid_markable
+        # else:
+        #     return self.get_sample_x_pos(sample_x) in self.hyperparameters.get_pos_mask()
 
     def get_sample_x_pos(self, sample_x):
         if self.hyperparameters.pos_from == 'ud':

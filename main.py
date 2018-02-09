@@ -13,41 +13,24 @@ from run import most_frequent_baseline, lstm_mlp_baseline, dataset_statistics
 from collections import Counter
 from datasets.streusle_v4 import streusle
 
-def print_samples_statistics(name, samples):
-    sentences = len(samples)
-    tokens = len([tok for s in samples for tok in s.tagged_tokens])
-    prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_xpos in ['IN', 'PRP$', 'RB', 'TO']])
-    labeled_prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_xpos in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
-    labels_lost = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_xpos not in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
 
-    print("Set: %s, Sentences: %d, Tokens: %d, Prepositions: %d, Labeled prepositions: %d, Labels Lost: %d" % (name,
-                                                                                  sentences,
-                                                                                  tokens,
-                                                                                  prepositions,
-                                                                                  labeled_prepositions,
-                                                                                  labels_lost)
-          )
-
-streusle_loader = streusle.StreusleLoader()
-train_records, dev_records, test_records = streusle_loader.load()
-print('loaded %d train records with %d tokens (%d unique), %d prepositions' % (len(train_records),
-                                                       sum([len(x.tagged_tokens) for x in train_records]),
-                                                       len(set([t.token for s in train_records for t in s.tagged_tokens])),
-                                                       len([tok for rec in train_records for tok in rec.tagged_tokens if tok.supersense_combined])))
-print('loaded %d dev records with %d tokens (%d unique), %d prepositions' % (len(dev_records),
-                                                       sum([len(x.tagged_tokens) for x in dev_records]),
-                                                       len(set([t.token for s in dev_records for t in s.tagged_tokens])),
-                                                       len([tok for rec in dev_records for tok in rec.tagged_tokens if tok.supersense_combined])))
-print('loaded %d test records with %d tokens (%d unique), %d prepositions' % (len(test_records),
-                                                       sum([len(x.tagged_tokens) for x in test_records]),
-                                                       len(set([t.token for s in test_records for t in s.tagged_tokens])),
-                                                       len([tok for rec in test_records for tok in rec.tagged_tokens if tok.supersense_combined])))
-
-print_samples_statistics('train', train_records)
-print_samples_statistics('dev', dev_records)
-print_samples_statistics('test', test_records)
-
-all_records = train_records + dev_records + test_records
+# streusle_loader = streusle.StreusleLoader()
+# train_records, dev_records, test_records = streusle_loader.load()
+# print('loaded %d train records with %d tokens (%d unique), %d prepositions' % (len(train_records),
+#                                                        sum([len(x.tagged_tokens) for x in train_records]),
+#                                                        len(set([t.token for s in train_records for t in s.tagged_tokens])),
+#                                                        len([tok for rec in train_records for tok in rec.tagged_tokens if tok.supersense_combined])))
+# print('loaded %d dev records with %d tokens (%d unique), %d prepositions' % (len(dev_records),
+#                                                        sum([len(x.tagged_tokens) for x in dev_records]),
+#                                                        len(set([t.token for s in dev_records for t in s.tagged_tokens])),
+#                                                        len([tok for rec in dev_records for tok in rec.tagged_tokens if tok.supersense_combined])))
+# print('loaded %d test records with %d tokens (%d unique), %d prepositions' % (len(test_records),
+#                                                        sum([len(x.tagged_tokens) for x in test_records]),
+#                                                        len(set([t.token for s in test_records for t in s.tagged_tokens])),
+#                                                        len([tok for rec in test_records for tok in rec.tagged_tokens if tok.supersense_combined])))
+#
+#
+# all_records = train_records + dev_records + test_records
 # all_ignored_ss = [ignored_ss for rec in all_records for ignored_ss in rec.ignored_supersenses]
 # unfamiliar_ss = [ss for ss in all_ignored_ss if not supersenses.filter_non_supersense(ss)]
 # unfamiliar_ss = [ss for ss in unfamiliar_ss if not(ss.startswith('`') or '_' in ss or '?' in ss)]
@@ -80,4 +63,4 @@ all_records = train_records + dev_records + test_records
 
 # dataset_statistics.run(all_records)
 # most_frequent_baseline.run(train_records, dev_records)
-lstm_mlp_baseline.run(train_records, dev_records, test_records, streusle_loader)
+lstm_mlp_baseline.run()

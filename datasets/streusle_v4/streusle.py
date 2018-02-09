@@ -112,8 +112,7 @@ class TaggedToken:
         self.identified_for_pss = identified_for_pss
         self.govobj_config = govobj_config
         self.obj_ind = obj_ind
-        self.hurel_gov_ind = gov_ind
-        self.autoid_we_toknums = autoid_we_toknums
+        self.gov_ind = gov_ind
         self.we_toknums = we_toknums
         self.ud_id = ud_id
         self.token = token
@@ -186,7 +185,7 @@ class StreusleRecord:
             return [ss1, ss2]
 
         wes = sum([list(data['swes'].values()), list(data['smwes'].values()), list(data['wmwes'].values())], [])
-        tok_we = {we['toknums'][0]: we['toknums'] for we in wes}
+        tok_we = {we['toknums'][0]: we for we in wes}
         we_toknums = {we['toknums'][0]: we['toknums'] for we in wes}
         smwes_toknums = sum([we['toknums'] for we in self.data['smwes'].values()], [])
         wmwes_toknums = sum([we['toknums'] for we in self.data['wmwes'].values()], [])
@@ -211,7 +210,7 @@ class StreusleRecord:
                 lemma=tok_data['lemma'],
                 ud_head_ind=id_to_ind.get(tok_data['head']),
                 ud_dep=tok_data['deprel'],
-                ner=tok_data['ner'],
+                ner=tok_data.get('ner'),
                 supersense_role=tok_ss[tok_data['#']][0],
                 supersense_func=tok_ss[tok_data['#']][1],
                 is_part_of_smwe=tok_data['#'] in smwes_toknums,

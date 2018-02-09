@@ -18,10 +18,28 @@ import json
 from hyperparameters_tuner import union_settings, override_settings
 evaluator = ClassifierEvaluator()
 
+def print_samples_statistics(name, samples):
+    sentences = len(samples)
+    tokens = len([tok for s in samples for tok in s.tagged_tokens])
+    prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_xpos in ['IN', 'PRP$', 'RB', 'TO']])
+    labeled_prepositions = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_xpos in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
+    labels_lost = len([tok for s in samples for tok in s.tagged_tokens if tok.ud_xpos not in ['IN', 'PRP$', 'RB', 'TO'] and tok.supersense_combined])
+
+    print("Set: %s, Sentences: %d, Tokens: %d, Prepositions: %d, Labeled prepositions: %d, Labels Lost: %d" % (name,
+                                                                                                               sentences,
+                                                                                                               tokens,
+                                                                                                               prepositions,
+                                                                                                               labeled_prepositions,
+                                                                                                               labels_lost)
+          )
+
+
 def run():
 
     tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
     task = random.choice(tasks)
+
+    task = 'autoid.autosyn'
 
     loader = StreusleLoader()
     STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/streusle_4alpha'
@@ -29,71 +47,13 @@ def run():
     dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
     test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
 
-    gold_dev_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.goldid.goldsyn.json', input_format='json')
+    print_samples_statistics('train', train_records)
+    print_samples_statistics('dev', dev_records)
+    print_samples_statistics('test', test_records)
 
     train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
     dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
     test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
-
-    gold_dev_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
-
-    # pp_vocab = Vocabulary('PREPS')
-    # pp_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys) if any([y.supersense_role, y.supersense_func])]))
-    #
-    # spacy_dep_vocab = Vocabulary('SPACY_DEPS')
-    # spacy_dep_vocab.add_words(set([x.spacy_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    # spacy_dep_vocab.add_word(None)
-    #
-    # corenlp_dep_vocab = Vocabulary('CORENLP_DEPS')
-    # corenlp_dep_vocab.add_words(set([x.corenlp_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    # corenlp_dep_vocab.add_word(None)
-    #
-    # corenlp_pos_vocab = Vocabulary('CORENLP_POS')
-    # corenlp_pos_vocab.add_words(set([x.corenlp_pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    # corenlp_pos_vocab.add_word(None)
-    #
-    # corenlp_ner_vocab = Vocabulary('CORENLP_NER')
-    # corenlp_ner_vocab.add_words(set([x.corenlp_ner for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    # corenlp_ner_vocab.add_word(None)
-    #
-    # corenlp_lemmas_vocab = Vocabulary('CORENLP_LEMMAS')
-    # corenlp_lemmas_vocab.add_words(set([x.corenlp_lemma for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    #
-    # ud_dep_vocab = Vocabulary('UD_DEPS')
-    # ud_dep_vocab.add_words(set([x.ud_dep for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    # ud_dep_vocab.add_word(None)
-    #
-    # ud_pos_vocab = Vocabulary('UD_POS')
-    # ud_pos_vocab.add_words(set([x.ud_pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    # ud_pos_vocab.add_word(None)
-    #
-    # spacy_pos_vocab = Vocabulary('SPACY_POS')
-    # spacy_pos_vocab.add_words(set([x.spacy_pos for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    # spacy_pos_vocab.add_word(None)
-    #
-    # spacy_ner_vocab = Vocabulary('SPACY_NER')
-    # spacy_ner_vocab.add_words(set([x.spacy_ner for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-    # spacy_ner_vocab.add_word(None)
-    #
-    # token_vocab = Vocabulary('TOKENS')
-    # token_vocab.add_words(set([x.token for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-
-    # ud_lemmas_vocab = Vocabulary('UD_LEMMAS')
-    # ud_lemmas_vocab.add_words(set([x.ud_lemma for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-
-    # pss_vocab = Vocabulary('PSS')
-    # pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
-    # pss_vocab.add_word(None)
-    #
-    # spacy_lemmas_vocab = Vocabulary('SPACY_LEMMAS')
-    # spacy_lemmas_vocab.add_words(set([x.spacy_lemma for s in train_samples + dev_samples + test_samples for x, y in zip(s.xs, s.ys)]))
-
-    # dump_vocabularies([pp_vocab, spacy_dep_vocab, ud_dep_vocab, ud_pos_vocab, ner_vocab, token_vocab, pss_vocab, spacy_pos_vocab])
-    # dump_vocabularies([spacy_ner_vocab])
-    # dump_vocabularies([spacy_lemmas_vocab])
-    # dump_vocabularies([ud_lemmas_vocab])
-    # dump_vocabularies([corenlp_lemmas_vocab])
-    # dump_vocabularies([corenlp_dep_vocab, corenlp_ner_vocab, corenlp_pos_vocab])
 
     test_features()
 
@@ -105,7 +65,7 @@ def run():
         show_progress=True,
         show_epoch_eval=True,
         tuner_domains=override_settings([
-            TASK_SETTINGS[task]
+            TASK_SETTINGS[task],
             [PS(name='epochs', values=[100])] # remove after testing
         ]),
         dump_models=False
