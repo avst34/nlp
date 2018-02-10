@@ -65,7 +65,7 @@ def run():
             show_epoch_eval=True,
             tuner_domains=override_settings([
                 TASK_SETTINGS[task],
-                [PS(name='epochs', values=[1])] # remove after testing
+                # [PS(name='epochs', values=[1])] # remove after testing
             ]),
             dump_models=False
         )
