@@ -127,9 +127,9 @@ class HyperparametersTuner:
 
     def gen_execution_id(self):
         if self.shared_csv:
-            return self.gen_id()
+            return self.task_name + '_' + self.gen_id()
         else:
-            return self.emitted_results + 1
+            return self.task_name + '_' + self.emitted_results + 1
 
     def emit_result(self, params, result, execution_time_secs):
         assert isinstance(result, HyperparametersTuner.ExecutionResult)

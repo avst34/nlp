@@ -249,23 +249,22 @@ class StreusleRecord:
         data['smwes'] = {}
         for token, (role, func) in zip(self.tagged_tokens, supersenses):
             found_we = None
-            if not role and not func:
-                continue
             wes = chain(orig['swes'].values(), orig['smwes'].values())
             for we in wes:
                 if we.get('ss') and not we['ss'].startswith('p.'):
                     continue
                 if we['toknums'][0] == token.ud_id:
-                   found_we = we
-            if not found_we:
+                    found_we = we
+            if found_we:
+                new_we = {
+                    'toknums': found_we['toknums'],
+                    'lexcat': found_we.get('lexcat'),
+                    'ss': format_supersense(role),
+                    'ss2': format_supersense(func)
+                }
+                data[found_we['we_type']][found_we['we_id']] = new_we
+            elif role or func:
                 raise Exception("Couldn't find a match for system supersense in data (" + ident + ")")
-            new_we = {
-                'toknums': found_we['toknums'],
-                'lexcat': found_we.get('lexcat'),
-                'ss': format_supersense(role),
-                'ss2': format_supersense(func)
-            }
-            data[found_we['we_type'].replace('autoid_', '')][found_we['we_id']] = new_we
 
         return data
 

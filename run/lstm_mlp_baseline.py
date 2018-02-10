@@ -38,40 +38,39 @@ def run():
 
     tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
     task = random.choice(tasks)
+    # task = 'autoid.autosyn'
+    for task in [task]:
+        loader = StreusleLoader()
+        STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/streusle_4alpha'
+        train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
+        dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
+        test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
 
-    task = 'autoid.autosyn'
+        print_samples_statistics('train', train_records)
+        print_samples_statistics('dev', dev_records)
+        print_samples_statistics('test', test_records)
 
-    loader = StreusleLoader()
-    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/streusle_4alpha'
-    train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
-    dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
-    test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
+        train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
+        dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
+        test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
 
-    print_samples_statistics('train', train_records)
-    print_samples_statistics('dev', dev_records)
-    print_samples_statistics('test', test_records)
+        test_features()
 
-    train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
-    dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
-    test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
+        tuner = LstmMlpSupersensesModelHyperparametersTuner(
+            task_name=task,
+            results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/results.csv',
+            samples=train_samples, # use all after testing
+            validation_samples=dev_samples,
+            show_progress=True,
+            show_epoch_eval=True,
+            tuner_domains=override_settings([
+                TASK_SETTINGS[task],
+                [PS(name='epochs', values=[1])] # remove after testing
+            ]),
+            dump_models=False
+        )
 
-    test_features()
-
-    tuner = LstmMlpSupersensesModelHyperparametersTuner(
-        task_name=task,
-        results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/results.csv',
-        samples=train_samples, # use all after testing
-        validation_samples=dev_samples,
-        show_progress=True,
-        show_epoch_eval=True,
-        tuner_domains=override_settings([
-            TASK_SETTINGS[task],
-            [PS(name='epochs', values=[100])] # remove after testing
-        ]),
-        dump_models=False
-    )
-
-    best_params, best_results = tuner.tune(n_executions=1)
+        best_params, best_results = tuner.tune(n_executions=1)
     # predictor = best_results.predictor
     #
     # predictor.save('/tmp/predictor')
