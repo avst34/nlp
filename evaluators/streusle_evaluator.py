@@ -9,15 +9,15 @@ from datasets.streusle_v4.streusle import StreusleLoader
 
 STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/streusle_4alpha'
 
-records = StreusleLoader().load(STREUSLE_BASE + '/streusle.conllulex')
-record_by_id = {r.id: r for r in records}
+gold_records = StreusleLoader().load(STREUSLE_BASE + '/streusle.conllulex')
+gold_record_by_id = {r.id: r for r in gold_records}
 
 class StreusleEvaluator:
 
     def  __init__(self, predictor):
         self.predictor = predictor
 
-    def evaluate(self, streusle_samples, output_tsv_path=None, ident='autoid'):
+    def evaluate(self, streusle_records, output_tsv_path=None, ident='autoid'):
         assert ident in ['autoid', 'goldid']
         rand = str(int(time.time() * 1000))
         gold_fname = 'gold_' + rand + '.json'
@@ -31,11 +31,11 @@ class StreusleEvaluator:
 
         try:
             with open(gold_fname, 'w') as gold_f:
-                json.dump([record_by_id[sample.sample_id].data for sample in streusle_samples], gold_f)
+                json.dump([record.data for record in streusle_records], gold_f)
             with open(sys_fname, 'w') as sys_f:
                 sys_data = []
-                for sample in streusle_samples:
-                    streusle_record = record_by_id[sample.sample_id]
+                for streusle_record in streusle_records:
+                    sample = streusle_record_to_lstm_model_sample(streusle_record)
                     predictions = self.predictor.predict(sample.xs, mask=self.predictor.get_sample_mask(sample.xs, sample.ys))
                     predictions = [(p.supersense_role, p.supersense_func) for p in predictions]
                     sent_data = streusle_record.build_data_with_supersenses(predictions, ident)

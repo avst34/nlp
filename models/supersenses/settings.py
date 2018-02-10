@@ -3,19 +3,19 @@ from .tuner_domains import TUNER_DOMAINS
 PS = HyperparametersTuner.ParamSettings
 
 GOLD_ID_GOLD_PREP = override_settings([TUNER_DOMAINS, [
-    PS(name='allow_empty_prediction', values=[False], task_param=True)
+    PS(name='allow_empty_prediction', values=[False])
 ]])
 
 GOLD_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
-    PS(name='allow_empty_prediction', values=[False], task_param=True)
+    PS(name='allow_empty_prediction', values=[False])
 ]])
 
 AUTO_ID_GOLD_PREP = override_settings([TUNER_DOMAINS, [
-    PS(name='allow_empty_prediction', values=[True], task_param=True)
+    PS(name='allow_empty_prediction', values=[True])
 ]])
 
 AUTO_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
-    PS(name='allow_empty_prediction', values=[True], task_param=True)
+    PS(name='allow_empty_prediction', values=[True])
 ]])
 
 

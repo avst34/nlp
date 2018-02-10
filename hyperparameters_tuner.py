@@ -30,15 +30,11 @@ def union_settings(settings_list):
         for setting in settings:
             group_by_name[setting.name].append(setting)
 
-    for name, settings in group_by_name.items():
-        assert any({s.task_param for s in settings}) == all({s.task_param for s in settings})
-
     return [
         HyperparametersTuner.ParamSettings(
             name=name,
             values=list({v for s in settings for v in s.values}),
             enabled=any({s.enabled for s in settings}),
-            task_param=any({s.task_param for s in settings}),
         )
         for name, settings in group_by_name.items()
     ]
@@ -54,8 +50,7 @@ class HyperparametersTuner:
 
     class ParamSettings:
 
-        def __init__(self, name, values, enabled=True, task_param=False):
-            self.task_param = task_param
+        def __init__(self, name, values, enabled=True):
             self.name = name
             self.values = values
             self.enabled = enabled
@@ -91,8 +86,6 @@ class HyperparametersTuner:
         self.emitted_csv_rows = 0
         self.emitted_results = 0
 
-        self.task_param_names = [ps.name for ps in params_settings if ps.task_param]
-
     def sample_params(self):
         return OrderedDict({
             (setting.name, setting.sample()) for setting in self.params_settings
@@ -127,7 +120,7 @@ class HyperparametersTuner:
 
     def gen_execution_id(self):
         if self.shared_csv:
-            return self.task_name + '_' + self.gen_id()
+            return self.task_Fname + '_' + self.gen_id()
         else:
             return self.task_name + '_' + self.emitted_results + 1
 
@@ -143,7 +136,7 @@ class HyperparametersTuner:
             if self.dump_result \
                 and os.path.exists(self.csv_file_path):
                     prevs = csv_to_objs(self.csv_file_path)
-                    current_highest_score = max([float(prev['Tuner Score']) for prev in prevs if all([prev[param] == str(params[param]) for param in self.task_param_names])] + [0])
+                    current_highest_score = max([float(prev['Tuner Score']) for prev in prevs if prev['Task'] == self.task_name] + [0])
 
             with open(self.csv_file_path, open_flags) as csv_f:
                 csv_writer = csv.writer(csv_f)

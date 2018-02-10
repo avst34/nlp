@@ -266,6 +266,7 @@ class StreusleRecord:
             elif role or func:
                 raise Exception("Couldn't find a match for system supersense in data (" + ident + ")")
 
+
         return data
 
 class StreusleLoader(object):

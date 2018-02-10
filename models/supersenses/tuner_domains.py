@@ -10,7 +10,7 @@ TUNER_DOMAINS_TUNING = [
         ('supersense_role', 'supersense_func'),
         # ('supersense_role',),
         # ('supersense_func',)
-    ], task_param=True),
+    ]),
     PS(name='use_token', values=[True]),
     PS(name='update_lemmas_embd', values=[True, False]),
     PS(name='use_token_internal', values=[True]),
@@ -37,7 +37,7 @@ TUNER_DOMAINS_TUNING = [
     PS(name='epochs', values=[80]),
     PS(name='learning_rate', values=np.logspace(-2, 0, 6)),
     PS(name='learning_rate_decay', values=np.r_[0, np.logspace(-5, -1, 9)]),
-    PS(name='mask_mwes', values=[False], task_param=True),
+    PS(name='mask_mwes', values=[False]),
     PS(name='dynet_random_seed', values=[os.environ['DYNET_RANDOM_SEED']], enabled=False),
     PS(name='allow_empty_prediction', values=[True, False])
 ]

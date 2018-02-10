@@ -121,8 +121,10 @@ class LstmMlpSupersensesModel:
                      learning_rate,
                      learning_rate_decay,
                      mask_mwes,
-                     allow_empty_prediction
+                     allow_empty_prediction,
+                     dynet_random_seed
                      ):
+            self.dynet_random_seed = dynet_random_seed
             self.use_govobj = use_govobj
             self.govobj_config_embd_dim = govobj_config_embd_dim
             self.allow_empty_prediction = allow_empty_prediction

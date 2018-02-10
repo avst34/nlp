@@ -130,7 +130,7 @@ def to_tsv(all_sys_scores, depth, file=sys.stdout):
             print('', end='\t', file=file)
             for criterion in ('ID', 'Role', 'Fxn', 'Role,Fxn'):
                 prf = aidscores[k][criterion]
-                print("%.2f" % prf["P"] + '\t' + "%.2f" % prf["R"] + '\t' + "%.2f" % prf["F"] + '\t', end='\t', file=file)
+                print("%.2f" % (prf["P"] or -1) + '\t' + "%.2f" % (prf["R"] or -1) + '\t' + "%.2f" % (prf["F"] or -1) + '\t', end='\t', file=file)
             print(file=file)
         print(file=file)
 

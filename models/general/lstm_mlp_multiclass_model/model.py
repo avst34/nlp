@@ -68,7 +68,9 @@ class LstmMlpMulticlassModel(object):
                      epochs,
                      learning_rate,
                      learning_rate_decay,
-                     n_labels_to_predict):
+                     n_labels_to_predict,
+                     dynet_random_seed):
+            self.dynet_random_seed = dynet_random_seed
             self.input_embeddings_to_allow_partial = input_embeddings_to_allow_partial
             self.lstm_dropout_p = lstm_dropout_p
             self.token_neighbour_types = token_neighbour_types
