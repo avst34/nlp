@@ -3,9 +3,14 @@ from concurrent.futures import ThreadPoolExecutor
 
 import requests
 
-from datasets.streusle_v4.streusle_4alpha import conllulex2json
+from datasets.streusle_v4.release import conllulex2json
 
 cache = {}
+
+def hash_obj(obj):
+    import hashlib
+    import json
+    return hashlib.md5(json.dumps(obj, sort_keys=True).encode('utf8')).digest().hex()[:8]
 
 def run_corenlp_on_conllulex(conllulex_fpath, format='conllu', tmp_dir='/tmp', use_server=True):
     assert format in ['conllu', 'conll']
@@ -30,20 +35,34 @@ def run_corenlp_on_conllulex(conllulex_fpath, format='conllu', tmp_dir='/tmp', u
             if not cache.get((input_file, format)):
                 with open(input_file, 'r', encoding='utf-8') as f:
                     s = f.read()
-                    r = requests.post('http://127.0.0.1:9000/', params={
-                        'outputFormat': format,
-                        'ssplit.isOneSentence': 'true',
-                        'tokenize.whitespace': 'true',
-                        'annotators': "tokenize,ssplit,pos,lemma,ner,parse,dcoref,udfeats"
-                    }, data=s.encode('utf-8'))
+                    req = {
+                        'params': {
+                            'outputFormat': format,
+                            'ssplit.isOneSentence': 'true',
+                            'tokenize.whitespace': 'true',
+                            'annotators': "tokenize,ssplit,pos,lemma,ner,parse,dcoref,udfeats"
+                        },
+                        'data': s
+                    }
+                    cache_file = tmp_dir + '/' + hash_obj(req)
+                    if os.path.exists(cache_file):
+                        with open(cache_file, encoding='utf8') as cf:
+                            text = cf.read()
+                        text = text.replace('\r\n', '\n').replace('\n\n', '\n')
+                    else:
+                        r = requests.post('http://127.0.0.1:9000/', params=req['params'], data=req['data'].encode('utf-8'))
+                        text = r.text
+                        with open(cache_file, 'w', encoding='utf8') as cf:
+                            cf.write(text)
+                    text = text.replace('\r\n', '\n')
                     try:
-                        int(r.text.split('\t')[0])
+                        int(text.split('\t')[0])
                     except:
                         print("ERROR: Bad response from corenlp server")
-                        print(r.text)
+                        print(text)
                         print(s)
                         raise
-                    cache[(input_file, format)] = r.text.replace('\r\n', '\n').split('\n')
+                    cache[(input_file, format)] = text.replace('\r\n', '\n').split('\n')
             print("%d/%d" % (len(cache), len(input_files)))
         with ThreadPoolExecutor(6) as tpe:
             list(tpe.map(process, input_files))

@@ -7,8 +7,8 @@ from datasets.streusle_v4.settings_data.enrich_autoid import enrich_autoid
 from datasets.streusle_v4.settings_data.enrich_ners import enrich_ners
 from datasets.streusle_v4.settings_data.run_corenlp_on_conllulex import run_corenlp_on_conllulex
 from datasets.streusle_v4.settings_data.subsitute_conllulex_corenlp import substitute_conllulex_corenlp
-from datasets.streusle_v4.streusle_4alpha import conllulex2json
-from datasets.streusle_v4.streusle_4alpha.govobj import govobj
+from datasets.streusle_v4.release import conllulex2json
+from datasets.streusle_v4.release.govobj import govobj
 
 
 def run_pipeline(conllulex_train_path, conllulex_dev_path, conllulex_test_path, identification, preprocessing, identify_script_path):
@@ -82,7 +82,7 @@ def build_data(conllulex_train_path, conllulex_dev_path, conllulex_test_path, id
 
 
 if __name__ == '__main__':
-    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/streusle_4alpha'
+    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
     build_data(
         STREUSLE_BASE + '/train/streusle.ud_train.conllulex',
         STREUSLE_BASE + '/dev/streusle.ud_dev.conllulex',

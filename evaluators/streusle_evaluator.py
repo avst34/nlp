@@ -2,12 +2,12 @@ import os
 import json
 import time
 
-from datasets.streusle_v4.streusle_4alpha import psseval
+from datasets.streusle_v4.release import psseval
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 
 from datasets.streusle_v4.streusle import StreusleLoader
 
-STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/streusle_4alpha'
+STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
 
 gold_records = StreusleLoader().load(STREUSLE_BASE + '/streusle.conllulex')
 gold_record_by_id = {r.id: r for r in gold_records}

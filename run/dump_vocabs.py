@@ -31,7 +31,7 @@ def build_vocabs():
     stypes = ['train', 'dev', 'test']
 
     loader = StreusleLoader()
-    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/streusle_4alpha'
+    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
     all_files = [STREUSLE_BASE + '/' + stype + '/streusle.ud_' + stype + '.' + task + '.json' for task in tasks for stype in stypes]
     records = sum([loader.load(f, input_format='json') for f in all_files], [])
     samples = [streusle_record_to_lstm_model_sample(r) for r in records]

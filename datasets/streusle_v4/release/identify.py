@@ -6,7 +6,7 @@ import json
 from collections import defaultdict
 from operator import itemgetter
 
-import tags2sst
+# import tags2sst
 from helpers import *
 
 PREPS_MASTER = {"a", "abaft", "aboard", "about", "above", "abreast", "abroad", "absent", "across",
@@ -271,7 +271,7 @@ def identify(model, args):
                 if mwe and token.lemma in mw_beginners:
                     for j in range(min(length, i+max_mwe_length)-1, i+1, -1):
                         ngram = [t for t in sent.tokens[i:j]]
-                        ngram_lemma = " ".join([t.lemma for t in ngram])
+                        ngram_lemma = " ".join([t.lemma or "_" for t in ngram])
                         if ngram_lemma in non_prep_mwe_list:
                             skip = True
                             k = j

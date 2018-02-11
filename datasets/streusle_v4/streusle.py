@@ -10,10 +10,10 @@ import supersenses
 from vocabulary import Vocabulary, VocabularyBuilder
 from word2vec import Word2VecModel
 
-STREUSLE_DIR = os.path.join(os.path.dirname(__file__), 'streusle_4alpha')
+STREUSLE_DIR = os.path.join(os.path.dirname(__file__), 'release')
 sys.path.append(STREUSLE_DIR)
 print(STREUSLE_DIR)
-from .streusle_4alpha import conllulex2json
+from .release import conllulex2json
 
 ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'UD_LEMMAS_WORD2VEC_PATH', 'UD_LEMMAS_WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'CORENLP_DEP_TREES', 'SPACY_NERS', 'CORENLP_NERS', 'SPACY_POS', 'CORENLP_POS', 'TRAIN_SET_SENTIDS_UD_SPLIT', 'DEV_SET_SENTIDS_UD_SPLIT', 'TEST_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES', 'SPACY_LEMMAS', 'CORENLP_LEMMAS', 'SPACY_LEMMAS_WORD2VEC_PATH', 'CORENLP_LEMMAS_WORD2VEC_PATH', 'SPACY_LEMMAS_WORD2VEC_MISSING_PATH', 'CORENLP_LEMMAS_WORD2VEC_MISSING_PATH', 'STANFORD_CORE_NLP_OUTPUT', 'HEURISTIC_GOVOBJ'])(
     WORD2VEC_PATH=os.path.join(STREUSLE_DIR, 'word2vec.pickle'),
