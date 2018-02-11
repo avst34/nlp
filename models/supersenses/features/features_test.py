@@ -33,7 +33,8 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     epochs=50,
     learning_rate=0.1,
     learning_rate_decay=0.01,
-    mask_mwes=True
+    mask_mwes=True,
+    dynet_random_seed=0
 )
 
 test_sample = LstmMlpSupersensesModel.Sample.from_dict({
