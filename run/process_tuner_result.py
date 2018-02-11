@@ -53,6 +53,7 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
         dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
         test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
 
+        # params['epochs'] = 1
         model = LstmMlpSupersensesModel(LstmMlpSupersensesModel.HyperParameters(**params))
         predictor = model.fit(train_samples, dev_samples, show_progress=False)
         print("Training done")

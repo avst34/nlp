@@ -38,8 +38,8 @@ TUNER_DOMAINS_TUNING = [
     PS(name='learning_rate', values=np.logspace(-2, 0, 6)),
     PS(name='learning_rate_decay', values=np.r_[0, np.logspace(-5, -1, 9)]),
     PS(name='mask_mwes', values=[False]),
-    PS(name='dynet_random_seed', values=[os.environ['DYNET_RANDOM_SEED']], enabled=False),
-    PS(name='allow_empty_prediction', values=[True, False])
+    PS(name='allow_empty_prediction', values=[True, False]),
+    PS(name='dynet_random_seed', values=[os.environ['DYNET_RANDOM_SEED']], enabled=True)
 ]
 
 

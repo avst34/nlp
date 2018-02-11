@@ -120,7 +120,7 @@ class HyperparametersTuner:
 
     def gen_execution_id(self):
         if self.shared_csv:
-            return self.task_Fname + '_' + self.gen_id()
+            return self.task_name + '_' + self.gen_id()
         else:
             return self.task_name + '_' + self.emitted_results + 1
 
