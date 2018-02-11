@@ -60,7 +60,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
                  show_progress=True,
                  show_epoch_eval=True,
                  dump_models=False,
-                 dump_pss_eval=True,
+                 dump_pss_eval=False,
                  evaluator=ClassifierEvaluator(),
                  tuner_score_getter=lambda evaluations: max([e['f1'] or 0 for e in evaluations]),
                  tuner_results_getter=extract_classifier_evaluator_results,
