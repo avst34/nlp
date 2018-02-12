@@ -38,26 +38,31 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
                 'score': cur_score
             }
 
+    loader = StreusleLoader()
+    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
+
     for task, best_result in best_results_by_task.items():
         print("Best results for " + task + ": " + str(best_result['score']))
         task_output = output_dir + '/' + task
         if not os.path.exists(task_output):
             os.mkdir(task_output)
         params = execution_params[best_result['execution_id']]
-        loader = StreusleLoader()
-        STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
+
         train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
         dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
         test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
         train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
         dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
-        test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
+
+        if not params.get("use_lexcat"):
+            params["use_lexcat"] = True
+            params["lexcat_embd_dim"] = 3
 
         # params['epochs'] = 1
         model = LstmMlpSupersensesModel(LstmMlpSupersensesModel.HyperParameters(**params))
         predictor = model.fit(train_samples, dev_samples, show_progress=False)
         print("Training done")
-        predictor.save(task_output + '/model')
+        # predictor.save(task_output + '/model')
         print("Save model done")
         evaluator = StreusleEvaluator(predictor)
         for stype, records in [('train', train_records), ('dev', dev_records), ('test', test_records)]:

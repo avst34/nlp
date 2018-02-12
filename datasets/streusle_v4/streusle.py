@@ -268,6 +268,8 @@ class StreusleRecord:
             elif role or func:
                 raise Exception("Couldn't find a match for system supersense in data (" + ident + ")")
 
+        for we in chain(data['swes'].values(), data['smwes'].values()):
+            assert we['ss'] != 'p.X' and we['ss2'] != 'p.X'
 
         return data
 

@@ -1,6 +1,7 @@
 import os
 import json
 import time
+from itertools import chain
 
 from datasets.streusle_v4.release import psseval
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
@@ -31,7 +32,7 @@ class StreusleEvaluator:
 
         try:
             with open(gold_fname, 'w') as gold_f:
-                json.dump([record.data for record in streusle_records], gold_f)
+                json.dump([gold_record_by_id[record.id].data for record in streusle_records], gold_f)
             with open(sys_fname, 'w') as sys_f:
                 sys_data = []
                 for streusle_record in streusle_records:
@@ -39,6 +40,8 @@ class StreusleEvaluator:
                     predictions = self.predictor.predict(sample.xs, mask=self.predictor.get_sample_mask(sample.xs, sample.ys))
                     predictions = [(p.supersense_role, p.supersense_func) for p in predictions]
                     sent_data = streusle_record.build_data_with_supersenses(predictions, ident)
+                    for we in chain(sent_data.get('wes', {}).values(), sent_data.get('smwes', {}).values()):
+                        assert we['ss'] != 'p.X' and we['ss2'] != 'p.X'
                     sys_data.append(sent_data)
                 json.dump(sys_data, sys_f)
 
