@@ -62,7 +62,7 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
         model = LstmMlpSupersensesModel(LstmMlpSupersensesModel.HyperParameters(**params))
         predictor = model.fit(train_samples, dev_samples, show_progress=False)
         print("Training done")
-        # predictor.save(task_output + '/model')
+        predictor.save(task_output + '/model')
         print("Save model done")
         evaluator = StreusleEvaluator(predictor)
         for stype, records in [('train', train_records), ('dev', dev_records), ('test', test_records)]:
