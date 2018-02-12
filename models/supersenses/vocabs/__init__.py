@@ -8,3 +8,4 @@ from .tokens import TOKENS
 from .lemmas import LEMMAS
 from .boolean import BOOLEAN
 from .govobj_configs import GOVOBJ_CONFIGS
+from .lexcat import LEXCAT

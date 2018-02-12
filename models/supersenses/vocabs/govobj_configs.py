@@ -1,10 +1,10 @@
 from vocabulary import Vocabulary
             
 GOVOBJ_CONFIGS = Vocabulary('GOVOBJ_CONFIGS', [
-'stranded',
+'default',
 'possessive',
-'subordinating',
 None,
+'subordinating',
 'predicative',
-'default']
+'stranded']
 )

@@ -1,18 +1,18 @@
 from vocabulary import Vocabulary
             
 NERS = Vocabulary('NERS', [
-'NUMBER',
-'PERCENT',
-'SET',
 'DATE',
-'MISC',
-'ORDINAL',
 'ORGANIZATION',
-'TIME',
-'MONEY',
 'O',
-'LOCATION',
+'ORDINAL',
+'TIME',
+'NUMBER',
+'MONEY',
+'PERCENT',
+'MISC',
 'PERSON',
+'LOCATION',
 'DURATION',
+'SET',
 None]
 )

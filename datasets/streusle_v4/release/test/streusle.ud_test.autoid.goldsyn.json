@@ -197,8 +197,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -322,7 +322,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "around",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -415,7 +415,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Beneficiary",
         "ss2": "p.Beneficiary",
@@ -868,8 +868,8 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -1533,8 +1533,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "they",
+        "lexcat": "PRON.POSS",
         "ss": "p.Originator",
         "ss2": "p.Possessor",
         "toknums": [
@@ -1549,7 +1549,7 @@
         }
       },
       "6": {
-        "lexlemma": null,
+        "lexlemma": "out",
         "lexcat": "P",
         "ss": "p.Direction",
         "ss2": "p.Direction",
@@ -1565,7 +1565,7 @@
         }
       },
       "7": {
-        "lexlemma": null,
+        "lexlemma": "as",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -1786,7 +1786,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -1802,7 +1802,7 @@
         }
       },
       "5": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
@@ -1818,7 +1818,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
@@ -2007,8 +2007,8 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -2023,7 +2023,7 @@
         }
       },
       "8": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -2308,7 +2308,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.Goal",
@@ -2324,7 +2324,7 @@
         }
       },
       "7": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -2340,7 +2340,7 @@
         }
       },
       "13": {
-        "lexlemma": null,
+        "lexlemma": "under",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -2701,7 +2701,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -3002,7 +3002,7 @@
     "etoks": [],
     "swes": {
       "11": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -3018,7 +3018,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Whole",
         "ss2": "p.Whole",
@@ -3034,8 +3034,8 @@
         }
       },
       "15": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.Agent",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -3223,8 +3223,8 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "he",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -3536,7 +3536,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Originator",
         "ss2": "p.Source",
@@ -3552,7 +3552,7 @@
         }
       },
       "7": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Whole",
@@ -3568,8 +3568,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -4025,7 +4025,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Goal",
@@ -4702,7 +4702,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -5005,7 +5005,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "home",
         "lexcat": "P",
         "ss": null,
         "ss2": null,
@@ -5023,8 +5023,8 @@
     },
     "smwes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "PP",
+        "lexlemma": "instead of",
+        "lexcat": "P",
         "ss": "p.InsteadOf",
         "ss2": "p.InsteadOf",
         "toknums": [
@@ -5180,7 +5180,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
@@ -5573,7 +5573,7 @@
     "etoks": [],
     "swes": {
       "14": {
-        "lexlemma": null,
+        "lexlemma": "than",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -5954,7 +5954,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "after",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -5970,7 +5970,7 @@
         }
       },
       "8": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -5986,7 +5986,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Duration",
         "ss2": "p.Duration",
@@ -6002,7 +6002,7 @@
         }
       },
       "18": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Means",
         "ss2": "p.Means",
@@ -6235,7 +6235,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -6644,7 +6644,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Goal",
@@ -6660,7 +6660,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
@@ -6676,8 +6676,8 @@
         }
       },
       "11": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.OrgRole",
         "ss2": "p.Possessor",
         "toknums": [
@@ -6993,7 +6993,7 @@
     "etoks": [],
     "swes": {
       "11": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Characteristic",
         "ss2": "p.Characteristic",
@@ -7354,7 +7354,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -7915,7 +7915,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Locus",
@@ -7931,8 +7931,8 @@
         }
       },
       "10": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "they",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -7947,7 +7947,7 @@
         }
       },
       "15": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "??",
         "ss2": null,
@@ -8936,7 +8936,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -8952,7 +8952,7 @@
         }
       },
       "16": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "??",
         "ss2": null,
@@ -8968,7 +8968,7 @@
         }
       },
       "18": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Co-Theme",
         "ss2": "p.Co-Theme",
@@ -9201,7 +9201,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Explanation",
         "ss2": "p.Explanation",
@@ -9217,7 +9217,7 @@
         }
       },
       "7": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -9233,8 +9233,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -9814,10 +9814,10 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "than",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           4
         ],
@@ -9830,7 +9830,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Circumstance",
         "ss2": "p.Circumstance",
@@ -9846,7 +9846,7 @@
         }
       },
       "13": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -9862,7 +9862,7 @@
         }
       },
       "17": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Originator",
         "ss2": "p.Source",
@@ -10291,7 +10291,7 @@
     "etoks": [],
     "swes": {
       "10": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -10307,7 +10307,7 @@
         }
       },
       "18": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Locus",
@@ -10464,7 +10464,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -10480,8 +10480,8 @@
         }
       },
       "6": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Recipient",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -11253,7 +11253,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Whole",
         "ss2": "p.Whole",
@@ -11269,7 +11269,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "around",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -11285,7 +11285,7 @@
         }
       },
       "34": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -11486,7 +11486,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Goal",
@@ -11502,7 +11502,7 @@
         }
       },
       "5": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
@@ -12087,7 +12087,7 @@
     "etoks": [],
     "swes": {
       "10": {
-        "lexlemma": null,
+        "lexlemma": "like",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -12103,7 +12103,7 @@
         }
       },
       "29": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Originator",
         "ss2": "p.Source",
@@ -12588,7 +12588,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Goal",
@@ -12604,7 +12604,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -12873,7 +12873,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -12889,7 +12889,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -13078,10 +13078,10 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           2
         ],
@@ -13519,7 +13519,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -13535,7 +13535,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Whole",
         "ss2": "p.Whole",
@@ -13551,8 +13551,8 @@
         }
       },
       "12": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Experiencer",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -13567,7 +13567,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
@@ -14120,8 +14120,8 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Originator",
         "ss2": "p.Possessor",
         "toknums": [
@@ -14136,7 +14136,7 @@
         }
       },
       "13": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Path",
         "ss2": "p.Direction",
@@ -14545,8 +14545,8 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.OrgRole",
         "ss2": "p.Possessor",
         "toknums": [
@@ -14561,7 +14561,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Topic",
@@ -14577,8 +14577,8 @@
         }
       },
       "15": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -15066,10 +15066,10 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
-        "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "'s",
+        "lexcat": "POSS",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           2
         ],
@@ -15082,7 +15082,7 @@
         }
       },
       "7": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -15379,7 +15379,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -15395,8 +15395,8 @@
         }
       },
       "4": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -15536,7 +15536,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -15849,10 +15849,10 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "over",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           5
         ],
@@ -16530,7 +16530,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Species",
         "ss2": "p.Species",
@@ -16687,7 +16687,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "by",
         "lexcat": "P",
         "ss": "p.Instrument",
         "ss2": "p.Instrument",
@@ -16703,8 +16703,8 @@
         }
       },
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "its",
+        "lexcat": "PRON.POSS",
         "ss": "p.Whole",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -16908,7 +16908,7 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Source",
@@ -17081,7 +17081,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Source",
@@ -18080,10 +18080,10 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
-        "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "'s",
+        "lexcat": "POSS",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           2
         ],
@@ -18096,7 +18096,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "as",
         "lexcat": "P",
         "ss": "p.Approximator",
         "ss2": "p.Identity",
@@ -18112,7 +18112,7 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "as",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -18128,7 +18128,7 @@
         }
       },
       "21": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Extent",
         "ss2": "p.Identity",
@@ -18144,7 +18144,7 @@
         }
       },
       "22": {
-        "lexlemma": null,
+        "lexlemma": "over",
         "lexcat": "P",
         "ss": "p.Approximator",
         "ss2": "p.Approximator",
@@ -18162,7 +18162,7 @@
     },
     "smwes": {
       "1": {
-        "lexlemma": null,
+        "lexlemma": "at least",
         "lexcat": "PP",
         "ss": "p.Approximator",
         "ss2": "p.Approximator",
@@ -18487,7 +18487,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "than",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -18952,7 +18952,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Locus",
@@ -19201,7 +19201,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Topic",
@@ -19342,7 +19342,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -19707,7 +19707,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -19723,7 +19723,7 @@
         }
       },
       "18": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
@@ -19976,7 +19976,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -20597,10 +20597,10 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           6
         ],
@@ -21162,8 +21162,8 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "they",
+        "lexcat": "PRON.POSS",
         "ss": "`$",
         "ss2": "`$",
         "toknums": [
@@ -21178,10 +21178,10 @@
         }
       },
       "15": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           15
         ],
@@ -21194,10 +21194,10 @@
         }
       },
       "17": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           17
         ],
@@ -21475,7 +21475,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -21776,8 +21776,8 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -21792,8 +21792,8 @@
         }
       },
       "11": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.OrgRole",
         "ss2": "p.Possessor",
         "toknums": [
@@ -21808,7 +21808,7 @@
         }
       },
       "13": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -22417,8 +22417,8 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -22433,7 +22433,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "into",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Goal",
@@ -22449,7 +22449,7 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Characteristic",
         "ss2": "p.Characteristic",
@@ -22734,7 +22734,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "within",
         "lexcat": "P",
         "ss": "p.Duration",
         "ss2": "p.Duration",
@@ -22750,7 +22750,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -23151,7 +23151,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -23628,8 +23628,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Originator",
         "ss2": "p.Possessor",
         "toknums": [
@@ -23644,7 +23644,7 @@
         }
       },
       "18": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Beneficiary",
         "ss2": "p.Theme",
@@ -24337,7 +24337,7 @@
     "etoks": [],
     "swes": {
       "10": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "??",
         "ss2": null,
@@ -24353,7 +24353,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -24369,8 +24369,8 @@
         }
       },
       "15": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "they",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -24682,7 +24682,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Locus",
@@ -24698,8 +24698,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -24714,8 +24714,8 @@
         }
       },
       "10": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
         "toknums": [
@@ -25235,7 +25235,7 @@
     "etoks": [],
     "swes": {
       "22": {
-        "lexlemma": null,
+        "lexlemma": "out",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -25251,7 +25251,7 @@
         }
       },
       "27": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -25267,8 +25267,8 @@
         }
       },
       "28": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -25500,7 +25500,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "about",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -25861,10 +25861,10 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "away",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           7
         ],
@@ -26510,10 +26510,10 @@
     "etoks": [],
     "swes": {
       "12": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           12
         ],
@@ -26526,8 +26526,8 @@
         }
       },
       "18": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.OrgRole",
         "ss2": "p.Possessor",
         "toknums": [
@@ -26542,10 +26542,10 @@
         }
       },
       "30": {
-        "lexlemma": null,
+        "lexlemma": "behind",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           30
         ],
@@ -26558,7 +26558,7 @@
         }
       },
       "33": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -26747,7 +26747,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -27464,7 +27464,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -27541,7 +27541,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -27842,8 +27842,8 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -27858,7 +27858,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "by",
         "lexcat": "P",
         "ss": "p.Agent",
         "ss2": "p.Agent",
@@ -27874,7 +27874,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Locus",
@@ -28367,7 +28367,7 @@
     "etoks": [],
     "swes": {
       "17": {
-        "lexlemma": null,
+        "lexlemma": "as",
         "lexcat": "P",
         "ss": "p.Extent",
         "ss2": "p.Identity",
@@ -28383,7 +28383,7 @@
         }
       },
       "19": {
-        "lexlemma": null,
+        "lexlemma": "as",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -28399,7 +28399,7 @@
         }
       },
       "22": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Circumstance",
         "ss2": "p.Circumstance",
@@ -28415,8 +28415,8 @@
         }
       },
       "23": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "thier",
+        "lexcat": "PRON.POSS",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -28431,7 +28431,7 @@
         }
       },
       "25": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -28447,10 +28447,10 @@
         }
       },
       "27": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           27
         ],
@@ -29212,7 +29212,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -29228,7 +29228,7 @@
         }
       },
       "16": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Characteristic",
         "ss2": "p.Characteristic",
@@ -29525,7 +29525,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Whole",
         "ss2": "p.Locus",
@@ -29794,7 +29794,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "since",
         "lexcat": "P",
         "ss": "p.Explanation",
         "ss2": "p.Explanation",
@@ -29810,10 +29810,10 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "around",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           12
         ],
@@ -30143,7 +30143,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -30159,7 +30159,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -30600,7 +30600,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.Beneficiary",
@@ -31105,7 +31105,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -31121,8 +31121,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": null,
         "ss2": null,
         "toknums": [
@@ -31137,7 +31137,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "near",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -31153,7 +31153,7 @@
         }
       },
       "16": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Whole",
         "ss2": "p.Whole",
@@ -31262,7 +31262,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "outside",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -31278,7 +31278,7 @@
         }
       },
       "5": {
-        "lexlemma": null,
+        "lexlemma": "inside",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -31671,7 +31671,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "before",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -32004,7 +32004,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
@@ -32617,7 +32617,7 @@
     "etoks": [],
     "swes": {
       "14": {
-        "lexlemma": null,
+        "lexlemma": "before",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -32866,8 +32866,8 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "she",
+        "lexcat": "PRON.POSS",
         "ss": "`$",
         "ss2": "`$",
         "toknums": [
@@ -33067,7 +33067,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Goal",
@@ -33256,7 +33256,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -33381,7 +33381,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "as",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -33682,7 +33682,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "ago",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Interval",
@@ -33698,8 +33698,8 @@
         }
       },
       "12": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -33714,7 +33714,7 @@
         }
       },
       "16": {
-        "lexlemma": null,
+        "lexlemma": "ago",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Interval",
@@ -34101,8 +34101,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -34117,8 +34117,8 @@
         }
       },
       "17": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -34133,7 +34133,7 @@
         }
       },
       "19": {
-        "lexlemma": null,
+        "lexlemma": "indoors",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -34151,8 +34151,8 @@
     },
     "smwes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "PP",
+        "lexlemma": "thanks to",
+        "lexcat": "P",
         "ss": "p.Explanation",
         "ss2": "p.Explanation",
         "toknums": [
@@ -34645,7 +34645,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Manner",
         "ss2": "p.Manner",
@@ -34661,7 +34661,7 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Goal",
@@ -34679,10 +34679,10 @@
     },
     "smwes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "PP",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "up and down",
+        "lexcat": "P",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           4,
           5,
@@ -35473,7 +35473,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Locus",
@@ -35489,7 +35489,7 @@
         }
       },
       "8": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Topic",
@@ -35505,8 +35505,8 @@
         }
       },
       "9": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -35521,8 +35521,8 @@
         }
       },
       "19": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "our",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -35537,8 +35537,8 @@
         }
       },
       "27": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.Recipient",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -35553,7 +35553,7 @@
         }
       },
       "39": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -35569,7 +35569,7 @@
         }
       },
       "42": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Characteristic",
         "ss2": "p.Characteristic",
@@ -36102,7 +36102,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Cost",
         "ss2": "p.Locus",
@@ -36547,7 +36547,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
@@ -36563,7 +36563,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Part/Portion",
         "ss2": "p.Source",
@@ -36579,7 +36579,7 @@
         }
       },
       "15": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -36595,7 +36595,7 @@
         }
       },
       "18": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Part/Portion",
         "ss2": "p.Goal",
@@ -36611,7 +36611,7 @@
         }
       },
       "22": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Whole",
         "ss2": "p.Locus",
@@ -36627,8 +36627,8 @@
         }
       },
       "23": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -37496,8 +37496,8 @@
     "etoks": [],
     "swes": {
       "12": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -37512,7 +37512,7 @@
         }
       },
       "15": {
-        "lexlemma": null,
+        "lexlemma": "onto",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Goal",
@@ -37528,7 +37528,7 @@
         }
       },
       "19": {
-        "lexlemma": null,
+        "lexlemma": "without",
         "lexcat": "P",
         "ss": "p.Manner",
         "ss2": "p.Manner",
@@ -37845,7 +37845,7 @@
     "etoks": [],
     "swes": {
       "15": {
-        "lexlemma": null,
+        "lexlemma": "above",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -38126,7 +38126,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -38763,7 +38763,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Originator",
         "ss2": "p.Source",
@@ -39300,10 +39300,10 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           6
         ],
@@ -39677,10 +39677,10 @@
     "etoks": [],
     "swes": {
       "12": {
-        "lexlemma": null,
+        "lexlemma": "round",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           12
         ],
@@ -40090,7 +40090,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -40106,7 +40106,7 @@
         }
       },
       "16": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -40122,7 +40122,7 @@
         }
       },
       "18": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -40483,8 +40483,8 @@
     "etoks": [],
     "swes": {
       "11": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
         "toknums": [
@@ -40499,8 +40499,8 @@
         }
       },
       "14": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -40838,7 +40838,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Manner",
         "ss2": "p.Manner",
@@ -40856,7 +40856,7 @@
     },
     "smwes": {
       "1": {
-        "lexlemma": null,
+        "lexlemma": "at all",
         "lexcat": "PP",
         "ss": "p.Extent",
         "ss2": "p.Extent",
@@ -41077,7 +41077,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "??",
         "ss2": null,
@@ -41394,7 +41394,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Whole",
@@ -41410,8 +41410,8 @@
         }
       },
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.OrgRole",
         "ss2": "p.Possessor",
         "toknums": [
@@ -41426,8 +41426,8 @@
         }
       },
       "9": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "'s",
+        "lexcat": "POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -41935,8 +41935,8 @@
     "etoks": [],
     "swes": {
       "14": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.OrgRole",
         "ss2": "p.Possessor",
         "toknums": [
@@ -41951,7 +41951,7 @@
         }
       },
       "16": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Manner",
         "ss2": "p.Manner",
@@ -41967,8 +41967,8 @@
         }
       },
       "25": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "he",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -42216,10 +42216,10 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           6
         ],
@@ -42577,7 +42577,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -42593,7 +42593,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -42782,8 +42782,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "she",
+        "lexcat": "PRON.POSS",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -42798,10 +42798,10 @@
         }
       },
       "6": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           6
         ],
@@ -43019,10 +43019,10 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
-        "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "'s",
+        "lexcat": "POSS",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           6
         ],
@@ -43035,10 +43035,10 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           12
         ],
@@ -43492,8 +43492,8 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "there",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -43508,7 +43508,7 @@
         }
       },
       "5": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Manner",
         "ss2": "p.Manner",
@@ -43524,7 +43524,7 @@
         }
       },
       "18": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -43540,8 +43540,8 @@
         }
       },
       "19": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "there",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -43757,7 +43757,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -43914,7 +43914,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "since",
         "lexcat": "P",
         "ss": "p.StartTime",
         "ss2": "p.StartTime",
@@ -44363,10 +44363,10 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
-        "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "'s",
+        "lexcat": "POSS",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           5
         ],
@@ -44600,10 +44600,10 @@
     "etoks": [],
     "swes": {
       "11": {
-        "lexlemma": null,
-        "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "'s",
+        "lexcat": "POSS",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           11
         ],
@@ -44989,7 +44989,7 @@
     "etoks": [],
     "swes": {
       "12": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Topic",
@@ -45005,8 +45005,8 @@
         }
       },
       "13": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "they",
+        "lexcat": "PRON.POSS",
         "ss": "p.Agent",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -45162,7 +45162,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Goal",
@@ -45455,7 +45455,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Explanation",
         "ss2": "p.Explanation",
@@ -46144,10 +46144,10 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           8
         ],
@@ -46329,7 +46329,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -46646,10 +46646,10 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "above",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           7
         ],
@@ -46662,10 +46662,10 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "beyond",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           9
         ],
@@ -46678,7 +46678,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Circumstance",
         "ss2": "p.Circumstance",
@@ -46694,7 +46694,7 @@
         }
       },
       "13": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -46710,8 +46710,8 @@
         }
       },
       "14": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -47027,8 +47027,8 @@
     "etoks": [],
     "swes": {
       "13": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Characteristic",
         "ss2": "p.Purpose",
         "toknums": [
@@ -47043,7 +47043,7 @@
         }
       },
       "15": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.SocialRel",
         "ss2": "p.Co-Agent",
@@ -47059,7 +47059,7 @@
         }
       },
       "16": {
-        "lexlemma": null,
+        "lexlemma": "like",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -47244,10 +47244,10 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "by",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           6
         ],
@@ -47953,7 +47953,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -47969,7 +47969,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "since",
         "lexcat": "P",
         "ss": "p.StartTime",
         "ss2": "p.StartTime",
@@ -47985,7 +47985,7 @@
         }
       },
       "20": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Whole",
@@ -48298,7 +48298,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Accompanier",
@@ -48547,7 +48547,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Goal",
@@ -48563,8 +48563,8 @@
         }
       },
       "3": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Experiencer",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -49048,8 +49048,8 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "he",
+        "lexcat": "PRON.POSS",
         "ss": "p.OrgRole",
         "ss2": "p.Possessor",
         "toknums": [
@@ -49064,7 +49064,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Locus",
@@ -49080,8 +49080,8 @@
         }
       },
       "12": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -49381,7 +49381,7 @@
     "etoks": [],
     "swes": {
       "12": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "??",
         "ss2": null,
@@ -49397,8 +49397,8 @@
         }
       },
       "13": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -49662,7 +49662,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -50039,7 +50039,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Whole",
@@ -50055,7 +50055,7 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Direction",
@@ -50071,7 +50071,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Explanation",
         "ss2": "p.Explanation",
@@ -50368,7 +50368,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -50621,7 +50621,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -50637,8 +50637,8 @@
         }
       },
       "12": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": null,
         "ss2": null,
         "toknums": [
@@ -50806,7 +50806,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.SocialRel",
         "ss2": "p.Co-Agent",
@@ -51407,7 +51407,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Goal",
@@ -51423,7 +51423,7 @@
         }
       },
       "19": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Topic",
@@ -51439,8 +51439,8 @@
         }
       },
       "20": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Experiencer",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -51580,8 +51580,8 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "she",
+        "lexcat": "PRON.POSS",
         "ss": "p.Agent",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -52097,7 +52097,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -52113,10 +52113,10 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "'s",
+        "lexcat": "POSS",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           8
         ],
@@ -52374,7 +52374,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "by",
         "lexcat": "P",
         "ss": "p.Agent",
         "ss2": "p.Agent",
@@ -52707,7 +52707,7 @@
     "etoks": [],
     "swes": {
       "10": {
-        "lexlemma": null,
+        "lexlemma": "as",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -52723,8 +52723,8 @@
         }
       },
       "15": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -52739,7 +52739,7 @@
         }
       },
       "17": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
@@ -53152,7 +53152,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Experiencer",
         "ss2": "p.Beneficiary",
@@ -53168,8 +53168,8 @@
         }
       },
       "22": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "he",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -53589,7 +53589,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -53605,7 +53605,7 @@
         }
       },
       "7": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -54050,7 +54050,7 @@
     "etoks": [],
     "swes": {
       "12": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -54066,8 +54066,8 @@
         }
       },
       "13": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Whole",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -54415,7 +54415,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -54431,8 +54431,8 @@
         }
       },
       "18": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Characteristic",
         "ss2": "p.Purpose",
         "toknums": [
@@ -54664,7 +54664,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Goal",
@@ -54945,7 +54945,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Duration",
         "ss2": "p.Duration",
@@ -55242,7 +55242,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "like",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -55495,8 +55495,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -55511,7 +55511,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "by",
         "lexcat": "P",
         "ss": "p.Experiencer",
         "ss2": "p.Agent",
@@ -55659,7 +55659,7 @@
     "swes": {},
     "smwes": {
       "1": {
-        "lexlemma": null,
+        "lexlemma": "on time",
         "lexcat": "PP",
         "ss": null,
         "ss2": null,
@@ -55870,7 +55870,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "over",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Duration",
@@ -55888,8 +55888,8 @@
     },
     "smwes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "PP",
+        "lexlemma": "due to",
+        "lexcat": "P",
         "ss": "p.Explanation",
         "ss2": "p.Explanation",
         "toknums": [
@@ -56029,7 +56029,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Direction",
@@ -56186,7 +56186,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "before",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -56487,7 +56487,7 @@
     "etoks": [],
     "swes": {
       "10": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.SocialRel",
         "ss2": "p.Co-Agent",
@@ -56916,7 +56916,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Explanation",
         "ss2": "p.Explanation",
@@ -57057,7 +57057,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "about",
         "lexcat": "P",
         "ss": "p.Gestalt",
         "ss2": "p.Topic",
@@ -57294,8 +57294,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -57310,7 +57310,7 @@
         }
       },
       "8": {
-        "lexlemma": null,
+        "lexlemma": "by",
         "lexcat": "P",
         "ss": "p.Originator",
         "ss2": "p.Agent",
@@ -57326,7 +57326,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -57719,7 +57719,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -57735,8 +57735,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Characteristic",
         "ss2": "p.Purpose",
         "toknums": [
@@ -57751,7 +57751,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -57767,7 +57767,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "across",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Path",
@@ -58004,7 +58004,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "over",
         "lexcat": "P",
         "ss": "p.Direction",
         "ss2": "p.Direction",
@@ -58020,7 +58020,7 @@
         }
       },
       "6": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Source",
         "ss2": "p.Source",
@@ -58036,7 +58036,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -58205,8 +58205,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Experiencer",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -58490,8 +58490,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -58506,7 +58506,7 @@
         }
       },
       "8": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.StartTime",
         "ss2": "p.StartTime",
@@ -58522,7 +58522,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.EndTime",
         "ss2": "p.EndTime",
@@ -58538,7 +58538,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Whole",
@@ -58759,7 +58759,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.StartTime",
         "ss2": "p.StartTime",
@@ -58775,7 +58775,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.EndTime",
         "ss2": "p.EndTime",
@@ -59172,8 +59172,8 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -59188,7 +59188,7 @@
         }
       },
       "5": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -59204,7 +59204,7 @@
         }
       },
       "16": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -59220,10 +59220,10 @@
         }
       },
       "21": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           21
         ],
@@ -60151,7 +60151,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -60167,8 +60167,8 @@
         }
       },
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -60183,8 +60183,8 @@
         }
       },
       "16": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Experiencer",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -60201,7 +60201,7 @@
     },
     "smwes": {
       "1": {
-        "lexlemma": null,
+        "lexlemma": "by far",
         "lexcat": "PP",
         "ss": "p.Extent",
         "ss2": "p.Extent",
@@ -60534,7 +60534,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -60550,10 +60550,10 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "than",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           9
         ],
@@ -60999,7 +60999,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -61163,8 +61163,8 @@
     "swes": {},
     "smwes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "PP",
+        "lexlemma": "next to",
+        "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
         "toknums": [
@@ -61400,7 +61400,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "by",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -62165,7 +62165,7 @@
     "etoks": [],
     "swes": {
       "11": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -62578,7 +62578,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -62594,7 +62594,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -62610,7 +62610,7 @@
         }
       },
       "15": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Topic",
@@ -62626,7 +62626,7 @@
         }
       },
       "22": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -62927,7 +62927,7 @@
     "etoks": [],
     "swes": {
       "10": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -62943,10 +62943,10 @@
         }
       },
       "16": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           16
         ],
@@ -63560,7 +63560,7 @@
     "etoks": [],
     "swes": {
       "14": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Beneficiary",
         "ss2": "p.Goal",
@@ -63576,8 +63576,8 @@
         }
       },
       "15": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -63949,10 +63949,10 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "away",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           2
         ],
@@ -64538,7 +64538,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.SocialRel",
         "ss2": "p.Source",
@@ -64679,7 +64679,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Beneficiary",
         "ss2": "p.Goal",
@@ -64912,8 +64912,8 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Experiencer",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -65381,7 +65381,7 @@
     "etoks": [],
     "swes": {
       "14": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -65397,8 +65397,8 @@
         }
       },
       "15": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -65838,7 +65838,7 @@
     "etoks": [],
     "swes": {
       "14": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -65854,8 +65854,8 @@
         }
       },
       "15": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "she",
+        "lexcat": "PRON.POSS",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -66055,10 +66055,10 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           3
         ],
@@ -66704,7 +66704,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -66720,8 +66720,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
         "toknums": [
@@ -66893,8 +66893,8 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
         "toknums": [
@@ -66909,8 +66909,8 @@
         }
       },
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -67638,7 +67638,7 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
+        "lexlemma": "after",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -67654,8 +67654,8 @@
         }
       },
       "10": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": null,
         "ss2": null,
         "toknums": [
@@ -67670,8 +67670,8 @@
         }
       },
       "12": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -67686,7 +67686,7 @@
         }
       },
       "21": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -68351,7 +68351,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Whole",
@@ -68367,8 +68367,8 @@
         }
       },
       "9": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -68540,7 +68540,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Goal",
@@ -68697,8 +68697,8 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -68713,7 +68713,7 @@
         }
       },
       "6": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -69254,7 +69254,7 @@
     "etoks": [],
     "swes": {
       "12": {
-        "lexlemma": null,
+        "lexlemma": "behind",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -69270,7 +69270,7 @@
         }
       },
       "30": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -69739,7 +69739,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "over",
         "lexcat": "P",
         "ss": "p.Approximator",
         "ss2": "p.Approximator",
@@ -69755,8 +69755,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -69771,7 +69771,7 @@
         }
       },
       "15": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Cost",
         "ss2": "p.Cost",
@@ -70116,7 +70116,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "within",
         "lexcat": "P",
         "ss": "p.Duration",
         "ss2": "p.Duration",
@@ -70241,7 +70241,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -70558,8 +70558,8 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Agent",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -70574,8 +70574,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
         "toknums": [
@@ -70590,7 +70590,7 @@
         }
       },
       "15": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Manner",
         "ss2": "p.Locus",
@@ -70606,8 +70606,8 @@
         }
       },
       "16": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Whole",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -71431,7 +71431,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "since",
         "lexcat": "P",
         "ss": "p.StartTime",
         "ss2": "p.StartTime",
@@ -72000,7 +72000,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -72016,10 +72016,10 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           12
         ],
@@ -72032,7 +72032,7 @@
         }
       },
       "19": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Source",
@@ -72581,7 +72581,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "until",
         "lexcat": "P",
         "ss": "p.EndTime",
         "ss2": "p.EndTime",
@@ -73054,10 +73054,10 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "out",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           8
         ],
@@ -73070,7 +73070,7 @@
         }
       },
       "17": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
@@ -73086,8 +73086,8 @@
         }
       },
       "18": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "he",
+        "lexcat": "PRON.POSS",
         "ss": "p.Experiencer",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -73403,7 +73403,7 @@
     "etoks": [],
     "swes": {
       "14": {
-        "lexlemma": null,
+        "lexlemma": "about",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -73419,8 +73419,8 @@
         }
       },
       "15": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.Gestalt",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -73764,7 +73764,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -73949,7 +73949,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Direction",
         "ss2": "p.Direction",
@@ -73965,7 +73965,7 @@
         }
       },
       "4": {
-        "lexlemma": null,
+        "lexlemma": "out",
         "lexcat": "P",
         "ss": "p.Direction",
         "ss2": "p.Direction",
@@ -74286,7 +74286,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "back",
         "lexcat": "P",
         "ss": "p.Direction",
         "ss2": "p.Direction",
@@ -74659,10 +74659,10 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           8
         ],
@@ -74675,8 +74675,8 @@
         }
       },
       "9": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -74691,10 +74691,10 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           11
         ],
@@ -75152,7 +75152,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Characteristic",
         "ss2": "p.Characteristic",
@@ -75417,10 +75417,10 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           8
         ],
@@ -75670,7 +75670,7 @@
     "etoks": [],
     "swes": {
       "11": {
-        "lexlemma": null,
+        "lexlemma": "as",
         "lexcat": "P",
         "ss": "p.Identity",
         "ss2": "p.Identity",
@@ -75891,7 +75891,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "down",
         "lexcat": "P",
         "ss": "p.Path",
         "ss2": "p.Path",
@@ -75907,7 +75907,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Goal",
@@ -76268,7 +76268,7 @@
     "etoks": [],
     "swes": {
       "13": {
-        "lexlemma": null,
+        "lexlemma": "about",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Topic",
@@ -76505,7 +76505,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -76521,7 +76521,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Cost",
         "ss2": "p.Locus",
@@ -76694,7 +76694,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Characteristic",
         "ss2": "p.Characteristic",
@@ -76710,7 +76710,7 @@
         }
       },
       "7": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -77027,7 +77027,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Goal",
@@ -77043,8 +77043,8 @@
         }
       },
       "3": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -77324,7 +77324,7 @@
     "etoks": [],
     "swes": {
       "10": {
-        "lexlemma": null,
+        "lexlemma": "like",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -77689,7 +77689,7 @@
     "etoks": [],
     "swes": {
       "15": {
-        "lexlemma": null,
+        "lexlemma": "without",
         "lexcat": "P",
         "ss": "p.Possession",
         "ss2": "p.Accompanier",
@@ -78054,10 +78054,10 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "over",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           4
         ],
@@ -78070,7 +78070,7 @@
         }
       },
       "17": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -78883,7 +78883,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -79348,7 +79348,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -79364,7 +79364,7 @@
         }
       },
       "7": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Whole",
@@ -79569,7 +79569,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -79854,8 +79854,8 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "they",
+        "lexcat": "PRON.POSS",
         "ss": "p.Agent",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -79870,7 +79870,7 @@
         }
       },
       "6": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
@@ -79886,7 +79886,7 @@
         }
       },
       "8": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Whole",
@@ -79902,8 +79902,8 @@
         }
       },
       "9": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Beneficiary",
         "ss2": "p.Possessor",
         "toknums": [
@@ -80647,8 +80647,8 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -80992,8 +80992,8 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "she",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -81261,8 +81261,8 @@
     "etoks": [],
     "swes": {
       "11": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "she",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -81702,7 +81702,7 @@
     "etoks": [],
     "swes": {
       "11": {
-        "lexlemma": null,
+        "lexlemma": "home",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Locus",
@@ -81718,7 +81718,7 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
@@ -82031,7 +82031,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Topic",
@@ -82047,7 +82047,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Stuff",
@@ -82364,8 +82364,8 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -82825,7 +82825,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Source",
         "ss2": "p.Source",
@@ -82841,7 +82841,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Whole",
@@ -82857,8 +82857,8 @@
         }
       },
       "12": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "they",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -82873,8 +82873,8 @@
         }
       },
       "22": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Characteristic",
         "ss2": "p.Purpose",
         "toknums": [
@@ -83030,7 +83030,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -83455,7 +83455,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -83471,7 +83471,7 @@
         }
       },
       "18": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -84052,7 +84052,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -84337,8 +84337,8 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -84353,7 +84353,7 @@
         }
       },
       "6": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -84369,7 +84369,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Goal",
         "ss2": "p.Goal",
@@ -84385,7 +84385,7 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Cost",
         "ss2": "p.Cost",
@@ -84526,7 +84526,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Co-Agent",
         "ss2": "p.Co-Agent",
@@ -84727,7 +84727,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -84900,7 +84900,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Duration",
         "ss2": "p.Duration",
@@ -85121,7 +85121,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Cost",
         "ss2": "p.Locus",
@@ -85450,7 +85450,7 @@
     "etoks": [],
     "swes": {
       "10": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Gestalt",
@@ -85466,7 +85466,7 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Duration",
         "ss2": "p.Duration",
@@ -85847,8 +85847,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "he",
+        "lexcat": "PRON.POSS",
         "ss": "p.OrgRole",
         "ss2": "p.Possessor",
         "toknums": [
@@ -85863,7 +85863,7 @@
         }
       },
       "17": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "??",
         "ss2": null,
@@ -86300,7 +86300,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Whole",
         "ss2": "p.Whole",
@@ -86316,7 +86316,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -86553,7 +86553,7 @@
     "etoks": [],
     "swes": {
       "2": {
-        "lexlemma": null,
+        "lexlemma": "from",
         "lexcat": "P",
         "ss": "p.Originator",
         "ss2": "p.Source",
@@ -86569,7 +86569,7 @@
         }
       },
       "7": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -86694,10 +86694,10 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           6
         ],
@@ -86819,7 +86819,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Duration",
         "ss2": "p.Duration",
@@ -87368,10 +87368,10 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "off",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           4
         ],
@@ -87384,8 +87384,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "we",
+        "lexcat": "PRON.POSS",
         "ss": "p.Agent",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -87777,7 +87777,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Beneficiary",
         "ss2": "p.Beneficiary",
@@ -87793,8 +87793,8 @@
         }
       },
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "you",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -87809,7 +87809,7 @@
         }
       },
       "13": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -87982,7 +87982,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -89631,7 +89631,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "after",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -89647,8 +89647,8 @@
         }
       },
       "6": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "to",
+        "lexcat": "INF.P",
         "ss": "p.Purpose",
         "ss2": "p.Purpose",
         "toknums": [
@@ -90144,7 +90144,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Identity",
         "ss2": "p.Identity",
@@ -90160,8 +90160,8 @@
         }
       },
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -90176,7 +90176,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -90761,8 +90761,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Recipient",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -90886,8 +90886,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Theme",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -91403,7 +91403,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Explanation",
         "ss2": "p.Explanation",
@@ -91824,8 +91824,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Whole",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -91840,7 +91840,7 @@
         }
       },
       "5": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Duration",
         "ss2": "p.Duration",
@@ -91856,10 +91856,10 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           9
         ],
@@ -92189,7 +92189,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Manner",
         "ss2": "p.Locus",
@@ -92518,7 +92518,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Locus",
@@ -92534,7 +92534,7 @@
         }
       },
       "14": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.SocialRel",
         "ss2": "p.Co-Agent",
@@ -92883,10 +92883,10 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "through",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           4
         ],
@@ -92899,7 +92899,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Whole",
         "ss2": "p.Circumstance",
@@ -94036,7 +94036,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "into",
         "lexcat": "P",
         "ss": "p.Purpose",
         "ss2": "p.Goal",
@@ -94052,7 +94052,7 @@
         }
       },
       "12": {
-        "lexlemma": null,
+        "lexlemma": "about",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -94305,7 +94305,7 @@
     "etoks": [],
     "swes": {
       "11": {
-        "lexlemma": null,
+        "lexlemma": "at",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -94321,10 +94321,10 @@
         }
       },
       "13": {
-        "lexlemma": null,
-        "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "'s",
+        "lexcat": "POSS",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           13
         ],
@@ -94646,7 +94646,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "of",
         "lexcat": "P",
         "ss": "p.Quantity",
         "ss2": "p.Quantity",
@@ -94991,7 +94991,7 @@
     "etoks": [],
     "swes": {
       "5": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Experiencer",
         "ss2": "p.Beneficiary",
@@ -95007,7 +95007,7 @@
         }
       },
       "9": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.Explanation",
         "ss2": "p.Explanation",
@@ -95416,7 +95416,7 @@
     "etoks": [],
     "swes": {
       "8": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Manner",
         "ss2": "p.Manner",
@@ -95432,7 +95432,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Theme",
         "ss2": "p.Theme",
@@ -95783,7 +95783,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.SocialRel",
         "ss2": "p.Co-Agent",
@@ -95801,10 +95801,10 @@
     },
     "smwes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "PP",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "care of",
+        "lexcat": "P",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           9,
           10
@@ -96012,7 +96012,7 @@
     "etoks": [],
     "swes": {
       "9": {
-        "lexlemma": null,
+        "lexlemma": "in",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -96030,7 +96030,7 @@
     },
     "smwes": {
       "1": {
-        "lexlemma": null,
+        "lexlemma": "by far",
         "lexcat": "PP",
         "ss": "p.Extent",
         "ss2": "p.Extent",
@@ -96247,7 +96247,7 @@
     "etoks": [],
     "swes": {
       "7": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -96576,10 +96576,10 @@
     "etoks": [],
     "swes": {
       "12": {
-        "lexlemma": null,
-        "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "'s",
+        "lexcat": "POSS",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           12
         ],
@@ -96901,10 +96901,10 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "up",
         "lexcat": "P",
-        "ss": null,
-        "ss2": null,
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           3
         ],
@@ -97418,7 +97418,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Accompanier",
@@ -97434,8 +97434,8 @@
         }
       },
       "8": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Beneficiary",
         "ss2": "p.Possessor",
         "toknums": [
@@ -97450,7 +97450,7 @@
         }
       },
       "10": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.OrgRole",
         "ss2": "p.Accompanier",
@@ -97783,7 +97783,7 @@
     "etoks": [],
     "swes": {
       "14": {
-        "lexlemma": null,
+        "lexlemma": "with",
         "lexcat": "P",
         "ss": "p.Stimulus",
         "ss2": "p.Topic",
@@ -98412,7 +98412,7 @@
     "etoks": [],
     "swes": {
       "12": {
-        "lexlemma": null,
+        "lexlemma": "out",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",
@@ -98428,7 +98428,7 @@
         }
       },
       "13": {
-        "lexlemma": null,
+        "lexlemma": "during",
         "lexcat": "P",
         "ss": "p.Time",
         "ss2": "p.Time",
@@ -98704,10 +98704,10 @@
     "swes": {},
     "smwes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "PP",
-        "ss": null,
-        "ss2": null,
+        "lexlemma": "along with",
+        "lexcat": "P",
+        "ss": "p.X",
+        "ss2": "p.X",
         "toknums": [
           13,
           14
@@ -98877,7 +98877,7 @@
     "etoks": [],
     "swes": {
       "6": {
-        "lexlemma": null,
+        "lexlemma": "to",
         "lexcat": "P",
         "ss": "p.Recipient",
         "ss2": "p.Goal",
@@ -98893,8 +98893,8 @@
         }
       },
       "7": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.SocialRel",
         "ss2": "p.Gestalt",
         "toknums": [
@@ -99458,7 +99458,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "on",
         "lexcat": "P",
         "ss": "p.Topic",
         "ss2": "p.Topic",
@@ -99679,8 +99679,8 @@
     "etoks": [],
     "swes": {
       "1": {
-        "lexlemma": null,
-        "lexcat": "P",
+        "lexlemma": "my",
+        "lexcat": "PRON.POSS",
         "ss": "p.Possessor",
         "ss2": "p.Possessor",
         "toknums": [
@@ -99820,7 +99820,7 @@
     "etoks": [],
     "swes": {
       "3": {
-        "lexlemma": null,
+        "lexlemma": "for",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -100601,7 +100601,7 @@
     "etoks": [],
     "swes": {
       "4": {
-        "lexlemma": null,
+        "lexlemma": "like",
         "lexcat": "P",
         "ss": "p.ComparisonRef",
         "ss2": "p.ComparisonRef",
@@ -100617,7 +100617,7 @@
         }
       },
       "11": {
-        "lexlemma": null,
+        "lexlemma": "downstairs",
         "lexcat": "P",
         "ss": "p.Locus",
         "ss2": "p.Locus",

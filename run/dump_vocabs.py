@@ -64,6 +64,9 @@ def build_vocabs():
     pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
     pss_vocab.add_word(None)
 
+    pss_vocab = Vocabulary('LEXCAT')
+    pss_vocab.add_words(set([x.lexcat for s in samples for x, y in zip(s.xs, s.ys)]))
+
     return [pp_vocab, ner_vocab, lemmas_vocab, ud_dep_vocab, ud_xpos_vocab, token_vocab, pss_vocab, govobj_config_vocab]
 
 if __name__ == '__main__':

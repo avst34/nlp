@@ -107,7 +107,8 @@ class TaggedToken:
                  ud_upos, ud_xpos,
                  lemma,
                  ud_id,
-                 gov_ind, obj_ind, govobj_config):
+                 gov_ind, obj_ind, govobj_config, lexcat):
+        self.lexcat = lexcat
         self.lemma = lemma
         self.ner = ner
         self.identified_for_pss = identified_for_pss
@@ -175,7 +176,7 @@ class StreusleRecord:
 
         def extract_supersense_pair(ss1, ss2):
             def process(ss):
-                if ss in ['_', '??', '`$', None]:
+                if ss in ['_', '??', '`$', None, 'p.X']:
                     return None
                 return filter_supersense(ss.split('.')[1] if ss != '_' else None)
             ss1 = process(ss1)
@@ -221,11 +222,12 @@ class StreusleRecord:
                 gov_ind=id_to_ind.get(tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('gov')),
                 obj_ind=id_to_ind.get(tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('obj')),
                 govobj_config=tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('config'),
-                identified_for_pss=tok_we.get(tok_data['#'], {}).get('lexcat') == 'PP' or any(tok_ss[tok_data['#']])
+                identified_for_pss=not not (tok_we.get(tok_data['#']) and tok_we[tok_data['#']].get('ss') and tok_we[tok_data['#']]['ss'].startswith('p.')),
+                lexcat=tok_we.get(tok_data['#'], {}).get('lexcat')
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
-        assert {t.ud_id for t in self.pss_tokens} == {we['toknums'][0] for we in wes if (we.get('ss') or '').startswith('p.')}
+        assert {t.ud_id for t in self.pss_tokens} == {we['toknums'][0] for we in wes if (we.get('ss') or '').startswith('p.') and (we.get('ss') or '') != 'p.X'}
 
     def build_data_with_supersenses(self, supersenses, ident):
         # supersenses - [(role, func), (role, func), ...]

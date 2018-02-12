@@ -23,7 +23,9 @@ class LstmMlpSupersensesModel:
                      ud_head_ind,
                      lemma,
                      gov_ind, obj_ind, govobj_config,
-                     identified_for_pss):
+                     identified_for_pss,
+                     lexcat):
+            self.lexcat = lexcat
             self.govobj_config = govobj_config
             self.obj_ind = obj_ind
             self.gov_ind = gov_ind
@@ -102,6 +104,7 @@ class LstmMlpSupersensesModel:
                      use_prep_onehot,
                      use_govobj,
                      use_token_internal,
+                     use_lexcat,
                      update_lemmas_embd,
                      token_embd_dim,
                      token_internal_embd_dim,
@@ -109,6 +112,7 @@ class LstmMlpSupersensesModel:
                      ud_deps_embd_dim,
                      ner_embd_dim,
                      govobj_config_embd_dim,
+                     lexcat_embd_dim,
                      mlp_layers,
                      mlp_layer_dim,
                      mlp_activation,
@@ -124,6 +128,8 @@ class LstmMlpSupersensesModel:
                      allow_empty_prediction,
                      dynet_random_seed
                      ):
+            self.lexcat_embd_dim = lexcat_embd_dim
+            self.use_lexcat = use_lexcat
             self.dynet_random_seed = dynet_random_seed
             self.use_govobj = use_govobj
             self.govobj_config_embd_dim = govobj_config_embd_dim
@@ -187,8 +193,8 @@ class LstmMlpSupersensesModel:
                     'input_embedding_dims': {f.name: f.dim for f in self.features.list_features_with_embedding()},
                     'n_labels_to_predict': len(self.hyperparameters.labels_to_predict)
              },
-             del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_ud_dep', 'use_ner', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
-                       'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim',
+             del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_ud_dep', 'use_ner', 'use_lexcat', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
+                       'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim', 'lexcat_embd_dim',
                        'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'mask_mwes', 'allow_empty_prediction']))
         )
 

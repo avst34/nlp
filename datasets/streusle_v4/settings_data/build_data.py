@@ -53,7 +53,11 @@ def run_pipeline(conllulex_train_path, conllulex_dev_path, conllulex_test_path, 
         with open(fpath, 'r', encoding='utf-8') as f:
             sents = list(conllulex2json.load_sents(f, identification=identification, input_type='conllulex'))
         with open(fpath, 'w', encoding='utf-8') as f:
-            json.dump(sents, f)
+            try:
+                json.dump(sents, f)
+            except:
+                json.dumps(sents)
+                raise
 
     print('run_pipeline: adding gov/obj')
 

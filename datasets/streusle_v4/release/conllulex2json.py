@@ -78,6 +78,8 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
                 if matching_gold_wes:
                     gold_swe = matching_gold_wes[0]
                     auto_we['ss'], auto_we['ss2'] = gold_swe['ss'], gold_swe['ss2']
+                else:
+                    auto_we['ss'], auto_we['ss2'] = 'p.X', 'p.X'
             sent['swes'], sent['smwes'] = sent['autoid_swes'], sent['autoid_smwes']
             for tok in sent['toks']:
                 tok['smwe'] = tok.get('autoid_smwe')
@@ -100,7 +102,7 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
 
         # check that lexical & weak MWE lemmas are correct
         for lexe in chain(sent['swes'].values(), sent['smwes'].values()):
-            # assert lexe['lexlemma']==' '.join(sent['toks'][i-1]['lemma'] for i in lexe['toknums']),(lexe,sent['toks'][lexe['toknums'][0]-1])
+            lexe['lexlemma'] = ' '.join(sent['toks'][i-1]['lemma'] for i in lexe['toknums'])
             lc = lexe['lexcat']
             if lc.endswith('!@'): lc_tbd += 1
             valid_ss = supersenses_for_lexcat(lc)
@@ -225,15 +227,21 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
                 sent['autoid_swes'] = defaultdict(lambda: {'lexlemma': None, 'lexcat': None, 'ss': None, 'ss2': None, 'toknums': None})
                 sent['autoid_smwes'] = defaultdict(lambda: {'lexlemma': None, 'lexcat': None, 'ss': None, 'ss2': None, 'toknums': []})
 
-            assert ln.count('\t') in [18, 19],ln
+            assert ln.count('\t') in [18, 19, 20],ln
 
             cols = ln.split('\t')
             conllu_cols = cols[:10]
             lex_cols = cols[10:19]
             if len(cols) > 19:
                 autoid_col = cols[19]
+                if len(cols) > 20:
+                    autoid_lexcat_col = cols[20]
+                else:
+                    assert autoid_col == '-' or not autoid_col.endswith('*')
+                    autoid_lexcat_col = '-'
             else:
                 autoid_col = '-'
+                autoid_lexcat_col = '-'
             # Load CoNLL-U columns
 
             tok = {}
@@ -319,12 +327,12 @@ def load_sents(inF, morph_syn=True, misc=True, ss_mapper=None, identification="g
                     assert sent['autoid_smwes'][mwe_group]['toknums'].index(tokNum)==mwe_position-1,(autoid,sent['autoid_smwes'])
                     if mwe_position==1:
                         sent['autoid_smwes'][mwe_group]['lexlemma'] = None
-                        sent['autoid_smwes'][mwe_group]['lexcat'] = 'PP'
+                        sent['autoid_smwes'][mwe_group]['lexcat'] = autoid_lexcat_col
                 elif "*" in tok['autoid']:
                     assert tok['autoid'] == '*'
                     tok['autoid_smwe'] = None
                     sent['autoid_swes'][tokNum]['lexlemma'] = None
-                    sent['autoid_swes'][tokNum]['lexcat'] = 'P'
+                    sent['autoid_swes'][tokNum]['lexcat'] = autoid_lexcat_col
                     sent['autoid_swes'][tokNum]['ss'] = None
                     sent['autoid_swes'][tokNum]['ss2'] = None
                     sent['autoid_swes'][tokNum]['toknums'] = [tokNum]

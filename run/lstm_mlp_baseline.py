@@ -38,7 +38,7 @@ def run():
 
     tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
     task = random.choice(tasks)
-    # task = 'autoid.autosyn'
+    task = 'autoid.autosyn'
     for task in [task]:
         loader = StreusleLoader()
         STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
