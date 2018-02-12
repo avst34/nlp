@@ -3,7 +3,7 @@
 #     2.1 get the hyperparameters json
 #     2.2 train
 #     2.3 create psseval tsv for predictor
-from datasets.streusle_v4 import StreusleLoader
+from datasets.streusle_v4 import StreusleLoader, sys
 import os
 import json
 
@@ -70,4 +70,8 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
         print("Evaluation done")
 
 if __name__ == '__main__':
-    process_tuner_results(r'c:\temp\results.csv')
+    if sys.argv:
+        path = sys.argv[0]
+    else:
+        path = r'c:\temp\results.csv'
+    process_tuner_results(path)

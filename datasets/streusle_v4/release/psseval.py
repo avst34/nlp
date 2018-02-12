@@ -165,7 +165,7 @@ def main(args):
     # Print output
     args.output_format(all_sys_scores, depth=args.depth)
 
-if __name__=='__main__':
+if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Evaluate system output for preposition supersense disambiguation against a gold standard.')
     parser.add_argument('goldfile', type=argparse.FileType('r'),
                         help='gold standard .conllulex or .json file')
