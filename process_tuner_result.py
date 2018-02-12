@@ -70,8 +70,8 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
         print("Evaluation done")
 
 if __name__ == '__main__':
-    if sys.argv:
-        path = sys.argv[0]
+    if len(sys.argv) > 1:
+        path = sys.argv[1]
     else:
         path = r'c:\temp\results.csv'
     process_tuner_results(path)
