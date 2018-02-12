@@ -6,4 +6,4 @@
 
 source /cs/usr/aviramstern/lab/venvs/local/bin/activate
 
-python3 /cs/usr/aviramstern/nlp_prod/run/process_tuner_result.py /cs/usr/lab/results.csv
+python3 /cs/usr/aviramstern/nlp_prod/process_tuner_result.py /cs/usr/lab/results.csv
