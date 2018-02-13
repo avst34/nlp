@@ -186,7 +186,7 @@ class StreusleRecord:
             assert all([ss1, ss2]) or not any([ss1, ss2])
             return [ss1, ss2]
 
-        wes = sum([list(data['swes'].values()), list(data['smwes'].values()), list(data['wmwes'].values())], [])
+        wes = sum([list(data['swes'].values()), list(data['smwes'].values())], [])
         tok_we = {we['toknums'][0]: we for we in wes}
         we_toknums = {we['toknums'][0]: we['toknums'] for we in wes}
         smwes_toknums = sum([we['toknums'] for we in self.data['smwes'].values()], [])

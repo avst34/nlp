@@ -43,8 +43,8 @@ def compare_sets_Acc(gold, pred):
 
 def eval_sys(sysF, gold_sents, ss_mapper):
     goldid = (sysF.name.split('.')[-2]=='goldid')
-    if not goldid and sysF.name.split('.')[-2]!='autoid':
-        raise ValueError('File path of system output not specified for gold vs. auto identification of units to be labeled: ' + sysF.name)
+    # if not goldid and sysF.name.split('.')[-2]!='autoid':
+    #     raise ValueError('File path of system output not specified for gold vs. auto identification of units to be labeled: ' + sysF.name)
 
     compare_sets = compare_sets_Acc if goldid else compare_sets_PRF
 

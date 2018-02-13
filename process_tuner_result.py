@@ -41,7 +41,8 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
     loader = StreusleLoader()
     STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
 
-    for task, best_result in best_results_by_task.items():
+    # for task, best_result in best_results_by_task.items():
+    for task, best_result in {'goldid.goldsyn': best_results_by_task['goldid.goldsyn']}.items():
         print("Best results for " + task + ": " + str(best_result['score']))
         task_output = output_dir + '/' + task
         if not os.path.exists(task_output):
@@ -60,13 +61,22 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
 
         # params['epochs'] = 1
         model = LstmMlpSupersensesModel(LstmMlpSupersensesModel.HyperParameters(**params))
+        # try:
+        #     predictor = LstmMlpSupersensesModel.load(task_output + '/model')
+        #     print('Loaded existing predictor')
+        # except:
         predictor = model.fit(train_samples, dev_samples, show_progress=False)
         print("Training done")
         predictor.save(task_output + '/model')
         print("Save model done")
         evaluator = StreusleEvaluator(predictor)
         for stype, records in [('train', train_records), ('dev', dev_records), ('test', test_records)]:
-            evaluator.evaluate(records, output_tsv_path=task_output + '/' + task + '.' + stype + '.psseval.tsv')
+            print('Evaluating ', task, stype)
+            evaluator.evaluate(records,
+                               output_tsv_path=task_output + '/' + task + '.' + stype + '.psseval.tsv',
+                               gold_fname_out=task_output + '/' + task + '.' + stype + '.gold.json',
+                               sys_fname_out=task_output + '/' + task + '.' + stype + '.sys.json'
+                               )
         print("Evaluation done")
 
 if __name__ == '__main__':

@@ -18,11 +18,11 @@ class StreusleEvaluator:
     def  __init__(self, predictor):
         self.predictor = predictor
 
-    def evaluate(self, streusle_records, output_tsv_path=None, ident='autoid'):
+    def evaluate(self, streusle_records, output_tsv_path=None, ident='autoid', gold_fname_out=None, sys_fname_out=None):
         assert ident in ['autoid', 'goldid']
         rand = str(int(time.time() * 1000))
-        gold_fname = 'gold_' + rand + '.json'
-        sys_fname = 'sys_' + rand + '.' + ident + '.json'
+        gold_fname = gold_fname_out or 'gold_' + rand + '.json'
+        sys_fname = sys_fname_out or 'sys_' + rand + '.' + ident + '.json'
 
         if output_tsv_path:
             keep_output_file = True
@@ -32,7 +32,9 @@ class StreusleEvaluator:
 
         try:
             with open(gold_fname, 'w') as gold_f:
+                print("Dumping gold file")
                 json.dump([gold_record_by_id[record.id].data for record in streusle_records], gold_f)
+                print("Done")
             with open(sys_fname, 'w') as sys_f:
                 sys_data = []
                 for streusle_record in streusle_records:
@@ -43,7 +45,9 @@ class StreusleEvaluator:
                     for we in chain(sent_data.get('wes', {}).values(), sent_data.get('smwes', {}).values()):
                         assert we['ss'] != 'p.X' and we['ss2'] != 'p.X'
                     sys_data.append(sent_data)
+                print("Dumping sys file")
                 json.dump(sys_data, sys_f)
+                print("Done")
 
             class Args:
                 def __init__(self, **kwargs):
@@ -64,9 +68,9 @@ class StreusleEvaluator:
             with open(output_tsv_path, 'r') as output_f:
                 return output_f.read()
         finally:
-            if os.path.exists(gold_fname):
+            if os.path.exists(gold_fname) and not gold_fname_out:
                 os.remove(gold_fname)
-            if os.path.exists(sys_fname):
+            if os.path.exists(sys_fname) and not sys_fname_out:
                 os.remove(sys_fname)
             if not keep_output_file and os.path.exists(output_tsv_path):
                 os.remove(output_tsv_path)
