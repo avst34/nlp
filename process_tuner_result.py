@@ -41,8 +41,8 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
     loader = StreusleLoader()
     STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
 
-    # for task, best_result in best_results_by_task.items():
-    for task, best_result in {'goldid.goldsyn': best_results_by_task['goldid.goldsyn']}.items():
+    for task, best_result in best_results_by_task.items():
+    # for task, best_result in {'goldid.goldsyn': best_results_by_task['goldid.goldsyn']}.items():
         print("Best results for " + task + ": " + str(best_result['score']))
         task_output = output_dir + '/' + task
         if not os.path.exists(task_output):
