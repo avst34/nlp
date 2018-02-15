@@ -13,7 +13,7 @@ from models.supersenses.streusle_integration import streusle_record_to_lstm_mode
 from models.supersenses.tuner_domains import PS
 from run.dump_vocabs import dump_vocabs
 from vocabulary import Vocabulary
-import supersenses
+import supersense_repo
 import json
 from hyperparameters_tuner import union_settings, override_settings
 evaluator = ClassifierEvaluator()

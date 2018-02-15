@@ -4,11 +4,11 @@ import os
 from shutil import copyfile
 
 from datasets.streusle_v4.settings_data.enrich_autoid import enrich_autoid
+from datasets.streusle_v4.settings_data.enrich_govobj import enrich_govobj
 from datasets.streusle_v4.settings_data.enrich_ners import enrich_ners
 from datasets.streusle_v4.settings_data.run_corenlp_on_conllulex import run_corenlp_on_conllulex
 from datasets.streusle_v4.settings_data.subsitute_conllulex_corenlp import substitute_conllulex_corenlp
 from datasets.streusle_v4.release import conllulex2json
-from datasets.streusle_v4.release.govobj import govobj
 
 
 def run_pipeline(conllulex_train_path, conllulex_dev_path, conllulex_test_path, identification, preprocessing, identify_script_path):
@@ -62,11 +62,7 @@ def run_pipeline(conllulex_train_path, conllulex_dev_path, conllulex_test_path, 
     print('run_pipeline: adding gov/obj')
 
     for fpath in out_files.values():
-        with open(fpath, 'r', encoding='utf-8') as f:
-            recs = json.load(f)
-        govobj(recs)
-        with open(fpath, 'w', encoding='utf-8') as f:
-            json.dump(recs, f)
+        enrich_govobj(fpath)
 
     print('run_pipeline: adding ner')
 

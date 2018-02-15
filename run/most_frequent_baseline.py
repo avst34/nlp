@@ -1,24 +1,10 @@
 from evaluators.classifier_evaluator import ClassifierEvaluator
 from models.general.predictor_ops import CombinedPredictor
 from models.general.simple_conditional_multiclass_model.model import MostFrequentClassModel
+from models.general.simple_conditional_multiclass_model.streusle_integration import \
+    streusle_record_to_most_frequent_class_model_sample
 
 evaluator = ClassifierEvaluator()
-
-def streusle_record_to_most_frequent_class_model_sample(record, class_names):
-    return MostFrequentClassModel.Sample(
-        xs=[
-            {
-                "token": tagged_token.token,
-                "pos": tagged_token.ud_xpos
-            }
-            for tagged_token in record.tagged_tokens
-        ],
-        ys=[
-            tuple([getattr(tagged_token, class_name) for class_name in class_names])
-            for tagged_token in record.tagged_tokens
-        ],
-        mask=None
-    )
 
 def run(train_records, test_records):
     for features in [[], ['token']]:
@@ -31,13 +17,12 @@ def run(train_records, test_records):
 
                     scm = MostFrequentClassModel(include_empty=include_empty,
                                                  features=features,
-                                                 mask_by='sample-ys', n_labels_to_predict=len(class_names))
+                                                 n_labels_to_predict=len(class_names))
                     predictor = scm.fit(train_samples, validation_samples=dev_samples, evaluator=None)
                     predictors.append(predictor)
 
                 scm = MostFrequentClassModel(include_empty=False,
                                              features=[],
-                                             mask_by='sample-ys',
                                              n_labels_to_predict=1)
                 dev_samples = [scm.mask_sample(streusle_record_to_most_frequent_class_model_sample(r, class_names=sum(class_names_grp, []))) for r in test_records]
                 print('Most Frequent PSS evaluation [Features: %s, include empty: %s, classes: %s]:' % (repr(features),

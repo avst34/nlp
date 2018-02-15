@@ -1,5 +1,5 @@
 import csv
-
+import sys
 
 def parse_psseval(psseval_path):
     with open(psseval_path, 'r') as f:
@@ -99,4 +99,4 @@ def collect_results(results_dir):
             ])
 
 if __name__ == '__main__':
-    collect_results(r'c:\temp\best_results')
+    collect_results(sys.argv[1])

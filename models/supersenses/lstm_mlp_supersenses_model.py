@@ -55,6 +55,7 @@ class LstmMlpSupersensesModel:
         def __init__(self, supersense_role=None, supersense_func=None):
             self.supersense_role = supersense_role
             self.supersense_func = supersense_func
+            assert supersense_role and supersense_func or (not supersense_role and not supersense_func)
 
         def to_dict(self):
             return self.__dict__
@@ -229,7 +230,7 @@ class LstmMlpSupersensesModel:
         labels = self.hyperparameters.labels_to_predict
         return LstmMlpSupersensesModel.SampleY(**{label: ll_sample_y[ind] for ind, label in enumerate(labels)})
 
-    def apply_mask(self, sample_x, sample_y):
+    def apply_mask(self, sample_x):
         return sample_x.identified_for_pss
         # if self.hyperparameters.mask_mwes and sample_x.is_part_of_mwe:
         #     return False
@@ -248,11 +249,11 @@ class LstmMlpSupersensesModel:
             pos = sample_x.spacy_pos
         return pos
 
-    def get_sample_mask(self, sample_xs, sample_ys=None):
-        return [self.apply_mask(x, None if sample_ys is None else sample_ys[ind]) for ind, x in enumerate(sample_xs)]
+    def get_sample_mask(self, sample_xs):
+        return [self.apply_mask(x) for ind, x in enumerate(sample_xs)]
 
     def sample_to_lowlevel(self, sample):
-        mask = self.get_sample_mask(sample.xs, sample.ys)
+        mask = self.get_sample_mask(sample.xs)
         return LstmMlpMulticlassModel.Sample(
             xs=[self.sample_x_to_lowlevel(x, sample.xs, x_mask) for x_mask, x in zip(mask, sample.xs)],
             ys=[self.sample_y_to_lowlevel(y) for y in sample.ys],
@@ -263,7 +264,7 @@ class LstmMlpSupersensesModel:
         n_sentences = 0
         n_y_labels = 0
         for s in samples:
-            mask = self.get_sample_mask(s.xs, s.ys)
+            mask = self.get_sample_mask(s.xs)
             if any(mask):
                 n_sentences += 1
             n_y_labels += len([y for i, y in enumerate(s.ys) if any([y.supersense_func, y.supersense_role]) and mask[i]])
@@ -272,10 +273,10 @@ class LstmMlpSupersensesModel:
     def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
         ll_samples = [self.sample_to_lowlevel(s) for s in samples]
-        ll_samples = [x for x in ll_samples if any(x.mask)]
+        ll_samples = [x for x in ll_samples if any(x.get_sample_mask)]
 
         ll_validation_samples = [self.sample_to_lowlevel(s) for s in validation_samples] if validation_samples else None
-        ll_validation_samples = [x for x in ll_validation_samples if any(x.mask)] if ll_validation_samples else None
+        ll_validation_samples = [x for x in ll_validation_samples if any(x.get_sample_mask)] if ll_validation_samples else None
 
         self.report_masking(samples, 'Training')
         if validation_samples:

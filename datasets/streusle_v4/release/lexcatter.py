@@ -1,4 +1,4 @@
-from streusle_supersenses import NSS, VSS, PSS
+from supersenses import NSS, VSS, PSS
 
 def compute_lexcat(tokNum, smwe, smweGroupToks, ss, lexlemma, poses, rels):
     """

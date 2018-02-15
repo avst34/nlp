@@ -129,26 +129,21 @@ def findgovobj(pexpr, sent):
         config = 'default'
 
     pexpr['heuristic_relation'] = {
-        'gov': gtok['#']     if gtok else None,
+             'gov': gtok['#']     if gtok else None,
         'govlemma': gtok['lemma'] if gtok else None,
-        'obj': otok['#']     if otok else None,
+             'obj': otok['#']     if otok else None,
         'objlemma': otok['lemma'] if otok else None,
-        'config': config
+          'config': config
     }
 
     #print(sent['mwe'], (gtok['word'], plemma, otok['word']), config)
 
+with open(sys.argv[1]) as inF:
+    data = json.load(inF)
 
-def govobj(data):
-    for sent in data:
-        for lexe in chain(sent['swes'].values(), sent['smwes'].values()):
-            if lexe['lexcat'] in {'P','PP','INF.P','POSS','PRON.POSS'}:
-                gov = findgovobj(lexe, sent)
-    return data
+for sent in data:
+    for lexe in chain(sent['swes'].values(), sent['smwes'].values()):
+        if lexe['lexcat'] in {'P','PP','INF.P','POSS','PRON.POSS'}:
+            gov = findgovobj(lexe, sent)
 
-
-if __name__ == "__main__":
-    with open(sys.argv[1]) as inF:
-        data = json.load(inF)
-    govobj(data)
-    print(json.dumps(data, indent=1))
+print(json.dumps(data, indent=1))

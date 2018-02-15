@@ -11,11 +11,11 @@ GOLD_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
 ]])
 
 AUTO_ID_GOLD_PREP = override_settings([TUNER_DOMAINS, [
-    PS(name='allow_empty_prediction', values=[True])
+    PS(name='allow_empty_prediction', values=[False])
 ]])
 
 AUTO_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
-    PS(name='allow_empty_prediction', values=[True])
+    PS(name='allow_empty_prediction', values=[False])
 ]])
 
 

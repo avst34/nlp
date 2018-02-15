@@ -1,5 +1,5 @@
 import os
-from datasets.streusle_v4 import StreusleLoader, supersenses, Word2VecModel
+from datasets.streusle_v4 import StreusleLoader, supersense_repo, Word2VecModel
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 from vocabulary import Vocabulary
 
@@ -61,7 +61,7 @@ def build_vocabs():
     govobj_config_vocab.add_words(set([x.govobj_config for s in samples for x, y in zip(s.xs, s.ys)]))
 
     pss_vocab = Vocabulary('PSS')
-    pss_vocab.add_words(supersenses.PREPOSITION_SUPERSENSES_SET)
+    pss_vocab.add_words(supersense_repo.PREPOSITION_SUPERSENSES_SET)
     pss_vocab.add_word(None)
 
     pss_vocab = Vocabulary('LEXCAT')

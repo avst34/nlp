@@ -281,9 +281,12 @@ class LstmMlpMulticlassModel(object):
                     y = [None] * self.hyperparameters.n_labels_to_predict
                 assert len([label_y is None for label_y in y]) in [0, len(y)], "Got a sample with partial None labels"
                 for label_out, label_y in zip(out, y):
-                    ss_ind = self.output_vocabulary.get_index(label_y)
-                    loss = -dy.pick(label_out, ss_ind)
-                    losses.append(loss)
+                    if self.output_vocabulary.has_word(label_y):
+                        ss_ind = self.output_vocabulary.get_index(label_y)
+                        loss = -dy.pick(label_out, ss_ind)
+                        losses.append(loss)
+                    else:
+                        assert label_y is None
         if len(losses):
             loss = dy.esum(losses)
         else:
@@ -334,7 +337,7 @@ class LstmMlpMulticlassModel(object):
                 dy.renew_cg(immediate_compute=True, check_validity=True)
                 losses = []
                 for sample in batch:
-                    outputs = self._build_network_for_input(sample.xs, sample.mask, apply_dropout=True)
+                    outputs = self._build_network_for_input(sample.xs, sample.get_sample_mask, apply_dropout=True)
                     sample_loss = self._build_loss(outputs, sample.ys)
                     if sample_loss is not None:
                         losses.append(sample_loss)

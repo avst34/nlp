@@ -4,7 +4,7 @@ import os, sys, fileinput, re, json, argparse
 from collections import defaultdict, Counter
 
 from conllulex2json import load_sents
-from streusle_supersenses import coarsen_pss
+from supersenses import coarsen_pss
 
 """
 Evaluation script for adposition supersense disambiguation (also includes possessives).
@@ -43,8 +43,8 @@ def compare_sets_Acc(gold, pred):
 
 def eval_sys(sysF, gold_sents, ss_mapper):
     goldid = (sysF.name.split('.')[-2]=='goldid')
-    # if not goldid and sysF.name.split('.')[-2]!='autoid':
-    #     raise ValueError('File path of system output not specified for gold vs. auto identification of units to be labeled: ' + sysF.name)
+    if not goldid and sysF.name.split('.')[-2]!='autoid':
+        raise ValueError('File path of system output not specified for gold vs. auto identification of units to be labeled: ' + sysF.name)
 
     compare_sets = compare_sets_Acc if goldid else compare_sets_PRF
 
@@ -57,7 +57,7 @@ def eval_sys(sysF, gold_sents, ss_mapper):
         # all units with a PSS label
         c = scores['All']
         goldunits = sent['punits']
-        predunits = {tuple(e['toknums']): (e['lexcat'], e['ss'], e['ss2']) for e in list(syssent['swes'].values())+list(syssent['smwes'].values()) if e['ss'] and e['ss'].startswith('p.') or e['ss2'] and e['ss2'].startswith('p.')}
+        predunits = {tuple(e['toknums']): (e['lexcat'], e['ss'], e['ss2']) for e in list(syssent['swes'].values())+list(syssent['smwes'].values()) if e['ss'] and e['ss'].startswith('p.')}
         c['ID'] += compare_sets(set(goldunits.keys()), set(predunits.keys()))
         c['Role,Fxn'] += compare_sets({(k,r,f) for k,(lc,r,f) in goldunits.items()},
                                       {(k,r,f) for k,(lc,r,f) in predunits.items()})
@@ -95,44 +95,35 @@ def eval_sys(sysF, gold_sents, ss_mapper):
         if goldid:
             for criterion in ('Role','Fxn','Role,Fxn'):
                 c = scores[k][criterion]
-                # assert scores[k][criterion]['N']>0,(k,criterion,scores[k][criterion])
-                if scores[k][criterion]['N']>0:
-                    c['Acc'] = c['correct'] / c['N']
-                else:
-                    c['Acc'] = None
+                assert scores[k][criterion]['N']>0,(k,criterion,scores[k][criterion])
+                c['Acc'] = c['correct'] / c['N']
         else:
             for criterion in ('ID','Role','Fxn','Role,Fxn'):
                 c = scores[k][criterion]
-                if c['Pdenom'] > 0:
-                    c['P'] = c['correct'] / c['Pdenom']
-                    c['R'] = c['correct'] / c['Rdenom']
-                    c['F'] = f1(c['P'], c['R'])
-                else:
-                    c['P'] = None
-                    c['R'] = None
-                    c['F'] = None
-
+                c['P'] = c['correct'] / c['Pdenom']
+                c['R'] = c['correct'] / c['Rdenom']
+                c['F'] = f1(c['P'], c['R'])
 
     assert len(gold_sents)==iSent+1,'Mismatch in number of sentences: ' + str(len(gold_sents)) + ' gold, ' + str(iSent+1) + ' system from ' + sysFP
 
     return scores
 
-def to_tsv(all_sys_scores, depth, file=sys.stdout):
+def to_tsv(all_sys_scores, depth):
     for k in ('All','MWE','MWP'):
-        print(k, file=file)
-        print('D='+str(depth)+'\tGold ID:\tRole\tFxn\tRole,Fxn\t\tID\t\t\t\tRole\t\t\t\tFxn\t\t\t\tRole,Fxn\t\t', file=file)
-        print('Sys\tN\tAcc\tAcc\tAcc' + '\t\tP\tR\tF'*4, file=file)
+        print(k)
+        print('D='+str(depth)+'\tGold ID:\tRole\tFxn\tRole,Fxn\t\tID\t\t\t\tRole\t\t\t\tFxn\t\t\t\tRole,Fxn\t\t')
+        print('Sys\tN\tAcc\tAcc\tAcc' + '\t\tP\tR\tF'*4)
         for sys,(gidscores,aidscores) in all_sys_scores.items():
-            print(sys, end='\t', file=file)
-            print(gidscores[k]["Role"]["N"], end='\t', file=file)
+            print(sys, end='\t')
+            print(gidscores[k]["Role"]["N"], end='\t')
             for criterion in ('Role', 'Fxn', 'Role,Fxn'):
-                print("%.2f" % gidscores[k][criterion]["Acc"], end='\t', file=file)
-            print('', end='\t', file=file)
+                print("%.2f" % gidscores[k][criterion]["Acc"], end='\t')
+            print('', end='\t')
             for criterion in ('ID', 'Role', 'Fxn', 'Role,Fxn'):
                 prf = aidscores[k][criterion]
-                print("%.2f" % (prf["P"] or -1) + '\t' + "%.2f" % (prf["R"] or -1) + '\t' + "%.2f" % (prf["F"] or -1) + '\t', end='\t', file=file)
-            print(file=file)
-        print(file=file)
+                print("%.2f" % (prf["P"] or -1) + '\t' + "%.2f" % (prf["R"] or -1) + '\t' + "%.2f" % (prf["F"] or -1) + '\t', end='\t')
+            print()
+        print()
 
 def to_json(all_sys_scores, depth):
     scores = dict(all_sys_scores)
@@ -165,7 +156,7 @@ def main(args):
     # Print output
     args.output_format(all_sys_scores, depth=args.depth)
 
-if __name__ == '__main__':
+if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Evaluate system output for preposition supersense disambiguation against a gold standard.')
     parser.add_argument('goldfile', type=argparse.FileType('r'),
                         help='gold standard .conllulex or .json file')

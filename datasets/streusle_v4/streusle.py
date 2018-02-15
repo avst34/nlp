@@ -6,7 +6,7 @@ import json
 from itertools import chain
 from pprint import pprint
 from collections import namedtuple, defaultdict
-import supersenses
+import supersense_repo
 from vocabulary import Vocabulary, VocabularyBuilder
 from word2vec import Word2VecModel
 
@@ -101,17 +101,15 @@ class TaggedToken:
                  is_part_of_wmwe,
                  is_part_of_smwe,
                  is_first_mwe_token,
-                 identified_for_pss,
                  we_toknums,
                  ner,
                  ud_upos, ud_xpos,
                  lemma,
                  ud_id,
-                 gov_ind, obj_ind, govobj_config, lexcat):
+                 gov_ind, obj_ind, govobj_config, lexcat, _raw_ss_ss2):
         self.lexcat = lexcat
         self.lemma = lemma
         self.ner = ner
-        self.identified_for_pss = identified_for_pss
         self.govobj_config = govobj_config
         self.obj_ind = obj_ind
         self.gov_ind = gov_ind
@@ -129,6 +127,7 @@ class TaggedToken:
         self.is_first_mwe_token = is_first_mwe_token
         self.ud_upos = ud_upos
         self.ud_xpos = ud_xpos
+        self._raw_ss_ss2 = _raw_ss_ss2
 
         if (self.supersense_role is not None) != (self.supersense_role is not None):
             raise Exception("TaggedToken initialized with only one supersense")
@@ -139,17 +138,19 @@ class TaggedToken:
             self.supersense_func = None
             self.supersense_role = None
 
-        self.supersense_role_type = supersenses.get_supersense_type(self.supersense_role) if self.supersense_role else None
-        self.supersense_func_type = supersenses.get_supersense_type(self.supersense_func) if self.supersense_func else None
+        self.supersense_role_type = supersense_repo.get_supersense_type(self.supersense_role) if self.supersense_role else None
+        self.supersense_func_type = supersense_repo.get_supersense_type(self.supersense_func) if self.supersense_func else None
 
         supersense_combined = None
         if self.supersense_role and self.supersense_func:
             supersense_combined = self.supersense_role + '|' + self.supersense_func
         self.supersense_combined = supersense_combined
 
+        self.identified_for_pss = lexcat in ['P', 'PP', 'INF.P', 'POSS', 'PRON.POSS'] and not any([s in _raw_ss_ss2 for s in ['??', '`$']])
+
         assert not self.is_part_of_mwe or not(not self.is_first_mwe_token and self.supersense_combined)
 
-
+ignored_supersenses = []
 
 class StreusleRecord:
 
@@ -162,23 +163,26 @@ class StreusleRecord:
         self.id = id
         self.sentence = sentence
         self.data = data
-        self.ignored_supersenses = []
 
         if not only_supersenses:
-            only_supersenses = supersenses.SUPERSENSES_SET
+            only_supersenses = supersense_repo.SUPERSENSES_SET
 
         def filter_supersense(ss):
-            if ss in only_supersenses:
-                return ss
-            if ss is not None:
-                self.ignored_supersenses.append(ss)
+            if ss:
+                if "." not in ss:
+                    ignored_supersenses.append(ss)
+                else:
+                    type, ss = ss.split('.')
+                    if ss in only_supersenses:
+                        return ss
+                    else:
+                        assert type != 'p'
+                        ignored_supersenses.append(ss)
             return None
 
         def extract_supersense_pair(ss1, ss2):
             def process(ss):
-                if ss in ['_', '??', '`$', None, 'p.X']:
-                    return None
-                return filter_supersense(ss.split('.')[1] if ss != '_' else None)
+                return filter_supersense(ss)
             ss1 = process(ss1)
             ss2 = process(ss2)
             if ss1 and not ss2:
@@ -222,12 +226,15 @@ class StreusleRecord:
                 gov_ind=id_to_ind.get(tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('gov')),
                 obj_ind=id_to_ind.get(tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('obj')),
                 govobj_config=tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('config'),
-                identified_for_pss=not not (tok_we.get(tok_data['#']) and tok_we[tok_data['#']].get('ss') and tok_we[tok_data['#']]['ss'].startswith('p.')),
-                lexcat=tok_we.get(tok_data['#'], {}).get('lexcat')
+                lexcat=tok_we.get(tok_data['#'], {}).get('lexcat'),
+                _raw_ss_ss2=''.join([tok_we.get(tok_data['#'], {}).get(ss) or '' for ss in ['ss', 'ss2']])
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
-        self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersenses.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersenses.PREPOSITION_SUPERSENSES_SET]
-        assert {t.ud_id for t in self.pss_tokens} == {we['toknums'][0] for we in wes if (we.get('ss') or '').startswith('p.') and (we.get('ss') or '') != 'p.X'}
+        self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersense_repo.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersense_repo.PREPOSITION_SUPERSENSES_SET]
+        assert {t.ud_id for t in self.pss_tokens} == {we['toknums'][0] for we in wes if (we.get('ss') or '').startswith('p.')}
+
+    def get_tok_by_ud_id(self, ud_id):
+        return [t for t in self.tagged_tokens if t.ud_id == ud_id][0]
 
     def build_data_with_supersenses(self, supersenses, ident):
         # supersenses - [(role, func), (role, func), ...]
@@ -253,8 +260,6 @@ class StreusleRecord:
             found_we = None
             wes = chain(orig['swes'].values(), orig['smwes'].values())
             for we in wes:
-                if we.get('ss') and not we['ss'].startswith('p.'):
-                    continue
                 if we['toknums'][0] == token.ud_id:
                     found_we = we
             if found_we:
@@ -269,7 +274,7 @@ class StreusleRecord:
                 raise Exception("Couldn't find a match for system supersense in data (" + ident + ")")
 
         for we in chain(data['swes'].values(), data['smwes'].values()):
-            assert we['ss'] != 'p.X' and we['ss2'] != 'p.X'
+            assert not(self.get_tok_by_ud_id(we['toknums'][0]).identified_for_pss) or we['ss'].startswith('p.') and we['ss2'].startswith('p.')
 
         return data
 
@@ -278,7 +283,7 @@ class StreusleLoader(object):
     def __init__(self):
         pass
 
-    def load(self, conllulex_path, only_with_supersenses=supersenses.PREPOSITION_SUPERSENSES_SET, input_format='conllulex'):
+    def load(self, conllulex_path, only_with_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET, input_format='conllulex'):
         assert input_format in ['conllulex', 'json']
         print('Loading streusle data from ' + conllulex_path)
         records = []
@@ -297,7 +302,7 @@ class StreusleLoader(object):
         return records
 
     @staticmethod
-    def get_dist(records, all_supersenses=supersenses.PREPOSITION_SUPERSENSES_SET):
+    def get_dist(records, all_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET):
         return {
             pss: len([tok for rec in records for tok in rec.pss_tokens if tok.supersense == pss])
             for pss in all_supersenses
