@@ -273,10 +273,10 @@ class LstmMlpSupersensesModel:
     def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
         ll_samples = [self.sample_to_lowlevel(s) for s in samples]
-        ll_samples = [x for x in ll_samples if any(x.get_sample_mask)]
+        ll_samples = [x for x in ll_samples if any(x.mask)]
 
         ll_validation_samples = [self.sample_to_lowlevel(s) for s in validation_samples] if validation_samples else None
-        ll_validation_samples = [x for x in ll_validation_samples if any(x.get_sample_mask)] if ll_validation_samples else None
+        ll_validation_samples = [x for x in ll_validation_samples if any(x.mask)] if ll_validation_samples else None
 
         self.report_masking(samples, 'Training')
         if validation_samples:

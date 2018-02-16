@@ -107,5 +107,5 @@ if __name__ == '__main__':
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    # process_tuner_results(path)
+    process_tuner_results(path, output_dir)
     evaluate_most_frequent_baseline_model(output_dir)

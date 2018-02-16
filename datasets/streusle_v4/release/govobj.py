@@ -118,8 +118,7 @@ def findgovobj(pexpr, sent):
     if coptok:
         if config=='subordinating':
             otok = coptok   # subordinate copular clause: use copula as the object instead of the content predicate
-        else:
-            # assert not config
+        elif not config:    # technically a preposition can be both stranded and predicative: "the worst store I have been in". just label it stranded.
             config = 'predicative'
             # look for subject
             subjtok = findsubj(pptop, sent)
@@ -129,11 +128,11 @@ def findgovobj(pexpr, sent):
         config = 'default'
 
     pexpr['heuristic_relation'] = {
-             'gov': gtok['#']     if gtok else None,
+        'gov': gtok['#']     if gtok else None,
         'govlemma': gtok['lemma'] if gtok else None,
-             'obj': otok['#']     if otok else None,
+        'obj': otok['#']     if otok else None,
         'objlemma': otok['lemma'] if otok else None,
-          'config': config
+        'config': config
     }
 
     #print(sent['mwe'], (gtok['word'], plemma, otok['word']), config)

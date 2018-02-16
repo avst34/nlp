@@ -337,7 +337,7 @@ class LstmMlpMulticlassModel(object):
                 dy.renew_cg(immediate_compute=True, check_validity=True)
                 losses = []
                 for sample in batch:
-                    outputs = self._build_network_for_input(sample.xs, sample.get_sample_mask, apply_dropout=True)
+                    outputs = self._build_network_for_input(sample.xs, sample.mask, apply_dropout=True)
                     sample_loss = self._build_loss(outputs, sample.ys)
                     if sample_loss is not None:
                         losses.append(sample_loss)

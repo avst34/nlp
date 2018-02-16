@@ -93,7 +93,7 @@ class ClassifierEvaluator:
         class_scores = {}
 
         for sample_ind, sample in enumerate(samples):
-            predicted_ys = predictor.predict(sample.xs, sample.get_sample_mask)
+            predicted_ys = predictor.predict(sample.xs, sample.mask)
             if sample_ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
             for p, a in zip(predicted_ys, sample.ys):
