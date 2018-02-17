@@ -274,7 +274,7 @@ class StreusleRecord:
                 raise Exception("Couldn't find a match for system supersense in data (" + ident + ")")
 
         for we in chain(data['swes'].values(), data['smwes'].values()):
-            assert not(self.get_tok_by_ud_id(we['toknums'][0]).identified_for_pss) or we['ss'].startswith('p.') and we['ss2'].startswith('p.')
+            assert not self.get_tok_by_ud_id(we['toknums'][0]).identified_for_pss or we['ss'].startswith('p.') and we['ss2'].startswith('p.')
 
         return data
 
