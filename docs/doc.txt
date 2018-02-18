@@ -1,0 +1,63 @@
+Settings
+--------
+We consider four different settings. Each setting is defined by how candidate identification is done - using human annotations (goldid) or automatically (autoid) (footnote: Automatic candidate identification is done heuristically, script can be found at ??), and by how syntactic parsing is done - using human annotations (goldsyn) or automaticlly (autosyn) (footnote: Using stanford CoreNLP 8.3 for prediction of lemmas, UD dependencies, XPOS labels and NER labels). 
+
+Preprocessing
+-------------
+In addition to the automatic identification of PSS bearing units (for the autoid settings) and syntax parsing (for the autosyn settings), we also heuristically predict the governer and object of each identified unit, which also receives a GOVOBJ-CONFIG label that can be either 'default', 'possessive', 'subordinating', 'predicative' or 'stranded'.
+
+Most Frequent Class Baseline
+----------------------------
+As a naive baseline, we perform the following experiment: for each identified token, we predict the most frequent combination of function PSS and role PSS in the training data, given the lemma of the first token in the unit. A lemma which has not been seen in the training set will get the most frequent combination across all trainig data.
+
+Neual Netowrk Baseline
+----------------------
+
+Network Architecture
+--------------------
+For every sentence, each token is first embedded using a concatenation of its external WORD2VEC representation its lemma's WORD2VEC, and an internal emebdding vector. (footnote: zero vectors are used when WORD2VEC representation is not available)
+The token embeddings are fed through a 2-layer BiLSTM encoder, yiedling a list of token representations. 
+For unit identified for PSS prediction, we build a feature vector by concatenating:
+1. The first token's BiLSTM representation.
+2. The first token's XPOS embedding.
+3. The first token's UD dependency label embedding.
+4. The first token's NER label embedding (footnote - automatically predicted NER labels are used in both goldsyn and autosyn settings, as human annotations are not available)
+5. Features 1-4 of the detected governor.
+6. Features 1-4 of the detected object.
+7. The embedding of the identified GOVOBJ-CONFIG of the unit.
+8. The embedding of the identified LEXCAT of the unit.
+9. A flag indicating whether any of the two tokens following the unit are capitalized, embedded as (1) or (-1).
+
+The embeddings for XPOS, UD, NER, GOVOBJ-CONFIG and LEXCAT labels as well as the internal token embeddings are considered part of the model parameters and get updated during training. A 'None' label (added to each set of labels) is used when the corresponding property is not given. 
+For each PSS to predict (role PSS and function PSS), we feed the feature vector through a 2-layer MLP followed by a Softmax layer that assignes probaiblities for each label. There are two sets of MLP-softmax layers, one for role and one for function. At prediction time, the labels with the highest probabilities are selected.
+
+Implementated using the DyNet neural network library. 
+
+Training
+--------	
+Each model was trained for 80 epochs with a mini batch size of 20. We used Simple Gradient Ascent (footnote: DyNet's SimpleSGDTrainer) and the cross-entropy loss function. Inverted dropout was used during training.
+
+
+Hyperparameters
+---------------
+Hyperparameter tuning was done for each task separately, using random grid search over a predefined set of possible values for each hyperparameter. We trained the model for each sampled set of hyperparameters and chose the sample with the highest F1 score on the development set.
+
+Listed here are the different hyperparameters and their selected values for each task:
+Token internal embedding vector dimension - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+Update token WORD2VEC embedding? - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+Lemma internal embedding vector dimension - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+Update lemma  WORD2VEC embedding? - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+MLP layer dimension - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+MLP activation - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+BiLSTM hidden layer dimension - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+MLP Dropout Prob. - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+LSTM Dropout Prob. - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+Learning rate - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+Learning rate decay - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+XPOS embedding vector dimension - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+UD dependencies embedding vector dimension - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+NER  embedding vector dimension - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+GOVOBJ-CONFIG embedding vector dimension - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+LEXCAT embedding vector dimension - autoid.autosyn - ?, autoid.goldsyn - ?, goldid.autosyn - ?, goldid.goldsyn - ?
+	
+
