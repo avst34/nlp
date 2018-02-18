@@ -220,10 +220,11 @@ def build_template_input(results_dir, json_output_path):
                 d[mtype][task] = d[mtype].get(task) or {}
                 d[mtype][task][stype] = {}
                 d[mtype][task][stype]['psseval'] = evl
-                hp_file_path = results_dir + '/' + mtype + '/' + task + '/model.hp'
-                if os.path.exists(hp_file_path):
-                    with open(hp_file_path) as hp_file:
-                        d[mtype][task][stype]['hyperparameters'] = json.load(hp_file)
+
+            hp_file_path = results_dir + '/' + mtype + '/' + task + '/model.hp'
+            if os.path.exists(hp_file_path):
+                with open(hp_file_path) as hp_file:
+                    d[mtype][task]['hp'] = json.load(hp_file)
 
     with open(json_output_path, 'w') as f:
         json.dump(d, f, indent=2)
