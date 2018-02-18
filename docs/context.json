@@ -1,515 +1,453 @@
 {
   "nn": {
     "autoid_goldsyn": {
-      "train": {
+      "test": {
         "psseval": {
-          "all": {
+          "mwe": {
             "id": {
-              "r": "0.9",
-              "p": "0.9",
-              "f": "0.9"
+              "r": "0.3",
+              "f": "0.4",
+              "p": "0.7"
             },
             "role": {
-              "r": "0.9",
-              "p": "0.9",
-              "f": "0.9"
+              "r": "0.3",
+              "f": "0.4",
+              "p": "0.7"
             },
             "fxn": {
-              "r": "0.9",
-              "p": "0.9",
-              "f": "0.9"
+              "r": "0.3",
+              "f": "0.4",
+              "p": "0.7"
             },
             "role_fxn": {
-              "r": "0.9",
-              "p": "0.9",
-              "f": "0.9"
+              "r": "0.3",
+              "f": "0.4",
+              "p": "0.7"
             }
           },
           "mwp": {
             "id": {
-              "r": "0.7",
-              "p": "0.8",
-              "f": "0.8"
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.6"
             },
             "role": {
-              "r": "0.7",
-              "p": "0.8",
-              "f": "0.8"
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.6"
             },
             "fxn": {
-              "r": "0.7",
-              "p": "0.8",
-              "f": "0.8"
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.6"
             },
             "role_fxn": {
-              "r": "0.7",
-              "p": "0.8",
-              "f": "0.8"
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.6"
             }
           },
-          "mwe": {
+          "all": {
             "id": {
-              "r": "0.5",
-              "p": "0.8",
-              "f": "0.7"
+              "r": "0.9",
+              "f": "0.9",
+              "p": "0.9"
             },
             "role": {
-              "r": "0.5",
-              "p": "0.8",
-              "f": "0.7"
+              "r": "0.6",
+              "f": "0.6",
+              "p": "0.6"
             },
             "fxn": {
-              "r": "0.5",
-              "p": "0.8",
-              "f": "0.7"
+              "r": "0.7",
+              "f": "0.7",
+              "p": "0.7"
             },
             "role_fxn": {
-              "r": "0.5",
-              "p": "0.8",
-              "f": "0.7"
+              "r": "0.6",
+              "f": "0.6",
+              "p": "0.6"
             }
           }
         }
       },
-      "test": {
+      "train": {
         "psseval": {
-          "all": {
+          "mwe": {
             "id": {
-              "r": "0.9",
-              "p": "0.9",
-              "f": "0.9"
+              "r": "0.5",
+              "f": "0.7",
+              "p": "0.8"
             },
             "role": {
-              "r": "0.6",
-              "p": "0.6",
-              "f": "0.6"
+              "r": "0.5",
+              "f": "0.7",
+              "p": "0.8"
             },
             "fxn": {
-              "r": "0.7",
-              "p": "0.7",
-              "f": "0.7"
+              "r": "0.5",
+              "f": "0.7",
+              "p": "0.8"
             },
             "role_fxn": {
-              "r": "0.6",
-              "p": "0.6",
-              "f": "0.6"
+              "r": "0.5",
+              "f": "0.7",
+              "p": "0.8"
             }
           },
           "mwp": {
             "id": {
-              "r": "0.4",
-              "p": "0.6",
-              "f": "0.5"
+              "r": "0.7",
+              "f": "0.8",
+              "p": "0.8"
             },
             "role": {
-              "r": "0.4",
-              "p": "0.6",
-              "f": "0.5"
+              "r": "0.7",
+              "f": "0.8",
+              "p": "0.8"
             },
             "fxn": {
-              "r": "0.4",
-              "p": "0.6",
-              "f": "0.5"
+              "r": "0.7",
+              "f": "0.8",
+              "p": "0.8"
             },
             "role_fxn": {
-              "r": "0.4",
-              "p": "0.6",
-              "f": "0.5"
+              "r": "0.7",
+              "f": "0.8",
+              "p": "0.8"
             }
           },
-          "mwe": {
+          "all": {
             "id": {
-              "r": "0.3",
-              "p": "0.7",
-              "f": "0.4"
+              "r": "0.9",
+              "f": "0.9",
+              "p": "0.9"
             },
             "role": {
-              "r": "0.3",
-              "p": "0.7",
-              "f": "0.4"
+              "r": "0.9",
+              "f": "0.9",
+              "p": "0.9"
             },
             "fxn": {
-              "r": "0.3",
-              "p": "0.7",
-              "f": "0.4"
+              "r": "0.9",
+              "f": "0.9",
+              "p": "0.9"
             },
             "role_fxn": {
-              "r": "0.3",
-              "p": "0.7",
-              "f": "0.4"
+              "r": "0.9",
+              "f": "0.9",
+              "p": "0.9"
+            }
+          }
+        }
+      },
+      "dev": {
+        "psseval": {
+          "mwe": {
+            "id": {
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.8"
+            },
+            "role": {
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.8"
+            },
+            "fxn": {
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.8"
+            },
+            "role_fxn": {
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.8"
+            }
+          },
+          "mwp": {
+            "id": {
+              "r": "0.6",
+              "f": "0.7",
+              "p": "0.8"
+            },
+            "role": {
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.7"
+            },
+            "fxn": {
+              "r": "0.6",
+              "f": "0.7",
+              "p": "0.8"
+            },
+            "role_fxn": {
+              "r": "0.4",
+              "f": "0.5",
+              "p": "0.7"
+            }
+          },
+          "all": {
+            "id": {
+              "r": "0.9",
+              "f": "0.9",
+              "p": "0.9"
+            },
+            "role": {
+              "r": "0.6",
+              "f": "0.6",
+              "p": "0.6"
+            },
+            "fxn": {
+              "r": "0.7",
+              "f": "0.7",
+              "p": "0.7"
+            },
+            "role_fxn": {
+              "r": "0.6",
+              "f": "0.6",
+              "p": "0.6"
             }
           }
         }
       },
       "hp": {
-        "mask_mwes": false,
-        "epochs": 80,
+        "use_token": "Yes",
+        "use_ner": "Yes",
+        "ud_deps_embd_dim": 25,
+        "mlp_activation": "tanh",
+        "mlp_layer_dim": 80,
+        "lstm_h_dim": 100,
+        "use_ud_xpos": "Yes",
+        "mask_mwes": "No",
+        "use_ud_dep": "Yes",
+        "govobj_config_embd_dim": 3,
+        "is_bilstm": "Yes",
+        "learning_rate_decay": 0.0,
+        "ner_embd_dim": 5,
+        "mlp_layers": 2,
+        "token_embd_dim": 300,
+        "use_lexcat": "Yes",
+        "dynet_random_seed": "1434844",
+        "use_govobj": "Yes",
+        "update_token_embd": "No",
+        "ud_xpos_embd_dim": 25,
+        "allow_empty_prediction": "No",
+        "lexcat_embd_dim": 3,
+        "num_lstm_layers": 2,
+        "use_token_internal": "Yes",
+        "update_lemmas_embd": "Yes",
+        "learning_rate": 0.15,
         "labels_to_predict": [
           "supersense_role",
           "supersense_func"
         ],
         "lstm_dropout_p": 0.24,
-        "dynet_random_seed": "1434844",
-        "learning_rate": 0.15848931924611143,
-        "update_lemmas_embd": true,
-        "use_token": true,
-        "use_govobj": true,
-        "use_token_internal": true,
-        "update_token_embd": false,
-        "ud_xpos_embd_dim": 25,
-        "is_bilstm": true,
-        "mlp_layer_dim": 80,
-        "use_ner": true,
-        "learning_rate_decay": 0.0,
-        "token_embd_dim": 300,
-        "ud_deps_embd_dim": 25,
-        "use_ud_dep": true,
-        "mlp_activation": "tanh",
-        "use_ud_xpos": true,
-        "govobj_config_embd_dim": 3,
-        "allow_empty_prediction": false,
-        "mlp_dropout_p": 0.31,
-        "lexcat_embd_dim": 3,
-        "mlp_layers": 2,
-        "use_prep_onehot": false,
-        "ner_embd_dim": 5,
-        "num_lstm_layers": 2,
+        "use_prep_onehot": "No",
         "token_internal_embd_dim": 100,
-        "use_lexcat": true,
-        "lstm_h_dim": 100
+        "mlp_dropout_p": 0.31,
+        "epochs": 80
+      }
+    },
+    "goldid_autosyn": {
+      "test": {
+        "psseval": {
+          "mwe": {
+            "role": {
+              "acc": "0.79"
+            },
+            "fxn": {
+              "acc": "0.79"
+            },
+            "role_fxn": {
+              "acc": "0.67"
+            }
+          },
+          "mwp": {
+            "role": {
+              "acc": "0.89"
+            },
+            "fxn": {
+              "acc": "0.89"
+            },
+            "role_fxn": {
+              "acc": "0.89"
+            }
+          },
+          "all": {
+            "role": {
+              "acc": "0.70"
+            },
+            "fxn": {
+              "acc": "0.78"
+            },
+            "role_fxn": {
+              "acc": "0.65"
+            }
+          }
+        }
+      },
+      "train": {
+        "psseval": {
+          "mwe": {
+            "role": {
+              "acc": "0.98"
+            },
+            "fxn": {
+              "acc": "0.98"
+            },
+            "role_fxn": {
+              "acc": "0.97"
+            }
+          },
+          "mwp": {
+            "role": {
+              "acc": "0.99"
+            },
+            "fxn": {
+              "acc": "0.99"
+            },
+            "role_fxn": {
+              "acc": "0.98"
+            }
+          },
+          "all": {
+            "role": {
+              "acc": "0.99"
+            },
+            "fxn": {
+              "acc": "1.00"
+            },
+            "role_fxn": {
+              "acc": "0.99"
+            }
+          }
+        }
       },
       "dev": {
         "psseval": {
-          "all": {
-            "id": {
-              "r": "0.9",
-              "p": "0.9",
-              "f": "0.9"
-            },
+          "mwe": {
             "role": {
-              "r": "0.6",
-              "p": "0.6",
-              "f": "0.6"
+              "acc": "0.76"
             },
             "fxn": {
-              "r": "0.7",
-              "p": "0.7",
-              "f": "0.7"
+              "acc": "0.80"
             },
             "role_fxn": {
-              "r": "0.6",
-              "p": "0.6",
-              "f": "0.6"
+              "acc": "0.68"
             }
           },
           "mwp": {
-            "id": {
-              "r": "0.6",
-              "p": "0.8",
-              "f": "0.7"
-            },
             "role": {
-              "r": "0.4",
-              "p": "0.7",
-              "f": "0.5"
+              "acc": "0.89"
             },
             "fxn": {
-              "r": "0.6",
-              "p": "0.8",
-              "f": "0.7"
+              "acc": "0.78"
             },
             "role_fxn": {
-              "r": "0.4",
-              "p": "0.7",
-              "f": "0.5"
+              "acc": "0.78"
             }
           },
-          "mwe": {
-            "id": {
-              "r": "0.4",
-              "p": "0.8",
-              "f": "0.5"
-            },
-            "role": {
-              "r": "0.4",
-              "p": "0.8",
-              "f": "0.5"
-            },
-            "fxn": {
-              "r": "0.4",
-              "p": "0.8",
-              "f": "0.5"
-            },
-            "role_fxn": {
-              "r": "0.4",
-              "p": "0.8",
-              "f": "0.5"
-            }
-          }
-        }
-      }
-    },
-    "autoid_autosyn": {
-      "train": {
-        "psseval": {
           "all": {
-            "id": {
-              "r": "0.87",
-              "p": "0.92",
-              "f": "0.90"
-            },
             "role": {
-              "r": "0.87",
-              "p": "0.92",
-              "f": "0.89"
+              "acc": "0.67"
             },
             "fxn": {
-              "r": "0.87",
-              "p": "0.92",
-              "f": "0.89"
+              "acc": "0.77"
             },
             "role_fxn": {
-              "r": "0.87",
-              "p": "0.92",
-              "f": "0.89"
-            }
-          },
-          "mwp": {
-            "id": {
-              "r": "0.71",
-              "p": "0.77",
-              "f": "0.74"
-            },
-            "role": {
-              "r": "0.71",
-              "p": "0.77",
-              "f": "0.74"
-            },
-            "fxn": {
-              "r": "0.71",
-              "p": "0.77",
-              "f": "0.74"
-            },
-            "role_fxn": {
-              "r": "0.71",
-              "p": "0.77",
-              "f": "0.74"
-            }
-          },
-          "mwe": {
-            "id": {
-              "r": "0.52",
-              "p": "0.82",
-              "f": "0.64"
-            },
-            "role": {
-              "r": "0.52",
-              "p": "0.82",
-              "f": "0.64"
-            },
-            "fxn": {
-              "r": "0.52",
-              "p": "0.82",
-              "f": "0.64"
-            },
-            "role_fxn": {
-              "r": "0.52",
-              "p": "0.82",
-              "f": "0.64"
-            }
-          }
-        }
-      },
-      "test": {
-        "psseval": {
-          "all": {
-            "id": {
-              "r": "0.86",
-              "p": "0.85",
-              "f": "0.85"
-            },
-            "role": {
-              "r": "0.57",
-              "p": "0.56",
-              "f": "0.57"
-            },
-            "fxn": {
-              "r": "0.67",
-              "p": "0.66",
-              "f": "0.67"
-            },
-            "role_fxn": {
-              "r": "0.54",
-              "p": "0.54",
-              "f": "0.54"
-            }
-          },
-          "mwp": {
-            "id": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            },
-            "role": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            },
-            "fxn": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            },
-            "role_fxn": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            }
-          },
-          "mwe": {
-            "id": {
-              "r": "0.33",
-              "p": "0.67",
-              "f": "0.44"
-            },
-            "role": {
-              "r": "0.29",
-              "p": "0.58",
-              "f": "0.39"
-            },
-            "fxn": {
-              "r": "0.29",
-              "p": "0.58",
-              "f": "0.39"
-            },
-            "role_fxn": {
-              "r": "0.29",
-              "p": "0.58",
-              "f": "0.39"
+              "acc": "0.62"
             }
           }
         }
       },
       "hp": {
-        "mask_mwes": false,
-        "epochs": 80,
+        "use_token": "Yes",
+        "use_ner": "Yes",
+        "ud_deps_embd_dim": 10,
+        "mlp_activation": "relu",
+        "mlp_layer_dim": 100,
+        "lstm_h_dim": 100,
+        "use_ud_xpos": "Yes",
+        "mask_mwes": "No",
+        "use_ud_dep": "Yes",
+        "govobj_config_embd_dim": 3,
+        "is_bilstm": "Yes",
+        "learning_rate_decay": "10^{-4}",
+        "ner_embd_dim": 10,
+        "mlp_layers": 2,
+        "token_embd_dim": 300,
+        "use_lexcat": "Yes",
+        "dynet_random_seed": "7564313",
+        "use_govobj": "Yes",
+        "update_token_embd": "No",
+        "ud_xpos_embd_dim": 25,
+        "allow_empty_prediction": "No",
+        "lexcat_embd_dim": 3,
+        "num_lstm_layers": 2,
+        "use_token_internal": "Yes",
+        "update_lemmas_embd": "Yes",
+        "learning_rate": 0.15,
         "labels_to_predict": [
           "supersense_role",
           "supersense_func"
         ],
-        "lstm_dropout_p": 0.45,
-        "dynet_random_seed": "3592752",
-        "learning_rate": 0.15848931924611143,
-        "update_lemmas_embd": true,
-        "use_token": true,
-        "use_govobj": true,
-        "use_token_internal": true,
-        "update_token_embd": false,
-        "ud_xpos_embd_dim": 5,
-        "is_bilstm": true,
-        "mlp_layer_dim": 80,
-        "use_ner": true,
-        "learning_rate_decay": 0.0,
-        "token_embd_dim": 300,
-        "ud_deps_embd_dim": 5,
-        "use_ud_dep": true,
-        "mlp_activation": "tanh",
-        "use_ud_xpos": true,
-        "govobj_config_embd_dim": 3,
-        "allow_empty_prediction": false,
-        "mlp_dropout_p": 0.32,
-        "lexcat_embd_dim": 3,
-        "mlp_layers": 2,
-        "use_prep_onehot": false,
-        "ner_embd_dim": 5,
-        "num_lstm_layers": 2,
-        "token_internal_embd_dim": 50,
-        "use_lexcat": true,
-        "lstm_h_dim": 80
-      },
-      "dev": {
-        "psseval": {
-          "all": {
-            "id": {
-              "r": "0.88",
-              "p": "0.85",
-              "f": "0.87"
-            },
-            "role": {
-              "r": "0.59",
-              "p": "0.58",
-              "f": "0.58"
-            },
-            "fxn": {
-              "r": "0.71",
-              "p": "0.69",
-              "f": "0.70"
-            },
-            "role_fxn": {
-              "r": "0.57",
-              "p": "0.55",
-              "f": "0.56"
-            }
-          },
-          "mwp": {
-            "id": {
-              "r": "0.33",
-              "p": "0.60",
-              "f": "0.43"
-            },
-            "role": {
-              "r": "0.22",
-              "p": "0.40",
-              "f": "0.29"
-            },
-            "fxn": {
-              "r": "0.33",
-              "p": "0.60",
-              "f": "0.43"
-            },
-            "role_fxn": {
-              "r": "0.22",
-              "p": "0.40",
-              "f": "0.29"
-            }
-          },
-          "mwe": {
-            "id": {
-              "r": "0.36",
-              "p": "0.82",
-              "f": "0.50"
-            },
-            "role": {
-              "r": "0.32",
-              "p": "0.73",
-              "f": "0.44"
-            },
-            "fxn": {
-              "r": "0.36",
-              "p": "0.82",
-              "f": "0.50"
-            },
-            "role_fxn": {
-              "r": "0.32",
-              "p": "0.73",
-              "f": "0.44"
-            }
-          }
-        }
+        "lstm_dropout_p": 0.38,
+        "use_prep_onehot": "No",
+        "token_internal_embd_dim": 10,
+        "mlp_dropout_p": 0.37,
+        "epochs": 80
       }
     },
     "goldid_goldsyn": {
-      "train": {
+      "test": {
         "psseval": {
-          "all": {
+          "mwe": {
             "role": {
-              "acc": "0.92"
+              "acc": "0.83"
             },
             "fxn": {
-              "acc": "0.97"
+              "acc": "0.83"
             },
             "role_fxn": {
-              "acc": "0.90"
+              "acc": "0.79"
+            }
+          },
+          "mwp": {
+            "role": {
+              "acc": "0.78"
+            },
+            "fxn": {
+              "acc": "0.78"
+            },
+            "role_fxn": {
+              "acc": "0.78"
+            }
+          },
+          "all": {
+            "role": {
+              "acc": "0.72"
+            },
+            "fxn": {
+              "acc": "0.85"
+            },
+            "role_fxn": {
+              "acc": "0.69"
+            }
+          }
+        }
+      },
+      "train": {
+        "psseval": {
+          "mwe": {
+            "role": {
+              "acc": "0.91"
+            },
+            "fxn": {
+              "acc": "0.93"
+            },
+            "role_fxn": {
+              "acc": "0.88"
             }
           },
           "mwp": {
@@ -523,117 +461,21 @@
               "acc": "0.87"
             }
           },
-          "mwe": {
-            "role": {
-              "acc": "0.91"
-            },
-            "fxn": {
-              "acc": "0.93"
-            },
-            "role_fxn": {
-              "acc": "0.88"
-            }
-          }
-        }
-      },
-      "test": {
-        "psseval": {
           "all": {
             "role": {
-              "acc": "0.72"
+              "acc": "0.92"
             },
             "fxn": {
-              "acc": "0.85"
+              "acc": "0.97"
             },
             "role_fxn": {
-              "acc": "0.69"
-            }
-          },
-          "mwp": {
-            "role": {
-              "acc": "0.78"
-            },
-            "fxn": {
-              "acc": "0.78"
-            },
-            "role_fxn": {
-              "acc": "0.78"
-            }
-          },
-          "mwe": {
-            "role": {
-              "acc": "0.83"
-            },
-            "fxn": {
-              "acc": "0.83"
-            },
-            "role_fxn": {
-              "acc": "0.79"
+              "acc": "0.90"
             }
           }
         }
-      },
-      "hp": {
-        "mask_mwes": false,
-        "epochs": 80,
-        "labels_to_predict": [
-          "supersense_role",
-          "supersense_func"
-        ],
-        "lstm_dropout_p": 0.49,
-        "dynet_random_seed": "3857654",
-        "learning_rate": 0.15848931924611143,
-        "update_lemmas_embd": false,
-        "use_token": true,
-        "use_govobj": true,
-        "use_token_internal": true,
-        "update_token_embd": false,
-        "ud_xpos_embd_dim": 5,
-        "is_bilstm": true,
-        "mlp_layer_dim": 100,
-        "use_ner": true,
-        "learning_rate_decay": 0.00031622776601683794,
-        "token_embd_dim": 300,
-        "ud_deps_embd_dim": 25,
-        "use_ud_dep": true,
-        "mlp_activation": "relu",
-        "use_ud_xpos": true,
-        "govobj_config_embd_dim": 3,
-        "allow_empty_prediction": false,
-        "mlp_dropout_p": 0.42,
-        "lexcat_embd_dim": 3,
-        "mlp_layers": 2,
-        "use_prep_onehot": false,
-        "ner_embd_dim": 5,
-        "num_lstm_layers": 2,
-        "token_internal_embd_dim": 10,
-        "use_lexcat": true,
-        "lstm_h_dim": 100
       },
       "dev": {
         "psseval": {
-          "all": {
-            "role": {
-              "acc": "0.75"
-            },
-            "fxn": {
-              "acc": "0.86"
-            },
-            "role_fxn": {
-              "acc": "0.72"
-            }
-          },
-          "mwp": {
-            "role": {
-              "acc": "0.67"
-            },
-            "fxn": {
-              "acc": "1.00"
-            },
-            "role_fxn": {
-              "acc": "0.67"
-            }
-          },
           "mwe": {
             "role": {
               "acc": "0.80"
@@ -644,158 +486,316 @@
             "role_fxn": {
               "acc": "0.76"
             }
-          }
-        }
-      }
-    },
-    "goldid_autosyn": {
-      "train": {
-        "psseval": {
-          "all": {
+          },
+          "mwp": {
             "role": {
-              "acc": "0.99"
+              "acc": "0.67"
             },
             "fxn": {
               "acc": "1.00"
             },
             "role_fxn": {
-              "acc": "0.99"
+              "acc": "0.67"
             }
           },
-          "mwp": {
-            "role": {
-              "acc": "0.99"
-            },
-            "fxn": {
-              "acc": "0.99"
-            },
-            "role_fxn": {
-              "acc": "0.98"
-            }
-          },
-          "mwe": {
-            "role": {
-              "acc": "0.98"
-            },
-            "fxn": {
-              "acc": "0.98"
-            },
-            "role_fxn": {
-              "acc": "0.97"
-            }
-          }
-        }
-      },
-      "test": {
-        "psseval": {
           "all": {
             "role": {
-              "acc": "0.70"
+              "acc": "0.75"
             },
             "fxn": {
-              "acc": "0.78"
+              "acc": "0.86"
             },
             "role_fxn": {
-              "acc": "0.65"
-            }
-          },
-          "mwp": {
-            "role": {
-              "acc": "0.89"
-            },
-            "fxn": {
-              "acc": "0.89"
-            },
-            "role_fxn": {
-              "acc": "0.89"
-            }
-          },
-          "mwe": {
-            "role": {
-              "acc": "0.79"
-            },
-            "fxn": {
-              "acc": "0.79"
-            },
-            "role_fxn": {
-              "acc": "0.67"
+              "acc": "0.72"
             }
           }
         }
       },
       "hp": {
-        "mask_mwes": false,
-        "epochs": 80,
+        "use_token": "Yes",
+        "use_ner": "Yes",
+        "ud_deps_embd_dim": 25,
+        "mlp_activation": "relu",
+        "mlp_layer_dim": 100,
+        "lstm_h_dim": 100,
+        "use_ud_xpos": "Yes",
+        "mask_mwes": "No",
+        "use_ud_dep": "Yes",
+        "govobj_config_embd_dim": 3,
+        "is_bilstm": "Yes",
+        "learning_rate_decay": 0.0,
+        "ner_embd_dim": 5,
+        "mlp_layers": 2,
+        "token_embd_dim": 300,
+        "use_lexcat": "Yes",
+        "dynet_random_seed": "3857654",
+        "use_govobj": "Yes",
+        "update_token_embd": "No",
+        "ud_xpos_embd_dim": 5,
+        "allow_empty_prediction": "No",
+        "lexcat_embd_dim": 3,
+        "num_lstm_layers": 2,
+        "use_token_internal": "Yes",
+        "update_lemmas_embd": "No",
+        "learning_rate": 0.15,
         "labels_to_predict": [
           "supersense_role",
           "supersense_func"
         ],
-        "lstm_dropout_p": 0.38,
-        "dynet_random_seed": "7564313",
-        "learning_rate": 0.15848931924611143,
-        "update_lemmas_embd": true,
-        "use_token": true,
-        "use_govobj": true,
-        "use_token_internal": true,
-        "update_token_embd": false,
-        "ud_xpos_embd_dim": 25,
-        "is_bilstm": true,
-        "mlp_layer_dim": 100,
-        "use_ner": true,
-        "learning_rate_decay": 0.0001,
-        "token_embd_dim": 300,
-        "ud_deps_embd_dim": 10,
-        "use_ud_dep": true,
-        "mlp_activation": "relu",
-        "use_ud_xpos": true,
-        "govobj_config_embd_dim": 3,
-        "allow_empty_prediction": false,
-        "mlp_dropout_p": 0.37,
-        "lexcat_embd_dim": 3,
-        "mlp_layers": 2,
-        "use_prep_onehot": false,
-        "ner_embd_dim": 10,
-        "num_lstm_layers": 2,
+        "lstm_dropout_p": 0.49,
+        "use_prep_onehot": "No",
         "token_internal_embd_dim": 10,
-        "use_lexcat": true,
-        "lstm_h_dim": 100
-      },
-      "dev": {
+        "mlp_dropout_p": 0.42,
+        "epochs": 80
+      }
+    },
+    "autoid_autosyn": {
+      "test": {
         "psseval": {
-          "all": {
+          "mwe": {
+            "id": {
+              "r": "0.33",
+              "f": "0.44",
+              "p": "0.67"
+            },
             "role": {
-              "acc": "0.67"
+              "r": "0.25",
+              "f": "0.33",
+              "p": "0.50"
             },
             "fxn": {
-              "acc": "0.77"
+              "r": "0.29",
+              "f": "0.39",
+              "p": "0.58"
             },
             "role_fxn": {
-              "acc": "0.62"
+              "r": "0.25",
+              "f": "0.33",
+              "p": "0.50"
             }
           },
           "mwp": {
+            "id": {
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
+            },
             "role": {
-              "acc": "0.89"
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
             },
             "fxn": {
-              "acc": "0.78"
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
             },
             "role_fxn": {
-              "acc": "0.78"
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
             }
           },
-          "mwe": {
+          "all": {
+            "id": {
+              "r": "0.86",
+              "f": "0.85",
+              "p": "0.85"
+            },
             "role": {
-              "acc": "0.76"
+              "r": "0.56",
+              "f": "0.56",
+              "p": "0.56"
             },
             "fxn": {
-              "acc": "0.80"
+              "r": "0.67",
+              "f": "0.66",
+              "p": "0.66"
             },
             "role_fxn": {
-              "acc": "0.68"
+              "r": "0.54",
+              "f": "0.53",
+              "p": "0.53"
             }
           }
         }
+      },
+      "train": {
+        "psseval": {
+          "mwe": {
+            "id": {
+              "r": "0.52",
+              "f": "0.64",
+              "p": "0.82"
+            },
+            "role": {
+              "r": "0.52",
+              "f": "0.64",
+              "p": "0.82"
+            },
+            "fxn": {
+              "r": "0.52",
+              "f": "0.64",
+              "p": "0.82"
+            },
+            "role_fxn": {
+              "r": "0.52",
+              "f": "0.64",
+              "p": "0.82"
+            }
+          },
+          "mwp": {
+            "id": {
+              "r": "0.71",
+              "f": "0.74",
+              "p": "0.77"
+            },
+            "role": {
+              "r": "0.71",
+              "f": "0.74",
+              "p": "0.77"
+            },
+            "fxn": {
+              "r": "0.71",
+              "f": "0.74",
+              "p": "0.77"
+            },
+            "role_fxn": {
+              "r": "0.71",
+              "f": "0.74",
+              "p": "0.77"
+            }
+          },
+          "all": {
+            "id": {
+              "r": "0.87",
+              "f": "0.90",
+              "p": "0.92"
+            },
+            "role": {
+              "r": "0.87",
+              "f": "0.89",
+              "p": "0.92"
+            },
+            "fxn": {
+              "r": "0.87",
+              "f": "0.89",
+              "p": "0.92"
+            },
+            "role_fxn": {
+              "r": "0.87",
+              "f": "0.89",
+              "p": "0.92"
+            }
+          }
+        }
+      },
+      "dev": {
+        "psseval": {
+          "mwe": {
+            "id": {
+              "r": "0.36",
+              "f": "0.50",
+              "p": "0.82"
+            },
+            "role": {
+              "r": "0.32",
+              "f": "0.44",
+              "p": "0.73"
+            },
+            "fxn": {
+              "r": "0.32",
+              "f": "0.44",
+              "p": "0.73"
+            },
+            "role_fxn": {
+              "r": "0.28",
+              "f": "0.39",
+              "p": "0.64"
+            }
+          },
+          "mwp": {
+            "id": {
+              "r": "0.33",
+              "f": "0.43",
+              "p": "0.60"
+            },
+            "role": {
+              "r": "0.22",
+              "f": "0.29",
+              "p": "0.40"
+            },
+            "fxn": {
+              "r": "0.33",
+              "f": "0.43",
+              "p": "0.60"
+            },
+            "role_fxn": {
+              "r": "0.22",
+              "f": "0.29",
+              "p": "0.40"
+            }
+          },
+          "all": {
+            "id": {
+              "r": "0.88",
+              "f": "0.87",
+              "p": "0.85"
+            },
+            "role": {
+              "r": "0.58",
+              "f": "0.58",
+              "p": "0.57"
+            },
+            "fxn": {
+              "r": "0.68",
+              "f": "0.67",
+              "p": "0.66"
+            },
+            "role_fxn": {
+              "r": "0.55",
+              "f": "0.54",
+              "p": "0.53"
+            }
+          }
+        }
+      },
+      "hp": {
+        "use_token": "Yes",
+        "use_ner": "Yes",
+        "ud_deps_embd_dim": 5,
+        "num_lstm_layers": 2,
+        "mlp_dropout_p": 0.32,
+        "lstm_h_dim": 80,
+        "use_ud_xpos": "Yes",
+        "mask_mwes": "No",
+        "use_ud_dep": "Yes",
+        "govobj_config_embd_dim": 3,
+        "mlp_layer_dim": 80,
+        "is_bilstm": "Yes",
+        "learning_rate_decay": 0.0,
+        "ner_embd_dim": 5,
+        "mlp_layers": 2,
+        "token_embd_dim": 300,
+        "use_lexcat": "Yes",
+        "dynet_random_seed": "3592752",
+        "use_govobj": "Yes",
+        "allow_empty_prediction": "No",
+        "ud_xpos_embd_dim": 5,
+        "update_token_embd": "No",
+        "lexcat_embd_dim": 3,
+        "use_token_internal": "Yes",
+        "update_lemmas_embd": "Yes",
+        "learning_rate": 0.15,
+        "labels_to_predict": [
+          "supersense_role",
+          "supersense_func"
+        ],
+        "lstm_dropout_p": 0.45,
+        "use_prep_onehot": "No",
+        "token_internal_embd_dim": 50,
+        "mlp_activation": "tanh",
+        "epochs": 80
       }
     }
   },
@@ -803,535 +803,210 @@
     "autoid_goldsyn": {
       "train": {
         "psseval": {
-          "all": {
+          "mwe": {
             "id": {
-              "r": "0.90",
-              "p": "0.94",
-              "f": "0.92"
+              "r": "0.53",
+              "f": "0.65",
+              "p": "0.84"
             },
             "role": {
-              "r": "0.38",
-              "p": "0.39",
-              "f": "0.38"
+              "r": "0.30",
+              "f": "0.37",
+              "p": "0.48"
             },
             "fxn": {
-              "r": "0.48",
-              "p": "0.50",
-              "f": "0.49"
+              "r": "0.35",
+              "f": "0.43",
+              "p": "0.55"
             },
             "role_fxn": {
-              "r": "0.36",
-              "p": "0.37",
-              "f": "0.36"
+              "r": "0.30",
+              "f": "0.37",
+              "p": "0.48"
             }
           },
           "mwp": {
             "id": {
               "r": "0.75",
-              "p": "0.81",
-              "f": "0.78"
+              "f": "0.78",
+              "p": "0.81"
             },
             "role": {
               "r": "0.59",
-              "p": "0.64",
-              "f": "0.61"
+              "f": "0.61",
+              "p": "0.64"
             },
             "fxn": {
               "r": "0.64",
-              "p": "0.69",
-              "f": "0.66"
+              "f": "0.66",
+              "p": "0.69"
             },
             "role_fxn": {
               "r": "0.59",
-              "p": "0.64",
-              "f": "0.61"
+              "f": "0.61",
+              "p": "0.64"
             }
           },
-          "mwe": {
+          "all": {
             "id": {
-              "r": "0.53",
-              "p": "0.84",
-              "f": "0.65"
+              "r": "0.90",
+              "f": "0.92",
+              "p": "0.94"
             },
             "role": {
-              "r": "0.30",
-              "p": "0.48",
-              "f": "0.37"
+              "r": "0.38",
+              "f": "0.38",
+              "p": "0.39"
             },
             "fxn": {
-              "r": "0.35",
-              "p": "0.55",
-              "f": "0.43"
+              "r": "0.48",
+              "f": "0.49",
+              "p": "0.50"
             },
             "role_fxn": {
-              "r": "0.30",
-              "p": "0.48",
-              "f": "0.37"
+              "r": "0.36",
+              "f": "0.36",
+              "p": "0.37"
             }
           }
         }
       },
       "dev": {
         "psseval": {
-          "all": {
-            "id": {
-              "r": "0.90",
-              "p": "0.87",
-              "f": "0.89"
-            },
-            "role": {
-              "r": "0.35",
-              "p": "0.34",
-              "f": "0.35"
-            },
-            "fxn": {
-              "r": "0.48",
-              "p": "0.47",
-              "f": "0.48"
-            },
-            "role_fxn": {
-              "r": "0.34",
-              "p": "0.33",
-              "f": "0.34"
-            }
-          },
-          "mwp": {
-            "id": {
-              "r": "0.56",
-              "p": "0.83",
-              "f": "0.67"
-            },
-            "role": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            },
-            "fxn": {
-              "r": "0.56",
-              "p": "0.83",
-              "f": "0.67"
-            },
-            "role_fxn": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            }
-          },
           "mwe": {
             "id": {
               "r": "0.40",
-              "p": "0.83",
-              "f": "0.54"
+              "f": "0.54",
+              "p": "0.83"
             },
             "role": {
               "r": "0.20",
-              "p": "0.42",
-              "f": "0.27"
+              "f": "0.27",
+              "p": "0.42"
             },
             "fxn": {
               "r": "0.24",
-              "p": "0.50",
-              "f": "0.32"
+              "f": "0.32",
+              "p": "0.50"
             },
             "role_fxn": {
               "r": "0.20",
-              "p": "0.42",
-              "f": "0.27"
+              "f": "0.27",
+              "p": "0.42"
             }
-          }
-        }
-      },
-      "test": {
-        "psseval": {
+          },
+          "mwp": {
+            "id": {
+              "r": "0.56",
+              "f": "0.67",
+              "p": "0.83"
+            },
+            "role": {
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
+            },
+            "fxn": {
+              "r": "0.56",
+              "f": "0.67",
+              "p": "0.83"
+            },
+            "role_fxn": {
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
+            }
+          },
           "all": {
             "id": {
               "r": "0.90",
-              "p": "0.88",
-              "f": "0.89"
-            },
-            "role": {
-              "r": "0.37",
-              "p": "0.37",
-              "f": "0.37"
-            },
-            "fxn": {
-              "r": "0.50",
-              "p": "0.49",
-              "f": "0.50"
-            },
-            "role_fxn": {
-              "r": "0.35",
-              "p": "0.34",
-              "f": "0.34"
-            }
-          },
-          "mwp": {
-            "id": {
-              "r": "0.44",
-              "p": "0.57",
-              "f": "0.50"
-            },
-            "role": {
-              "r": "0.44",
-              "p": "0.57",
-              "f": "0.50"
-            },
-            "fxn": {
-              "r": "0.44",
-              "p": "0.57",
-              "f": "0.50"
-            },
-            "role_fxn": {
-              "r": "0.44",
-              "p": "0.57",
-              "f": "0.50"
-            }
-          },
-          "mwe": {
-            "id": {
-              "r": "0.33",
-              "p": "0.67",
-              "f": "0.44"
-            },
-            "role": {
-              "r": "0.17",
-              "p": "0.33",
-              "f": "0.22"
-            },
-            "fxn": {
-              "r": "0.17",
-              "p": "0.33",
-              "f": "0.22"
-            },
-            "role_fxn": {
-              "r": "0.17",
-              "p": "0.33",
-              "f": "0.22"
-            }
-          }
-        }
-      }
-    },
-    "autoid_autosyn": {
-      "train": {
-        "psseval": {
-          "all": {
-            "id": {
-              "r": "0.87",
-              "p": "0.92",
-              "f": "0.90"
-            },
-            "role": {
-              "r": "0.36",
-              "p": "0.39",
-              "f": "0.37"
-            },
-            "fxn": {
-              "r": "0.47",
-              "p": "0.49",
-              "f": "0.48"
-            },
-            "role_fxn": {
-              "r": "0.34",
-              "p": "0.36",
-              "f": "0.35"
-            }
-          },
-          "mwp": {
-            "id": {
-              "r": "0.71",
-              "p": "0.77",
-              "f": "0.74"
-            },
-            "role": {
-              "r": "0.55",
-              "p": "0.60",
-              "f": "0.57"
-            },
-            "fxn": {
-              "r": "0.60",
-              "p": "0.65",
-              "f": "0.62"
-            },
-            "role_fxn": {
-              "r": "0.55",
-              "p": "0.60",
-              "f": "0.57"
-            }
-          },
-          "mwe": {
-            "id": {
-              "r": "0.52",
-              "p": "0.82",
-              "f": "0.64"
-            },
-            "role": {
-              "r": "0.29",
-              "p": "0.47",
-              "f": "0.36"
-            },
-            "fxn": {
-              "r": "0.34",
-              "p": "0.55",
-              "f": "0.42"
-            },
-            "role_fxn": {
-              "r": "0.29",
-              "p": "0.47",
-              "f": "0.36"
-            }
-          }
-        }
-      },
-      "dev": {
-        "psseval": {
-          "all": {
-            "id": {
-              "r": "0.88",
-              "p": "0.85",
-              "f": "0.87"
+              "f": "0.89",
+              "p": "0.87"
             },
             "role": {
               "r": "0.35",
-              "p": "0.34",
-              "f": "0.35"
+              "f": "0.35",
+              "p": "0.34"
             },
             "fxn": {
               "r": "0.48",
-              "p": "0.46",
-              "f": "0.47"
+              "f": "0.48",
+              "p": "0.47"
             },
             "role_fxn": {
               "r": "0.34",
-              "p": "0.33",
-              "f": "0.34"
-            }
-          },
-          "mwp": {
-            "id": {
-              "r": "0.33",
-              "p": "0.60",
-              "f": "0.43"
-            },
-            "role": {
-              "r": "0.22",
-              "p": "0.40",
-              "f": "0.29"
-            },
-            "fxn": {
-              "r": "0.33",
-              "p": "0.60",
-              "f": "0.43"
-            },
-            "role_fxn": {
-              "r": "0.22",
-              "p": "0.40",
-              "f": "0.29"
-            }
-          },
-          "mwe": {
-            "id": {
-              "r": "0.36",
-              "p": "0.82",
-              "f": "0.50"
-            },
-            "role": {
-              "r": "0.16",
-              "p": "0.36",
-              "f": "0.22"
-            },
-            "fxn": {
-              "r": "0.20",
-              "p": "0.45",
-              "f": "0.28"
-            },
-            "role_fxn": {
-              "r": "0.16",
-              "p": "0.36",
-              "f": "0.22"
+              "f": "0.34",
+              "p": "0.33"
             }
           }
         }
       },
       "test": {
         "psseval": {
-          "all": {
-            "id": {
-              "r": "0.86",
-              "p": "0.85",
-              "f": "0.85"
-            },
-            "role": {
-              "r": "0.36",
-              "p": "0.36",
-              "f": "0.36"
-            },
-            "fxn": {
-              "r": "0.49",
-              "p": "0.48",
-              "f": "0.48"
-            },
-            "role_fxn": {
-              "r": "0.34",
-              "p": "0.33",
-              "f": "0.33"
-            }
-          },
-          "mwp": {
-            "id": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            },
-            "role": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            },
-            "fxn": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            },
-            "role_fxn": {
-              "r": "0.44",
-              "p": "0.67",
-              "f": "0.53"
-            }
-          },
           "mwe": {
             "id": {
               "r": "0.33",
-              "p": "0.67",
-              "f": "0.44"
+              "f": "0.44",
+              "p": "0.67"
             },
             "role": {
               "r": "0.17",
-              "p": "0.33",
-              "f": "0.22"
+              "f": "0.22",
+              "p": "0.33"
             },
             "fxn": {
               "r": "0.17",
-              "p": "0.33",
-              "f": "0.22"
+              "f": "0.22",
+              "p": "0.33"
             },
             "role_fxn": {
               "r": "0.17",
-              "p": "0.33",
-              "f": "0.22"
-            }
-          }
-        }
-      }
-    },
-    "goldid_goldsyn": {
-      "train": {
-        "psseval": {
-          "all": {
-            "role": {
-              "acc": "0.41"
-            },
-            "fxn": {
-              "acc": "0.52"
-            },
-            "role_fxn": {
-              "acc": "0.39"
+              "f": "0.22",
+              "p": "0.33"
             }
           },
           "mwp": {
+            "id": {
+              "r": "0.44",
+              "f": "0.50",
+              "p": "0.57"
+            },
             "role": {
-              "acc": "0.72"
+              "r": "0.44",
+              "f": "0.50",
+              "p": "0.57"
             },
             "fxn": {
-              "acc": "0.78"
+              "r": "0.44",
+              "f": "0.50",
+              "p": "0.57"
             },
             "role_fxn": {
-              "acc": "0.71"
+              "r": "0.44",
+              "f": "0.50",
+              "p": "0.57"
             }
           },
-          "mwe": {
-            "role": {
-              "acc": "0.42"
-            },
-            "fxn": {
-              "acc": "0.62"
-            },
-            "role_fxn": {
-              "acc": "0.41"
-            }
-          }
-        }
-      },
-      "dev": {
-        "psseval": {
           "all": {
+            "id": {
+              "r": "0.90",
+              "f": "0.89",
+              "p": "0.88"
+            },
             "role": {
-              "acc": "0.38"
+              "r": "0.37",
+              "f": "0.37",
+              "p": "0.37"
             },
             "fxn": {
-              "acc": "0.53"
+              "r": "0.50",
+              "f": "0.50",
+              "p": "0.49"
             },
             "role_fxn": {
-              "acc": "0.37"
-            }
-          },
-          "mwp": {
-            "role": {
-              "acc": "0.89"
-            },
-            "fxn": {
-              "acc": "1.00"
-            },
-            "role_fxn": {
-              "acc": "0.89"
-            }
-          },
-          "mwe": {
-            "role": {
-              "acc": "0.40"
-            },
-            "fxn": {
-              "acc": "0.68"
-            },
-            "role_fxn": {
-              "acc": "0.40"
-            }
-          }
-        }
-      },
-      "test": {
-        "psseval": {
-          "all": {
-            "role": {
-              "acc": "0.41"
-            },
-            "fxn": {
-              "acc": "0.53"
-            },
-            "role_fxn": {
-              "acc": "0.38"
-            }
-          },
-          "mwp": {
-            "role": {
-              "acc": "0.78"
-            },
-            "fxn": {
-              "acc": "0.89"
-            },
-            "role_fxn": {
-              "acc": "0.78"
-            }
-          },
-          "mwe": {
-            "role": {
-              "acc": "0.33"
-            },
-            "fxn": {
-              "acc": "0.67"
-            },
-            "role_fxn": {
-              "acc": "0.33"
+              "r": "0.35",
+              "f": "0.34",
+              "p": "0.34"
             }
           }
         }
@@ -1340,28 +1015,6 @@
     "goldid_autosyn": {
       "train": {
         "psseval": {
-          "all": {
-            "role": {
-              "acc": "0.41"
-            },
-            "fxn": {
-              "acc": "0.52"
-            },
-            "role_fxn": {
-              "acc": "0.39"
-            }
-          },
-          "mwp": {
-            "role": {
-              "acc": "0.72"
-            },
-            "fxn": {
-              "acc": "0.78"
-            },
-            "role_fxn": {
-              "acc": "0.71"
-            }
-          },
           "mwe": {
             "role": {
               "acc": "0.42"
@@ -1372,33 +1025,33 @@
             "role_fxn": {
               "acc": "0.42"
             }
+          },
+          "mwp": {
+            "role": {
+              "acc": "0.72"
+            },
+            "fxn": {
+              "acc": "0.78"
+            },
+            "role_fxn": {
+              "acc": "0.71"
+            }
+          },
+          "all": {
+            "role": {
+              "acc": "0.41"
+            },
+            "fxn": {
+              "acc": "0.52"
+            },
+            "role_fxn": {
+              "acc": "0.39"
+            }
           }
         }
       },
       "dev": {
         "psseval": {
-          "all": {
-            "role": {
-              "acc": "0.38"
-            },
-            "fxn": {
-              "acc": "0.53"
-            },
-            "role_fxn": {
-              "acc": "0.37"
-            }
-          },
-          "mwp": {
-            "role": {
-              "acc": "0.78"
-            },
-            "fxn": {
-              "acc": "0.89"
-            },
-            "role_fxn": {
-              "acc": "0.78"
-            }
-          },
           "mwe": {
             "role": {
               "acc": "0.36"
@@ -1409,20 +1062,42 @@
             "role_fxn": {
               "acc": "0.36"
             }
+          },
+          "mwp": {
+            "role": {
+              "acc": "0.78"
+            },
+            "fxn": {
+              "acc": "0.89"
+            },
+            "role_fxn": {
+              "acc": "0.78"
+            }
+          },
+          "all": {
+            "role": {
+              "acc": "0.38"
+            },
+            "fxn": {
+              "acc": "0.53"
+            },
+            "role_fxn": {
+              "acc": "0.37"
+            }
           }
         }
       },
       "test": {
         "psseval": {
-          "all": {
+          "mwe": {
             "role": {
-              "acc": "0.41"
+              "acc": "0.33"
             },
             "fxn": {
-              "acc": "0.54"
+              "acc": "0.67"
             },
             "role_fxn": {
-              "acc": "0.38"
+              "acc": "0.33"
             }
           },
           "mwp": {
@@ -1436,6 +1111,97 @@
               "acc": "0.78"
             }
           },
+          "all": {
+            "role": {
+              "acc": "0.41"
+            },
+            "fxn": {
+              "acc": "0.54"
+            },
+            "role_fxn": {
+              "acc": "0.38"
+            }
+          }
+        }
+      }
+    },
+    "goldid_goldsyn": {
+      "train": {
+        "psseval": {
+          "mwe": {
+            "role": {
+              "acc": "0.42"
+            },
+            "fxn": {
+              "acc": "0.62"
+            },
+            "role_fxn": {
+              "acc": "0.41"
+            }
+          },
+          "mwp": {
+            "role": {
+              "acc": "0.72"
+            },
+            "fxn": {
+              "acc": "0.78"
+            },
+            "role_fxn": {
+              "acc": "0.71"
+            }
+          },
+          "all": {
+            "role": {
+              "acc": "0.41"
+            },
+            "fxn": {
+              "acc": "0.52"
+            },
+            "role_fxn": {
+              "acc": "0.39"
+            }
+          }
+        }
+      },
+      "dev": {
+        "psseval": {
+          "mwe": {
+            "role": {
+              "acc": "0.40"
+            },
+            "fxn": {
+              "acc": "0.68"
+            },
+            "role_fxn": {
+              "acc": "0.40"
+            }
+          },
+          "mwp": {
+            "role": {
+              "acc": "0.89"
+            },
+            "fxn": {
+              "acc": "1.00"
+            },
+            "role_fxn": {
+              "acc": "0.89"
+            }
+          },
+          "all": {
+            "role": {
+              "acc": "0.38"
+            },
+            "fxn": {
+              "acc": "0.53"
+            },
+            "role_fxn": {
+              "acc": "0.37"
+            }
+          }
+        }
+      },
+      "test": {
+        "psseval": {
           "mwe": {
             "role": {
               "acc": "0.33"
@@ -1445,6 +1211,240 @@
             },
             "role_fxn": {
               "acc": "0.33"
+            }
+          },
+          "mwp": {
+            "role": {
+              "acc": "0.78"
+            },
+            "fxn": {
+              "acc": "0.89"
+            },
+            "role_fxn": {
+              "acc": "0.78"
+            }
+          },
+          "all": {
+            "role": {
+              "acc": "0.41"
+            },
+            "fxn": {
+              "acc": "0.53"
+            },
+            "role_fxn": {
+              "acc": "0.38"
+            }
+          }
+        }
+      }
+    },
+    "autoid_autosyn": {
+      "train": {
+        "psseval": {
+          "mwe": {
+            "id": {
+              "r": "0.52",
+              "f": "0.64",
+              "p": "0.82"
+            },
+            "role": {
+              "r": "0.29",
+              "f": "0.36",
+              "p": "0.47"
+            },
+            "fxn": {
+              "r": "0.34",
+              "f": "0.42",
+              "p": "0.55"
+            },
+            "role_fxn": {
+              "r": "0.29",
+              "f": "0.36",
+              "p": "0.47"
+            }
+          },
+          "mwp": {
+            "id": {
+              "r": "0.71",
+              "f": "0.74",
+              "p": "0.77"
+            },
+            "role": {
+              "r": "0.55",
+              "f": "0.57",
+              "p": "0.60"
+            },
+            "fxn": {
+              "r": "0.60",
+              "f": "0.62",
+              "p": "0.65"
+            },
+            "role_fxn": {
+              "r": "0.55",
+              "f": "0.57",
+              "p": "0.60"
+            }
+          },
+          "all": {
+            "id": {
+              "r": "0.87",
+              "f": "0.90",
+              "p": "0.92"
+            },
+            "role": {
+              "r": "0.36",
+              "f": "0.37",
+              "p": "0.39"
+            },
+            "fxn": {
+              "r": "0.47",
+              "f": "0.48",
+              "p": "0.49"
+            },
+            "role_fxn": {
+              "r": "0.34",
+              "f": "0.35",
+              "p": "0.36"
+            }
+          }
+        }
+      },
+      "dev": {
+        "psseval": {
+          "mwe": {
+            "id": {
+              "r": "0.36",
+              "f": "0.50",
+              "p": "0.82"
+            },
+            "role": {
+              "r": "0.16",
+              "f": "0.22",
+              "p": "0.36"
+            },
+            "fxn": {
+              "r": "0.20",
+              "f": "0.28",
+              "p": "0.45"
+            },
+            "role_fxn": {
+              "r": "0.16",
+              "f": "0.22",
+              "p": "0.36"
+            }
+          },
+          "mwp": {
+            "id": {
+              "r": "0.33",
+              "f": "0.43",
+              "p": "0.60"
+            },
+            "role": {
+              "r": "0.22",
+              "f": "0.29",
+              "p": "0.40"
+            },
+            "fxn": {
+              "r": "0.33",
+              "f": "0.43",
+              "p": "0.60"
+            },
+            "role_fxn": {
+              "r": "0.22",
+              "f": "0.29",
+              "p": "0.40"
+            }
+          },
+          "all": {
+            "id": {
+              "r": "0.88",
+              "f": "0.87",
+              "p": "0.85"
+            },
+            "role": {
+              "r": "0.35",
+              "f": "0.35",
+              "p": "0.34"
+            },
+            "fxn": {
+              "r": "0.48",
+              "f": "0.47",
+              "p": "0.46"
+            },
+            "role_fxn": {
+              "r": "0.34",
+              "f": "0.34",
+              "p": "0.33"
+            }
+          }
+        }
+      },
+      "test": {
+        "psseval": {
+          "mwe": {
+            "id": {
+              "r": "0.33",
+              "f": "0.44",
+              "p": "0.67"
+            },
+            "role": {
+              "r": "0.17",
+              "f": "0.22",
+              "p": "0.33"
+            },
+            "fxn": {
+              "r": "0.17",
+              "f": "0.22",
+              "p": "0.33"
+            },
+            "role_fxn": {
+              "r": "0.17",
+              "f": "0.22",
+              "p": "0.33"
+            }
+          },
+          "mwp": {
+            "id": {
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
+            },
+            "role": {
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
+            },
+            "fxn": {
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
+            },
+            "role_fxn": {
+              "r": "0.44",
+              "f": "0.53",
+              "p": "0.67"
+            }
+          },
+          "all": {
+            "id": {
+              "r": "0.86",
+              "f": "0.85",
+              "p": "0.85"
+            },
+            "role": {
+              "r": "0.36",
+              "f": "0.36",
+              "p": "0.36"
+            },
+            "fxn": {
+              "r": "0.49",
+              "f": "0.48",
+              "p": "0.48"
+            },
+            "role_fxn": {
+              "r": "0.34",
+              "f": "0.33",
+              "p": "0.33"
             }
           }
         }

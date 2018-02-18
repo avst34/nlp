@@ -3,6 +3,9 @@
 #     2.1 get the hyperparameters json
 #     2.2 train
 #     2.3 create psseval tsv for predictor
+from collections import defaultdict
+from itertools import chain
+
 from datasets.streusle_v4 import StreusleLoader, sys
 import os
 import json
@@ -99,7 +102,7 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir):
 def parse_psseval(psseval_path):
     with open(psseval_path, 'r') as f:
         rows = [x.strip().split('\t') for x in f.readlines()]
-    pf = lambda f: f
+    pf = lambda f: "%1.1f" % (f * 100)
     if 'autoid' in psseval_path:
         return {
             'all': {
@@ -225,13 +228,57 @@ def build_template_input(results_dir, json_output_path):
                 d[mtype][f_task][stype] = {}
                 d[mtype][f_task][stype]['psseval'] = evl
 
+                def format_hp(val):
+                    conv = {str(10**i): '10^{%d}' % i for i in range(-10, 0)}
+                    conv.update({'false': 'No', 'False': 'No', 'true': 'Yes', 'True': 'Yes'})
+                    if str(val) in conv:
+                        return conv[str(val)]
+                    elif type(val) != float or int(val) == val:
+                        return val
+                    else:
+                        return int(val * 100) / 100
+
                 if os.path.exists(hp_file_path):
                     with open(hp_file_path) as hp_file:
-                        d[mtype][f_task]['hp'] = json.load(hp_file)
+                        d[mtype][f_task]['hp'] = {hp: format_hp(val) for hp, val in json.load(hp_file).items()}
+
 
     with open(json_output_path, 'w') as f:
         json.dump(d, f, indent=2)
 
+
+def build_confusion_matrix(sysf_path, goldf_path, filter='all'):
+    assert filter in ['all', 'mwe', 'mwp']
+    with open(sysf_path) as sysf:
+        sys_sents = json.load(sysf)
+    with open(goldf_path) as goldf:
+        gold_sents = json.load(goldf)
+
+    def filter_wes(wes):
+        return [we for we in wes if we['lexcat'] in ['P', 'PP', 'INF.P', 'POSS', 'PRON.POSS'] and (filter == 'all' or len(we['toknums']) > 1 and (filter != 'mwp' or we['lexcat'] != 'PP'))]
+
+    role_mat = defaultdict(lambda: defaultdict(lambda: 0))
+    fxn_mat = defaultdict(lambda: defaultdict(lambda: 0))
+    exact_mat = defaultdict(lambda: defaultdict(lambda: 0))
+
+    for sys_sent, gold_sent in zip(sys_sents, gold_sents):
+        assert sys_sent['id'] == gold_sent['id']
+        sys_wes = filter_wes(chain(sys_sent['swes'].values(), sys_sent['smwes'].values()))
+        gold_wes = filter_wes(chain(gold_sent['swes'].values(), gold_sent['smwes'].values()))
+
+        for gold_we in gold_wes:
+            for sys_we in sys_wes:
+                if set(sys_we['toknums']) == set(gold_we['toknums']):
+                    role_mat[gold_we['ss']][sys_we['ss']] += 1
+                    fxn_mat[gold_we['ss2']][sys_we['ss2']] += 1
+                    exact_mat[(gold_we['ss'], gold_we['ss2'])][(sys_we['ss'], sys_we['ss2'])] += 1
+
+    def normalize(mat):
+        return {k: {mat[k][k2] / sum(mat[k].values()) for k2 in mat[k]} for k in mat}
+
+    role_mat = normalize(role_mat)
+    fxn_mat = normalize(fxn_mat)
+    exact_mat = normalize(exact_mat)
 
 
 if __name__ == '__main__':
@@ -244,7 +291,7 @@ if __name__ == '__main__':
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    process_tuner_results(path, output_dir)
-    evaluate_most_frequent_baseline_model(output_dir)
+    # process_tuner_results(path, output_dir)
+    # evaluate_most_frequent_baseline_model(output_dir)
     template_input_path = output_dir + '/template_input.json'
     build_template_input(output_dir, template_input_path)

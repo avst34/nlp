@@ -14,6 +14,40 @@ NER  embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.ner_e
 GOVOBJ-CONFIG embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.govobj_config_embd_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.govobj_config_embd_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.govobj_config_embd_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.govobj_config_embd_dim }}
 LEXCAT embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.lexcat_embd_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.lexcat_embd_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.lexcat_embd_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.lexcat_embd_dim }}
 
+
+\begin{table}[]
+  \small
+	\centering
+	\begin{tabular}{@{}l|cccc@{}}
+		\toprule
+		Hyperparam. & Auto ID/Auto Parse & Auto ID/Gold Parse & Gold ID/Auto Parse & Gold ID/Gold Parse\\
+		\midrule
+        External Word2vec embd. dimension & 300 & 300 & 300 & 300 \\
+        Token internal embd. dimension & {{ nn.autoid_autosyn.hp.token_internal_embd_dim }} & {{ nn.autoid_goldsyn.hp.token_internal_embd_dim }} & {{ nn.goldid_autosyn.hp.token_internal_embd_dim }} & {{ nn.goldid_goldsyn.hp.token_internal_embd_dim }} \\
+        Update token Word2vec embd.?  & {{ nn.autoid_autosyn.hp.update_token_embd }} & {{ nn.autoid_goldsyn.hp.update_token_embd }} & {{ nn.goldid_autosyn.hp.update_token_embd }} & {{ nn.goldid_goldsyn.hp.update_token_embd }} \\
+        Update lemma Word2vec embd.?  & {{ nn.autoid_autosyn.hp.update_lemmas_embd }} & {{ nn.autoid_goldsyn.hp.update_lemmas_embd }} & {{ nn.goldid_autosyn.hp.update_lemmas_embd }} & {{ nn.goldid_goldsyn.hp.update_lemmas_embd }} \\
+        MLP layer dimension  & {{ nn.autoid_autosyn.hp.mlp_layer_dim }} & {{ nn.autoid_goldsyn.hp.mlp_layer_dim }} & {{ nn.goldid_autosyn.hp.mlp_layer_dim }} & {{ nn.goldid_goldsyn.hp.mlp_layer_dim }} \\
+        MLP activation  & {{ nn.autoid_autosyn.hp.mlp_activation }} & {{ nn.autoid_goldsyn.hp.mlp_activation }} & {{ nn.goldid_autosyn.hp.mlp_activation }} & {{ nn.goldid_goldsyn.hp.mlp_activation }} \\
+        BiLSTM hidden layer dimension  & {{ nn.autoid_autosyn.hp.lstm_h_dim }} & {{ nn.autoid_goldsyn.hp.lstm_h_dim }} & {{ nn.goldid_autosyn.hp.lstm_h_dim }} & {{ nn.goldid_goldsyn.hp.lstm_h_dim }} \\
+        MLP Dropout Prob.  & {{ nn.autoid_autosyn.hp.mlp_dropout_p }} & {{ nn.autoid_goldsyn.hp.mlp_dropout_p }} & {{ nn.goldid_autosyn.hp.mlp_dropout_p }} & {{ nn.goldid_goldsyn.hp.mlp_dropout_p }} \\
+        LSTM Dropout Prob.  & {{ nn.autoid_autosyn.hp.lstm_dropout_p }} & {{ nn.autoid_goldsyn.hp.lstm_dropout_p }} & {{ nn.goldid_autosyn.hp.lstm_dropout_p }} & {{ nn.goldid_goldsyn.hp.lstm_dropout_p }} \\
+        Learning rate  & {{ nn.autoid_autosyn.hp.learning_rate }} & {{ nn.autoid_goldsyn.hp.learning_rate }} & {{ nn.goldid_autosyn.hp.learning_rate }} & {{ nn.goldid_goldsyn.hp.learning_rate }} \\
+        Learning rate decay  & {{ nn.autoid_autosyn.hp.learning_rate_decay }} & {{ nn.autoid_goldsyn.hp.learning_rate_decay }} & {{ nn.goldid_autosyn.hp.learning_rate_decay }} & {{ nn.goldid_goldsyn.hp.learning_rate_decay }} \\
+        POS embd. dimension  & {{ nn.autoid_autosyn.hp.ud_xpos_embd_dim }} & {{ nn.autoid_goldsyn.hp.ud_xpos_embd_dim }} & {{ nn.goldid_autosyn.hp.ud_xpos_embd_dim }} & {{ nn.goldid_goldsyn.hp.ud_xpos_embd_dim }} \\
+        UD dependencies embd. dimension  & {{ nn.autoid_autosyn.hp.ud_deps_embd_dim }} & {{ nn.autoid_goldsyn.hp.ud_deps_embd_dim }} & {{ nn.goldid_autosyn.hp.ud_deps_embd_dim }} & {{ nn.goldid_goldsyn.hp.ud_deps_embd_dim }} \\
+        NER  embd. dimension  & {{ nn.autoid_autosyn.hp.ner_embd_dim }} & {{ nn.autoid_goldsyn.hp.ner_embd_dim }} & {{ nn.goldid_autosyn.hp.ner_embd_dim }} & {{ nn.goldid_goldsyn.hp.ner_embd_dim }} \\
+        GOVOBJ-CONFIG embd. dimension  & {{ nn.autoid_autosyn.hp.govobj_config_embd_dim }} & {{ nn.autoid_goldsyn.hp.govobj_config_embd_dim }} & {{ nn.goldid_autosyn.hp.govobj_config_embd_dim }} & {{ nn.goldid_goldsyn.hp.govobj_config_embd_dim }} \\
+        LEXCAT embd. dimension  & {{ nn.autoid_autosyn.hp.lexcat_embd_dim }} & {{ nn.autoid_goldsyn.hp.lexcat_embd_dim }} & {{ nn.goldid_autosyn.hp.lexcat_embd_dim }} & {{ nn.goldid_goldsyn.hp.lexcat_embd_dim }} \\
+
+		\bottomrule
+	\end{tabular}
+	\caption{\label{tab:hyperparams}
+        Selected hyperparameters of the neural system for each of the four settings. With the exception of the external Word2vec embeddings dimension (which is fixed), the parameters were tuned using random grid search.
+	}
+
+\end{table}
+
+
 \begin{table*}[]
     \centering
     \begin{tabular}{@{}lccc|ccc|ccc|ccc@{}}
