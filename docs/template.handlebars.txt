@@ -1,0 +1,76 @@
+Token internal embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.token_internal_embd_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.token_internal_embd_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.token_internal_embd_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.token_internal_embd_dim }}
+Update token WORD2VEC embedding? - autoid.autosyn - {{ nn.autoid_autosyn.hp.update_token_embd }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.update_token_embd }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.update_token_embd }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.update_token_embd }}
+Update lemma WORD2VEC embedding? - autoid.autosyn - {{ nn.autoid_autosyn.hp.update_lemmas_embd }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.update_lemmas_embd }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.update_lemmas_embd }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.update_lemmas_embd }}
+MLP layer dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.mlp_layer_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.mlp_layer_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.mlp_layer_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.mlp_layer_dim }}
+MLP activation - autoid.autosyn - {{ nn.autoid_autosyn.hp.mlp_activation }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.mlp_activation }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.mlp_activation }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.mlp_activation }}
+BiLSTM hidden layer dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.lstm_h_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.lstm_h_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.lstm_h_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.lstm_h_dim }}
+MLP Dropout Prob. - autoid.autosyn - {{ nn.autoid_autosyn.hp.mlp_dropout_p }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.mlp_dropout_p }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.mlp_dropout_p }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.mlp_dropout_p }}
+LSTM Dropout Prob. - autoid.autosyn - {{ nn.autoid_autosyn.hp.lstm_dropout_p }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.lstm_dropout_p }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.lstm_dropout_p }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.lstm_dropout_p }}
+Learning rate - autoid.autosyn - {{ nn.autoid_autosyn.hp.learning_rate }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.learning_rate }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.learning_rate }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.learning_rate }}
+Learning rate decay - autoid.autosyn - {{ nn.autoid_autosyn.hp.learning_rate_decay }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.learning_rate_decay }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.learning_rate_decay }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.learning_rate_decay }}
+XPOS embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.ud_xpos_embd_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.ud_xpos_embd_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.ud_xpos_embd_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.ud_xpos_embd_dim }}
+UD dependencies embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.ud_deps_embd_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.ud_deps_embd_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.ud_deps_embd_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.ud_deps_embd_dim }}
+NER  embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.ner_embd_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.ner_embd_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.ner_embd_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.ner_embd_dim }}
+GOVOBJ-CONFIG embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.govobj_config_embd_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.govobj_config_embd_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.govobj_config_embd_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.govobj_config_embd_dim }}
+LEXCAT embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.lexcat_embd_dim }}, autoid.goldsyn - {{ nn.autoid_goldsyn.hp.lexcat_embd_dim }}, goldid.autosyn - {{ nn.goldid_autosyn.hp.lexcat_embd_dim }}, goldid.goldsyn - {{ nn.goldid_goldsyn.hp.lexcat_embd_dim }}
+
+\begin{table*}[]
+    \centering
+    \begin{tabular}{@{}lccc|ccc|ccc|ccc@{}}
+        \toprule
+        & \multicolumn{3}{c|}{Gold ID} & \multicolumn{9}{c}{Auto ID} \\
+        & Role & Func. & Exact & \multicolumn{3}{c}{Role} & \multicolumn{3}{c}{Func.} & \multicolumn{3}{c}{Exact} \\
+        & Acc. & Acc. &  Acc. & P & R & F & P & R & F & P & R & F  \\
+        \midrule
+        NN-Gold & {{ nn.goldid_goldsyn.test.psseval.all.role.acc }} & {{ nn.goldid_goldsyn.test.psseval.all.fxn.acc }} & {{ nn.goldid_goldsyn.test.psseval.all.role_fxn.acc }} & {{ nn.autoid_goldsyn.test.psseval.all.role.p }} & {{ nn.autoid_goldsyn.test.psseval.all.role.r }} & {{ nn.autoid_goldsyn.test.psseval.all.role.f }} & {{ nn.autoid_goldsyn.test.psseval.all.fxn.p }} & {{ nn.autoid_goldsyn.test.psseval.all.fxn.r }} & {{ nn.autoid_goldsyn.test.psseval.all.fxn.f }} & {{ nn.autoid_goldsyn.test.psseval.all.role_fxn.p }} & {{ nn.autoid_goldsyn.test.psseval.all.role_fxn.r }} & {{ nn.autoid_goldsyn.test.psseval.all.role_fxn.f }} \\
+        NN-Auto & {{ nn.goldid_autosyn.test.psseval.all.role.acc }} & {{ nn.goldid_autosyn.test.psseval.all.fxn.acc }} & {{ nn.goldid_autosyn.test.psseval.all.role_fxn.acc }} & {{ nn.autoid_autosyn.test.psseval.all.role.p }} & {{ nn.autoid_autosyn.test.psseval.all.role.r }} & {{ nn.autoid_autosyn.test.psseval.all.role.f }} & {{ nn.autoid_autosyn.test.psseval.all.fxn.p }} & {{ nn.autoid_autosyn.test.psseval.all.fxn.r }} & {{ nn.autoid_autosyn.test.psseval.all.fxn.f }} & {{ nn.autoid_autosyn.test.psseval.all.role_fxn.p }} & {{ nn.autoid_autosyn.test.psseval.all.role_fxn.r }} & {{ nn.autoid_autosyn.test.psseval.all.role_fxn.f }} \\
+        Tratz-Gold & & & & & & & & & & & &\\
+        Tratz-Auto & & & & & & & & & & & &\\
+        MF & {{ mfc.goldid_goldsyn.test.psseval.all.role.acc }} & {{ mfc.goldid_goldsyn.test.psseval.all.fxn.acc }} & {{ mfc.goldid_goldsyn.test.psseval.all.role_fxn.acc }} & {{ mfc.autoid_goldsyn.test.psseval.all.role.p }} & {{ mfc.autoid_goldsyn.test.psseval.all.role.r }} & {{ mfc.autoid_goldsyn.test.psseval.all.role.f }} & {{ mfc.autoid_goldsyn.test.psseval.all.fxn.p }} & {{ mfc.autoid_goldsyn.test.psseval.all.fxn.r }} & {{ mfc.autoid_goldsyn.test.psseval.all.fxn.f }} & {{ mfc.autoid_goldsyn.test.psseval.all.role_fxn.p }} & {{ mfc.autoid_goldsyn.test.psseval.all.role_fxn.r }} & {{ mfc.autoid_goldsyn.test.psseval.all.role_fxn.f }} \\
+        \bottomrule
+    \end{tabular}
+    \caption{\label{tab:overall} Overall performance of disambiguation baselines with gold standard (left side) and automatic unit identification (right side). Rows correspond to systems, while columns correspond to the evaluation metrics.  For gold standard identification, accuracy is reported, and for automatic identification, precision, recall and F-score are reported, as the number of predicted tags may diverge (see text). Results are reported for predicting the role PSS separately ({\it Role}), the function PSS separately ({\it Func.}) as well as their conjunction ({\it Exact}).} %For automatic identification, the unlabeled precision, recall and F-score are reported ({\it ID}).}
+\end{table*}
+
+
+\begin{table*}[]
+    \centering
+	\begin{tabular}{@{}lccc|ccc|ccc|ccc@{}}
+        \toprule
+        & \multicolumn{3}{c|}{Gold ID} & \multicolumn{9}{c}{Auto ID} \\
+        & Role & Func. & Exact & \multicolumn{3}{c}{Role} & \multicolumn{3}{c}{Func.} & \multicolumn{3}{c}{Exact} \\
+        & Acc. & Acc. &  Acc. & P & R & F & P & R & F & P & R & F  \\
+        \midrule
+        NN-Gold & {{ nn.goldid_goldsyn.test.psseval.mwe.role.acc }} & {{ nn.goldid_goldsyn.test.psseval.mwe.fxn.acc }} & {{ nn.goldid_goldsyn.test.psseval.mwe.role_fxn.acc }} & {{ nn.autoid_goldsyn.test.psseval.mwe.role.p }} & {{ nn.autoid_goldsyn.test.psseval.mwe.role.r }} & {{ nn.autoid_goldsyn.test.psseval.mwe.role.f }} & {{ nn.autoid_goldsyn.test.psseval.mwe.fxn.p }} & {{ nn.autoid_goldsyn.test.psseval.mwe.fxn.r }} & {{ nn.autoid_goldsyn.test.psseval.mwe.fxn.f }} & {{ nn.autoid_goldsyn.test.psseval.mwe.role_fxn.p }} & {{ nn.autoid_goldsyn.test.psseval.mwe.role_fxn.r }} & {{ nn.autoid_goldsyn.test.psseval.mwe.role_fxn.f }} \\
+        NN-Auto & {{ nn.goldid_autosyn.test.psseval.mwe.role.acc }} & {{ nn.goldid_autosyn.test.psseval.mwe.fxn.acc }} & {{ nn.goldid_autosyn.test.psseval.mwe.role_fxn.acc }} & {{ nn.autoid_autosyn.test.psseval.mwe.role.p }} & {{ nn.autoid_autosyn.test.psseval.mwe.role.r }} & {{ nn.autoid_autosyn.test.psseval.mwe.role.f }} & {{ nn.autoid_autosyn.test.psseval.mwe.fxn.p }} & {{ nn.autoid_autosyn.test.psseval.mwe.fxn.r }} & {{ nn.autoid_autosyn.test.psseval.mwe.fxn.f }} & {{ nn.autoid_autosyn.test.psseval.mwe.role_fxn.p }} & {{ nn.autoid_autosyn.test.psseval.mwe.role_fxn.r }} & {{ nn.autoid_autosyn.test.psseval.mwe.role_fxn.f }} \\
+        Tratz-Gold & & & & & & & & & & & &\\
+        Tratz-Auto & & & & & & & & & & & &\\
+        MF & {{ mfc.goldid_goldsyn.test.psseval.mwe.role.acc }} & {{ mfc.goldid_goldsyn.test.psseval.mwe.fxn.acc }} & {{ mfc.goldid_goldsyn.test.psseval.mwe.role_fxn.acc }} & {{ mfc.autoid_goldsyn.test.psseval.mwe.role.p }} & {{ mfc.autoid_goldsyn.test.psseval.mwe.role.r }} & {{ mfc.autoid_goldsyn.test.psseval.mwe.role.f }} & {{ mfc.autoid_goldsyn.test.psseval.mwe.fxn.p }} & {{ mfc.autoid_goldsyn.test.psseval.mwe.fxn.r }} & {{ mfc.autoid_goldsyn.test.psseval.mwe.fxn.f }} & {{ mfc.autoid_goldsyn.test.psseval.mwe.role_fxn.p }} & {{ mfc.autoid_goldsyn.test.psseval.mwe.role_fxn.r }} & {{ mfc.autoid_goldsyn.test.psseval.mwe.role_fxn.f }} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Performance of disambiguation baselines on Multi-word expressions. Table structure is the same as in Table \ref{tab:overall}.
+    \label{tab:mwes}
+    }
+
+\end{table*}
+
+\begin{table*}[]
+    \centering
+    \begin{tabular}{@{}lccc|ccc|ccc|ccc@{}}
+        \toprule
+        & \multicolumn{3}{c|}{Gold ID} & \multicolumn{9}{c}{Auto ID} \\
+        & Role & Func. & Exact & \multicolumn{3}{c}{Role} & \multicolumn{3}{c}{Func.} & \multicolumn{3}{c}{Exact} \\
+        & Acc. & Acc. &  Acc. & P & R & F & P & R & F & P & R & F  \\
+        \midrule
+        NN-Gold & {{ nn.goldid_goldsyn.test.psseval.mwp.role.acc }} & {{ nn.goldid_goldsyn.test.psseval.mwp.fxn.acc }} & {{ nn.goldid_goldsyn.test.psseval.mwp.role_fxn.acc }} & {{ nn.autoid_goldsyn.test.psseval.mwp.role.p }} & {{ nn.autoid_goldsyn.test.psseval.mwp.role.r }} & {{ nn.autoid_goldsyn.test.psseval.mwp.role.f }} & {{ nn.autoid_goldsyn.test.psseval.mwp.fxn.p }} & {{ nn.autoid_goldsyn.test.psseval.mwp.fxn.r }} & {{ nn.autoid_goldsyn.test.psseval.mwp.fxn.f }} & {{ nn.autoid_goldsyn.test.psseval.mwp.role_fxn.p }} & {{ nn.autoid_goldsyn.test.psseval.mwp.role_fxn.r }} & {{ nn.autoid_goldsyn.test.psseval.mwp.role_fxn.f }} \\
+        NN-Auto & {{ nn.goldid_autosyn.test.psseval.mwp.role.acc }} & {{ nn.goldid_autosyn.test.psseval.mwp.fxn.acc }} & {{ nn.goldid_autosyn.test.psseval.mwp.role_fxn.acc }} & {{ nn.autoid_autosyn.test.psseval.mwp.role.p }} & {{ nn.autoid_autosyn.test.psseval.mwp.role.r }} & {{ nn.autoid_autosyn.test.psseval.mwp.role.f }} & {{ nn.autoid_autosyn.test.psseval.mwp.fxn.p }} & {{ nn.autoid_autosyn.test.psseval.mwp.fxn.r }} & {{ nn.autoid_autosyn.test.psseval.mwp.fxn.f }} & {{ nn.autoid_autosyn.test.psseval.mwp.role_fxn.p }} & {{ nn.autoid_autosyn.test.psseval.mwp.role_fxn.r }} & {{ nn.autoid_autosyn.test.psseval.mwp.role_fxn.f }} \\
+        Tratz-Gold & & & & & & & & & & & &\\
+        Tratz-Auto & & & & & & & & & & & &\\
+        MF & {{ mfc.goldid_goldsyn.test.psseval.mwp.role.acc }} & {{ mfc.goldid_goldsyn.test.psseval.mwp.fxn.acc }} & {{ mfc.goldid_goldsyn.test.psseval.mwp.role_fxn.acc }} & {{ mfc.autoid_goldsyn.test.psseval.mwp.role.p }} & {{ mfc.autoid_goldsyn.test.psseval.mwp.role.r }} & {{ mfc.autoid_goldsyn.test.psseval.mwp.role.f }} & {{ mfc.autoid_goldsyn.test.psseval.mwp.fxn.p }} & {{ mfc.autoid_goldsyn.test.psseval.mwp.fxn.r }} & {{ mfc.autoid_goldsyn.test.psseval.mwp.fxn.f }} & {{ mfc.autoid_goldsyn.test.psseval.mwp.role_fxn.p }} & {{ mfc.autoid_goldsyn.test.psseval.mwp.role_fxn.r }} & {{ mfc.autoid_goldsyn.test.psseval.mwp.role_fxn.f }} \\
+        \bottomrule
+    \end{tabular}
+    \caption{Performance of disambiguation baselines on Multi-word prepositions. Table structure is the same as in Table \ref{tab:overall}.
+    \label{tab:mwps}
+    }
+
+\end{table*}

@@ -1,6 +1,6 @@
 Settings
 --------
-We consider four different settings. Each setting is defined by how candidate identification is done - using human annotations (goldid) or automatically (autoid) (footnote: Automatic candidate identification is done heuristically, script can be found at ??), and by how syntactic parsing is done - using human annotations (goldsyn) or automaticlly (autosyn) (footnote: Using stanford CoreNLP 8.3 for prediction of lemmas, UD dependencies, XPOS labels and NER labels). 
+We consider four different settings. Each setting is defined by how candidate identification is done - using human annotations (goldid) or automatically (autoid) (footnote: Automatic candidate identification is done heuristically, script can be found at ??), and by how syntactic parsing is done - using human annotations (goldsyn) or automaticlly (autosyn) (footnote: Using stanford CoreNLP 8.3 for prediction of lemmas, UD dependencies, XPOS labels and NER labels).
 
 Preprocessing
 -------------
@@ -15,7 +15,7 @@ Neual Netowrk Baseline
 
 Network Architecture
 --------------------
-For every sentence, each token is first embedded using a concatenation of its external WORD2VEC representation its lemma's WORD2VEC, and an internal emebdding vector. (footnote: zero vectors are used when WORD2VEC representation is not available)
+For every sentence, each token is first embedded using a concatenation of its external WORD2VEC representation, its lemma's WORD2VEC representation, and an internal emebdding vector. (footnote: zero vectors are used when WORD2VEC representation is not available)
 The token embeddings are fed through a 2-layer BiLSTM encoder, yiedling a list of token representations. 
 For unit identified for PSS prediction, we build a feature vector by concatenating:
 1. The first token's BiLSTM representation.

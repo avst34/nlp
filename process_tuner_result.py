@@ -99,72 +99,73 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir):
 def parse_psseval(psseval_path):
     with open(psseval_path, 'r') as f:
         rows = [x.strip().split('\t') for x in f.readlines()]
+    pf = lambda f: f
     if 'autoid' in psseval_path:
         return {
             'all': {
                 'id': {
-                    'p': rows[3][6],
-                    'r': rows[3][7],
-                    'f': rows[3][8]
+                    'p': pf(rows[3][6]),
+                    'r': pf(rows[3][7]),
+                    'f': pf(rows[3][8])
                 },
                 'role': {
-                    'p': rows[3][10],
-                    'r': rows[3][11],
-                    'f': rows[3][12]
+                    'p': pf(rows[3][10]),
+                    'r': pf(rows[3][11]),
+                    'f': pf(rows[3][12])
                 },
                 'fxn': {
-                    'p': rows[3][14],
-                    'r': rows[3][15],
-                    'f': rows[3][16]
+                    'p': pf(rows[3][14]),
+                    'r': pf(rows[3][15]),
+                    'f': pf(rows[3][16])
                 },
                 'role_fxn': {
-                    'p': rows[3][18],
-                    'r': rows[3][19],
-                    'f': rows[3][20]
+                    'p': pf(rows[3][18]),
+                    'r': pf(rows[3][19]),
+                    'f': pf(rows[3][20])
                 },
             },
             'mwe': {
                 'id': {
-                    'p': rows[8][6],
-                    'r': rows[8][7],
-                    'f': rows[8][8]
+                    'p': pf(rows[8][6]),
+                    'r': pf(rows[8][7]),
+                    'f': pf(rows[8][8])
                 },
                 'role': {
-                    'p': rows[8][10],
-                    'r': rows[8][11],
-                    'f': rows[8][12]
+                    'p': pf(rows[8][10]),
+                    'r': pf(rows[8][11]),
+                    'f': pf(rows[8][12])
                 },
                 'fxn': {
-                    'p': rows[8][14],
-                    'r': rows[8][15],
-                    'f': rows[8][16]
+                    'p': pf(rows[8][14]),
+                    'r': pf(rows[8][15]),
+                    'f': pf(rows[8][16])
                 },
                 'role_fxn': {
-                    'p': rows[8][18],
-                    'r': rows[8][19],
-                    'f': rows[8][20]
+                    'p': pf(rows[8][18]),
+                    'r': pf(rows[8][19]),
+                    'f': pf(rows[8][20])
                 },
             },
             'mwp': {
                 'id': {
-                    'p': rows[13][6],
-                    'r': rows[13][7],
-                    'f': rows[13][8]
+                    'p': pf(rows[13][6]),
+                    'r': pf(rows[13][7]),
+                    'f': pf(rows[13][8])
                 },
                 'role': {
-                    'p': rows[13][10],
-                    'r': rows[13][11],
-                    'f': rows[13][12]
+                    'p': pf(rows[13][10]),
+                    'r': pf(rows[13][11]),
+                    'f': pf(rows[13][12])
                 },
                 'fxn': {
-                    'p': rows[13][14],
-                    'r': rows[13][15],
-                    'f': rows[13][16]
+                    'p': pf(rows[13][14]),
+                    'r': pf(rows[13][15]),
+                    'f': pf(rows[13][16])
                 },
                 'role_fxn': {
-                    'p': rows[13][18],
-                    'r': rows[13][19],
-                    'f': rows[13][20]
+                    'p': pf(rows[13][18]),
+                    'r': pf(rows[13][19]),
+                    'f': pf(rows[13][20])
                 },
             }
         }
@@ -173,35 +174,35 @@ def parse_psseval(psseval_path):
         return {
             'all': {
                 'role': {
-                    'acc': rows[3][2]
+                    'acc': pf(rows[3][2])
                 },
                 'fxn': {
-                    'acc': rows[3][3]
+                    'acc': pf(rows[3][3])
                 },
                 'role_fxn': {
-                    'acc': rows[3][4]
+                    'acc': pf(rows[3][4])
                 },
             },
             'mwe': {
                 'role': {
-                    'acc': rows[8][2]
+                    'acc': pf(rows[8][2])
                 },
                 'fxn': {
-                    'acc': rows[8][3]
+                    'acc': pf(rows[8][3])
                 },
                 'role_fxn': {
-                    'acc': rows[8][4]
+                    'acc': pf(rows[8][4])
                 },
             },
             'mwp': {
                 'role': {
-                    'acc': rows[13][2]
+                    'acc': pf(rows[13][2])
                 },
                 'fxn': {
-                    'acc': rows[13][3]
+                    'acc': pf(rows[13][3])
                 },
                 'role_fxn': {
-                    'acc': rows[13][4]
+                    'acc': pf(rows[13][4])
                 },
             }
         }
@@ -215,16 +216,18 @@ def build_template_input(results_dir, json_output_path):
     for mtype in mtypes:
         for stype in stypes:
             for task in tasks:
+                hp_file_path = results_dir + '/' + mtype + '/' + task + '/model.hp'
                 evl = parse_psseval(results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.psseval.tsv')
-                d[mtype] = d.get(mtype) or {}
-                d[mtype][task] = d[mtype].get(task) or {}
-                d[mtype][task][stype] = {}
-                d[mtype][task][stype]['psseval'] = evl
 
-            hp_file_path = results_dir + '/' + mtype + '/' + task + '/model.hp'
-            if os.path.exists(hp_file_path):
-                with open(hp_file_path) as hp_file:
-                    d[mtype][task]['hp'] = json.load(hp_file)
+                f_task = task.replace('.', '_')
+                d[mtype] = d.get(mtype) or {}
+                d[mtype][f_task] = d[mtype].get(f_task) or {}
+                d[mtype][f_task][stype] = {}
+                d[mtype][f_task][stype]['psseval'] = evl
+
+                if os.path.exists(hp_file_path):
+                    with open(hp_file_path) as hp_file:
+                        d[mtype][f_task]['hp'] = json.load(hp_file)
 
     with open(json_output_path, 'w') as f:
         json.dump(d, f, indent=2)
