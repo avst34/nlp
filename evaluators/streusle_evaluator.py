@@ -55,12 +55,12 @@ class StreusleEvaluator:
                     for k, v in kwargs.items():
                         setattr(self, k, v)
 
-            output = subprocess.check_output(['pythonw', self.psseval_script_path, gold_fname, sys_fname])
+            output = subprocess.check_output(['python', self.psseval_script_path, gold_fname, sys_fname])
             with open(output_tsv_path, 'wb') as output_f:
                 output_f.write(output)
             if all_depths:
                 for depth in [1,2,3]:
-                    output = subprocess.check_output(['pythonw', self.psseval_script_path, gold_fname, sys_fname, '--depth', str(depth)])
+                    output = subprocess.check_output(['python', self.psseval_script_path, gold_fname, sys_fname, '--depth', str(depth)])
                     with open(output_tsv_path.replace('.tsv', '.depth_' + str(depth) + '.tsv'), 'wb') as output_f:
                         output_f.write(output)
             return output

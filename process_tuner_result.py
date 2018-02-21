@@ -10,6 +10,7 @@ from datasets.streusle_v4 import StreusleLoader, sys
 import os
 import json
 
+from datasets.streusle_v4.release.supersenses import coarsen_pss
 from evaluators.streusle_evaluator import StreusleEvaluator
 from models.general.simple_conditional_multiclass_model.model import MostFrequentClassModel
 from models.general.simple_conditional_multiclass_model.streusle_integration import \
@@ -80,13 +81,13 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir):
     train_samples = [streusle_to_model_sample(r) for r in train_records]
     dev_samples = [streusle_to_model_sample(r) for r in dev_records]
 
-    # try:
-    #     predictor = LstmMlpSupersensesModel.load(task_output + '/model')
-    #     print('Loaded existing predictor')
-    # except:
-    predictor = model.fit(train_samples, dev_samples, show_progress=True)
+    try:
+        predictor = LstmMlpSupersensesModel.load(task_output + '/model')
+        print('Loaded existing predictor')
+    except:
+        predictor = model.fit(train_samples, dev_samples, show_progress=True)
     print("Training done")
-    predictor.save(task_output + '/model')
+    # predictor.save(task_output + '/model')
     print("Save model done")
     evaluator = StreusleEvaluator(predictor)
     for stype, records in [('train', train_records), ('dev', dev_records), ('test', test_records)]:
@@ -99,16 +100,13 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir):
                            sys_fname_out=sys_fname,
                            streusle_record_to_model_sample=streusle_to_model_sample,
                            all_depths=True)
-        conf = build_confusion_matrix(sys_fname, gold_fname)
-        with open(task_output + '/' + task + '.' + stype + '.conf.json', 'w') as conf_f:
-            json.dump(conf, conf_f, indent=2, sort_keys=True)
     print("Evaluation done")
 
 
 def parse_psseval(psseval_path):
     with open(psseval_path, 'r') as f:
         rows = [x.strip().split('\t') for x in f.readlines()]
-    pf = lambda f: "%1.1f" % (f * 100)
+    pf = lambda f: "%1.1f" % (float(f) * 100)
     if 'autoid' in psseval_path:
         return {
             'all': {
@@ -235,7 +233,7 @@ def build_template_input(results_dir, json_output_path):
                 d[mtype][f_task][stype]['psseval'] = evl
 
                 for depth in [1,2,3]:
-                    p = results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.psseval.depth' + str(depth) + '.tsv'
+                    p = results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.psseval.depth_' + str(depth) + '.tsv'
                     if os.path.exists(p):
                         evl = parse_psseval(p)
                         d[mtype][f_task][stype]['psseval_depth_' + str(depth)] = evl
@@ -259,7 +257,7 @@ def build_template_input(results_dir, json_output_path):
         json.dump(d, f, indent=2)
 
 
-def build_confusion_matrix(sysf_path, goldf_path):
+def build_confusion_matrix(sysf_path, goldf_path, depth):
 
     mats = {}
 
@@ -268,7 +266,13 @@ def build_confusion_matrix(sysf_path, goldf_path):
     with open(goldf_path) as goldf:
         gold_sents = json.load(goldf)
 
-    for filter in ['all', 'mwe', 'mwp']:
+    def coarsen(pss, depth):
+        if pss is None:
+            return str(pss)
+        return coarsen_pss(pss, depth)
+
+    # for filter in ['all', 'mwe', 'mwp']:
+    for filter in ['all']:
         def filter_wes(wes):
             return [we for we in wes if we['lexcat'] in ['P', 'PP', 'INF.P', 'POSS', 'PRON.POSS'] and (filter == 'all' or len(we['toknums']) > 1 and (filter != 'mwp' or we['lexcat'] != 'PP'))]
 
@@ -287,12 +291,23 @@ def build_confusion_matrix(sysf_path, goldf_path):
             for gold_we in gold_wes:
                 for sys_we in sys_wes:
                     if set(sys_we['toknums']) == set(gold_we['toknums']):
-                        role_mat[str(gold_we['ss'])][str(sys_we['ss'])] += 1
-                        fxn_mat[str(gold_we['ss2'])][str(sys_we['ss2'])] += 1
-                        exact_mat[format_pair(gold_we['ss'], gold_we['ss2'])][format_pair(sys_we['ss'], sys_we['ss2'])] += 1
+                        if gold_we['ss'] in ['??', '`$']:
+                            continue
+                        gold_ss, gold_ss2 = coarsen(gold_we['ss'], depth), coarsen(gold_we['ss2'], depth)
+                        sys_ss, sys_ss2 = coarsen(sys_we['ss'], depth), coarsen(sys_we['ss2'], depth)
+                        role_mat[gold_ss][sys_ss] += 1
+                        fxn_mat[gold_ss2][sys_ss2] += 1
+                        exact_mat[format_pair(gold_ss, gold_ss2)][format_pair(sys_ss, sys_ss2)] += 1
 
         def normalize(mat):
-            return {k: {k2: mat[k][k2] / sum(mat[k].values()) for k2 in mat[k]} for k in mat}
+            return {
+                k: {
+                    k2: {
+                        'p': mat[k][k2] / (sum(mat[k].values()) - mat[k][k]) if (sum(mat[k].values()) - mat[k][k]) else 0,
+                        'n': mat[k][k2]
+                    } for k2 in dict(mat[k]) if k != k2
+                } for k in dict(mat)
+            }
 
         role_mat = normalize(role_mat)
         fxn_mat = normalize(fxn_mat)
@@ -305,6 +320,27 @@ def build_confusion_matrix(sysf_path, goldf_path):
 
     return mats
 
+
+
+def build_confusion_matrices(results_dir):
+    mtypes = ['nn', 'mfc']
+    stypes = ['train', 'dev', 'test']
+    tasks = [idt + '.' + syn for idt in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
+    depths = [1,2,3,4]
+    d = {}
+    for mtype in mtypes:
+        output_dir = results_dir + '/' + mtype
+        for stype in stypes:
+            for task in tasks:
+                for depth in depths:
+                    task_output = output_dir + '/' + task
+                    gold_fname = task_output + '/' + task + '.' + stype + '.gold.json'
+                    sys_fname = task_output + '/' + task + '.' + stype + '.sys.' + task.split('.')[0] + '.json'
+                    conf = build_confusion_matrix(sys_fname, gold_fname, depth)
+                    with open(task_output + '/' + task + '.' + stype + '.conf.depth_' + str(depth) + '.json', 'w') as conf_f:
+                        json.dump(conf, conf_f, indent=2, sort_keys=True)
+
+
 if __name__ == '__main__':
     if len(sys.argv) > 1:
         path = sys.argv[1]
@@ -315,7 +351,8 @@ if __name__ == '__main__':
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    process_tuner_results(path, output_dir)
-    evaluate_most_frequent_baseline_model(output_dir)
+    # process_tuner_results(path, output_dir)
+    # evaluate_most_frequent_baseline_model(output_dir)
+    # build_confusion_matrices(output_dir)
     template_input_path = output_dir + '/template_input.json'
     build_template_input(output_dir, template_input_path)
