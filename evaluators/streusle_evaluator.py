@@ -19,7 +19,7 @@ class StreusleEvaluator:
         self.psseval_script_path = psseval_script_path
         self.predictor = predictor
 
-    def evaluate(self, streusle_records, output_tsv_path=None, ident='autoid', gold_fname_out=None, sys_fname_out=None, streusle_record_to_model_sample=streusle_record_to_lstm_model_sample):
+    def evaluate(self, streusle_records, output_tsv_path=None, ident='autoid', gold_fname_out=None, sys_fname_out=None, streusle_record_to_model_sample=streusle_record_to_lstm_model_sample, all_depths=False):
         assert ident in ['autoid', 'goldid']
         rand = str(int(time.time() * 1000))
         gold_fname = gold_fname_out or 'gold_' + rand + '.json'
@@ -55,9 +55,14 @@ class StreusleEvaluator:
                     for k, v in kwargs.items():
                         setattr(self, k, v)
 
-            output = subprocess.check_output(['python', self.psseval_script_path, gold_fname, sys_fname])
+            output = subprocess.check_output(['pythonw', self.psseval_script_path, gold_fname, sys_fname])
             with open(output_tsv_path, 'wb') as output_f:
                 output_f.write(output)
+            if all_depths:
+                for depth in [1,2,3]:
+                    output = subprocess.check_output(['pythonw', self.psseval_script_path, gold_fname, sys_fname, '--depth', str(depth)])
+                    with open(output_tsv_path.replace('.tsv', '.depth_' + str(depth) + '.tsv'), 'wb') as output_f:
+                        output_f.write(output)
             return output
         finally:
             if os.path.exists(gold_fname) and not gold_fname_out:

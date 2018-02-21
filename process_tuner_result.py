@@ -91,11 +91,17 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir):
     evaluator = StreusleEvaluator(predictor)
     for stype, records in [('train', train_records), ('dev', dev_records), ('test', test_records)]:
         print('Evaluating ', task, stype)
+        gold_fname = task_output + '/' + task + '.' + stype + '.gold.json'
+        sys_fname = task_output + '/' + task + '.' + stype + '.sys.' + task.split('.')[0] + '.json'
         evaluator.evaluate(records,
                            output_tsv_path=task_output + '/' + task + '.' + stype + '.psseval.tsv',
-                           gold_fname_out=task_output + '/' + task + '.' + stype + '.gold.json',
-                           sys_fname_out=task_output + '/' + task + '.' + stype + '.sys.' + task.split('.')[0] + '.json',
-                           streusle_record_to_model_sample=streusle_to_model_sample)
+                           gold_fname_out=gold_fname,
+                           sys_fname_out=sys_fname,
+                           streusle_record_to_model_sample=streusle_to_model_sample,
+                           all_depths=True)
+        conf = build_confusion_matrix(sys_fname, gold_fname)
+        with open(task_output + '/' + task + '.' + stype + '.conf.json', 'w') as conf_f:
+            json.dump(conf, conf_f, indent=2, sort_keys=True)
     print("Evaluation done")
 
 
@@ -228,6 +234,12 @@ def build_template_input(results_dir, json_output_path):
                 d[mtype][f_task][stype] = {}
                 d[mtype][f_task][stype]['psseval'] = evl
 
+                for depth in [1,2,3]:
+                    p = results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.psseval.depth' + str(depth) + '.tsv'
+                    if os.path.exists(p):
+                        evl = parse_psseval(p)
+                        d[mtype][f_task][stype]['psseval_depth_' + str(depth)] = evl
+
                 def format_hp(val):
                     conv = {str(10**i): '10^{%d}' % i for i in range(-10, 0)}
                     conv.update({'false': 'No', 'False': 'No', 'true': 'Yes', 'True': 'Yes'})
@@ -247,39 +259,51 @@ def build_template_input(results_dir, json_output_path):
         json.dump(d, f, indent=2)
 
 
-def build_confusion_matrix(sysf_path, goldf_path, filter='all'):
-    assert filter in ['all', 'mwe', 'mwp']
+def build_confusion_matrix(sysf_path, goldf_path):
+
+    mats = {}
+
     with open(sysf_path) as sysf:
         sys_sents = json.load(sysf)
     with open(goldf_path) as goldf:
         gold_sents = json.load(goldf)
 
-    def filter_wes(wes):
-        return [we for we in wes if we['lexcat'] in ['P', 'PP', 'INF.P', 'POSS', 'PRON.POSS'] and (filter == 'all' or len(we['toknums']) > 1 and (filter != 'mwp' or we['lexcat'] != 'PP'))]
+    for filter in ['all', 'mwe', 'mwp']:
+        def filter_wes(wes):
+            return [we for we in wes if we['lexcat'] in ['P', 'PP', 'INF.P', 'POSS', 'PRON.POSS'] and (filter == 'all' or len(we['toknums']) > 1 and (filter != 'mwp' or we['lexcat'] != 'PP'))]
 
-    role_mat = defaultdict(lambda: defaultdict(lambda: 0))
-    fxn_mat = defaultdict(lambda: defaultdict(lambda: 0))
-    exact_mat = defaultdict(lambda: defaultdict(lambda: 0))
+        def format_pair(s1, s2):
+            return str(s1) + ',' + str(s2)
 
-    for sys_sent, gold_sent in zip(sys_sents, gold_sents):
-        assert sys_sent['id'] == gold_sent['id']
-        sys_wes = filter_wes(chain(sys_sent['swes'].values(), sys_sent['smwes'].values()))
-        gold_wes = filter_wes(chain(gold_sent['swes'].values(), gold_sent['smwes'].values()))
+        role_mat = defaultdict(lambda: defaultdict(lambda: 0))
+        fxn_mat = defaultdict(lambda: defaultdict(lambda: 0))
+        exact_mat = defaultdict(lambda: defaultdict(lambda: 0))
 
-        for gold_we in gold_wes:
-            for sys_we in sys_wes:
-                if set(sys_we['toknums']) == set(gold_we['toknums']):
-                    role_mat[gold_we['ss']][sys_we['ss']] += 1
-                    fxn_mat[gold_we['ss2']][sys_we['ss2']] += 1
-                    exact_mat[(gold_we['ss'], gold_we['ss2'])][(sys_we['ss'], sys_we['ss2'])] += 1
+        for sys_sent, gold_sent in zip(sys_sents, gold_sents):
+            assert sys_sent['sent_id'] == gold_sent['sent_id']
+            sys_wes = filter_wes(chain(sys_sent['swes'].values(), sys_sent['smwes'].values()))
+            gold_wes = filter_wes(chain(gold_sent['swes'].values(), gold_sent['smwes'].values()))
 
-    def normalize(mat):
-        return {k: {mat[k][k2] / sum(mat[k].values()) for k2 in mat[k]} for k in mat}
+            for gold_we in gold_wes:
+                for sys_we in sys_wes:
+                    if set(sys_we['toknums']) == set(gold_we['toknums']):
+                        role_mat[str(gold_we['ss'])][str(sys_we['ss'])] += 1
+                        fxn_mat[str(gold_we['ss2'])][str(sys_we['ss2'])] += 1
+                        exact_mat[format_pair(gold_we['ss'], gold_we['ss2'])][format_pair(sys_we['ss'], sys_we['ss2'])] += 1
 
-    role_mat = normalize(role_mat)
-    fxn_mat = normalize(fxn_mat)
-    exact_mat = normalize(exact_mat)
+        def normalize(mat):
+            return {k: {k2: mat[k][k2] / sum(mat[k].values()) for k2 in mat[k]} for k in mat}
 
+        role_mat = normalize(role_mat)
+        fxn_mat = normalize(fxn_mat)
+        exact_mat = normalize(exact_mat)
+        mats[filter] = {
+            'role': role_mat,
+            'fxn': fxn_mat,
+            'exact': exact_mat
+        }
+
+    return mats
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
@@ -291,7 +315,7 @@ if __name__ == '__main__':
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    # process_tuner_results(path, output_dir)
-    # evaluate_most_frequent_baseline_model(output_dir)
+    process_tuner_results(path, output_dir)
+    evaluate_most_frequent_baseline_model(output_dir)
     template_input_path = output_dir + '/template_input.json'
     build_template_input(output_dir, template_input_path)

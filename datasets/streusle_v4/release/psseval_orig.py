@@ -49,7 +49,7 @@ def compare_sets_Acc(gold, pred):
 def eval_sys(sysF, gold_sents, ss_mapper):
     goldid = (sysF.name.split('.')[-2]=='goldid')
     if not goldid and sysF.name.split('.')[-2]!='autoid':
-        raise ValueError('File path of system output not specified for gold vs. auto identification of units to be labeled: ' + sysF.name)
+        raise ValueError(f'File path of system output not specified for gold vs. auto identification of units to be labeled: {sysF.name}')
 
     compare_sets = compare_sets_Acc if goldid else compare_sets_PRF
 
@@ -117,25 +117,24 @@ def eval_sys(sysF, gold_sents, ss_mapper):
                 c['R'] = c['correct'] / c['Rdenom']
                 c['F'] = f1(c['P'], c['R'])
 
-    assert len(gold_sents)==iSent+1,'Mismatch in number of sentences: ' + str(len(gold_sents)) + ' gold, ' + str(iSent+1) + ' system from ' + sysFP
+    assert len(gold_sents)==iSent+1,f'Mismatch in number of sentences: {len(gold_sents)} gold, {iSent+1} system from {sysFP}'
 
     return scores
 
 def to_tsv(all_sys_scores, depth):
     for k in ('All','MWE','MWP'):
-        print(k)
-        print('D='+str(depth)+'\tGold ID:\tRole\tFxn\tRole,Fxn\t\tID\t\t\t\tRole\t\t\t\tFxn\t\t\t\tRole,Fxn\t\t')
-        print('Sys\tN\tAcc\tAcc\tAcc' + '\t\tP\tR\tF'*4)
+        print(k+('\t'*22))
+        print('D='+str(depth)+'\tGold ID:\tRole\tFxn\tRole,Fxn\t\tID\t\t\t\tRole\t\t\t\tFxn\t\t\t\tRole,Fxn\t\t\t\t')
+        print('Sys\tN\tAcc\tAcc\tAcc' + '\t\tP\tR\tF'*4 + '\t\t')
         for sys,(gidscores,aidscores) in all_sys_scores.items():
             print(sys, end='\t')
             print(gidscores[k]["Role"]["N"], end='\t')
             for criterion in ('Role', 'Fxn', 'Role,Fxn'):
-                print("%.3f" % (gidscores[k][criterion]["Acc"]), end='\t')
+                print(f'{gidscores[k][criterion]["Acc"]:.1%}', end='\t')
             print('', end='\t')
             for criterion in ('ID', 'Role', 'Fxn', 'Role,Fxn'):
                 prf = aidscores[k][criterion]
-                print(
-                    "%.3f" % (prf["P"] or -1) + '\t' + "%.3f" % (prf["R"] or -1) + '\t' + "%.3f" % (prf["F"] or -1) + '\t', end='\t')
+                print(f'{prf["P"]:.1%}\t{prf["R"]:.1%}\t{prf["F"]:.1%}\t', end='\t')
             print()
         print()
 
