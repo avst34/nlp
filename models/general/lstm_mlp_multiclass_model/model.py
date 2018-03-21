@@ -30,9 +30,10 @@ class LstmMlpMulticlassModel(object):
     Sample = namedtuple('Sample', ['xs', 'ys', 'mask'])
 
     class SampleX:
-        def __init__(self, fields, neighbors=None):
+        def __init__(self, fields, neighbors=None, embeddings_override=None):
             self.fields = fields
             self.neighbors = neighbors or {}
+            self.embeddings_override = embeddings_override or {}
 
         def __getitem__(self, field):
             return self.fields[field]
@@ -217,6 +218,23 @@ class LstmMlpMulticlassModel(object):
                     if neighbor_type not in x.neighbors:
                         raise Exception("X without a dep:" + neighbor_type)
 
+    def get_embd(self, token_data, field):
+        if self.input_vocabularies[field].has_word(token_data[field]):
+            return dy.lookup(
+                self.params.input_lookups[field],
+                self.input_vocabularies[field].get_index(token_data[field]),
+                update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field)
+            )
+        else:
+            embd = token_data['embeddings_override'].get('field')
+            if embd:
+                assert len(embd) == self.get_embd_dim(field)
+                return dy.inputTensor(embd)
+            else:
+                if field not in self.hyperparameters.input_embeddings_to_allow_partial:
+                    raise Exception('Missing embedding vector for field: %s, word %s' % (field, token_data[field]))
+                return dy.inputTensor([0] * self.get_embd_dim(field))
+
     def _build_network_for_input(self, xs, mask, apply_dropout):
         self._validate_xs(xs, mask)
 
@@ -236,7 +254,7 @@ class LstmMlpMulticlassModel(object):
             cur_lstm_state = self.lstm_builder
         embeddings = [
             dy.concatenate([
-                dy.lookup(self.params.input_lookups[field], self.input_vocabularies[field].get_index(token_data[field]), update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field))
+                self.get_embd(token_data, field)
                 for field in self.hyperparameters.lstm_input_fields
             ])
             for token_data in xs
