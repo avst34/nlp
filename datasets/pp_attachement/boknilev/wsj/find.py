@@ -9,5 +9,5 @@ with open('sents.json') as f:
         if all(w in [t.lower() for t in sent['sent']] for w in words):
             print(sent['id'])
             print('--------')
-            for t, p in zip(sent['sent'], sent['pos']):
-                print(t, p)
+            for i, (t, p, h) in enumerate(zip(sent['sent'], sent['pos'], sent['head'])):
+                print(i+1, t, p, h)

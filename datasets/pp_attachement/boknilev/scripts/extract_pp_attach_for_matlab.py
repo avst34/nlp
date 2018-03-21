@@ -632,7 +632,7 @@ def extract_pp_attachments_from_wsj_dep_file(wsj_dep_filename, max_head_distance
                                              use_heads_next=False, use_heads_pos=False, use_heads_next_pos=False):
 
     print 'extracting attachments from file:', wsj_dep_filename
-    sentences = 1(wsj_dep_filename, True)
+    sentences = read_wsj_dep_file(wsj_dep_filename, True)
     attachments = []
     for sentence in sentences:
         assert(type(sentence) == EnglishSentence)

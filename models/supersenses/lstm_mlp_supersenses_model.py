@@ -24,7 +24,11 @@ class LstmMlpSupersensesModel:
                      lemma,
                      gov_ind, obj_ind, govobj_config,
                      identified_for_pss,
-                     lexcat):
+                     lexcat,
+                     lemma_word2vec=None,
+                     token_word2vec=None):
+            self.token_word2vec = token_word2vec
+            self.lemma_word2vec = lemma_word2vec
             self.lexcat = lexcat
             self.govobj_config = govobj_config
             self.obj_ind = obj_ind
@@ -218,6 +222,9 @@ class LstmMlpSupersensesModel:
             neighbors={
                 f.name: f.extract(sample_x, sample_xs) for f in self.features.list_ref_features()
                 if x_mask or not f.masked_only
+            },
+            embeddings_override={
+                f.name: f.embedding_fallback(sample_x) for f in self.features.list_features_with_embedding_fallback()
             }
         )
 

@@ -1,0 +1,284 @@
+[
+  {
+    "pps": [
+      {
+        "ind": 16,
+        "head_inds": [
+          9,
+          11,
+          14,
+          15
+        ]
+      },
+      {
+        "ind": 22,
+        "head_inds": [
+          14,
+          15,
+          18,
+          21
+        ]
+      },
+      {
+        "ind": 24,
+        "head_inds": [
+          14,
+          15,
+          18,
+          21,
+          23
+        ]
+      }
+    ],
+    "sent_id": "wsj_0576.mrg_000037",
+    "preprocessing": {
+      "govobj": [
+        {
+          "config": "default",
+          "govlemma": "Germany",
+          "objlemma": null,
+          "gov": "Germany",
+          "obj": null
+        },
+        {
+          "config": "possessive",
+          "govlemma": "union",
+          "objlemma": null,
+          "gov": "union",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "union",
+          "objlemma": "Germany",
+          "gov": "union",
+          "obj": "Germany"
+        },
+        {
+          "config": "default",
+          "govlemma": "union",
+          "objlemma": null,
+          "gov": "union",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "say",
+          "objlemma": null,
+          "gov": "said",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "union",
+          "objlemma": null,
+          "gov": "union",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "Metall",
+          "objlemma": null,
+          "gov": "Metall",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "union",
+          "objlemma": null,
+          "gov": "union",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "union",
+          "objlemma": null,
+          "gov": "union",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": null,
+          "objlemma": null,
+          "gov": null,
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "ready",
+          "objlemma": null,
+          "gov": "ready",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "ready",
+          "objlemma": null,
+          "gov": "ready",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "say",
+          "objlemma": null,
+          "gov": "said",
+          "obj": null
+        },
+        {
+          "config": "subordinating",
+          "govlemma": "ready",
+          "objlemma": "back",
+          "gov": "ready",
+          "obj": "back"
+        },
+        {
+          "config": "default",
+          "govlemma": "ready",
+          "objlemma": null,
+          "gov": "ready",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "back",
+          "objlemma": null,
+          "gov": "back",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "demand",
+          "objlemma": "pay",
+          "gov": "demands",
+          "obj": "pay"
+        },
+        {
+          "config": "default",
+          "govlemma": "pay",
+          "objlemma": null,
+          "gov": "pay",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "demand",
+          "objlemma": null,
+          "gov": "demands",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "pay",
+          "objlemma": null,
+          "gov": "pay",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "hour",
+          "objlemma": null,
+          "gov": "hours",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "pay",
+          "objlemma": null,
+          "gov": "pay",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "back",
+          "objlemma": "strike",
+          "gov": "back",
+          "obj": "strikes"
+        },
+        {
+          "config": "default",
+          "govlemma": "back",
+          "objlemma": null,
+          "gov": "back",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "strike",
+          "objlemma": "industry",
+          "gov": "strikes",
+          "obj": "industries"
+        },
+        {
+          "config": "default",
+          "govlemma": "nation",
+          "objlemma": null,
+          "gov": "nation",
+          "obj": null
+        },
+        {
+          "config": "possessive",
+          "govlemma": "industry",
+          "objlemma": null,
+          "gov": "industries",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "industry",
+          "objlemma": "nation",
+          "gov": "industries",
+          "obj": "nation"
+        },
+        {
+          "config": "default",
+          "govlemma": "industry",
+          "objlemma": null,
+          "gov": "industries",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "automotive",
+          "objlemma": null,
+          "gov": "automotive",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "automotive",
+          "objlemma": null,
+          "gov": "automotive",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "automotive",
+          "objlemma": null,
+          "gov": "automotive",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "automotive",
+          "objlemma": null,
+          "gov": "automotive",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "strike",
+          "objlemma": null,
+          "gov": "strikes",
+          "obj": null
+        },
+        {
+          "config": "default",
+          "govlemma": "say",
+          "objlemma": null,
+          "gov": "said",
+          "obj": null
+        }
+      ],
+      "lemma_w2v": [
+        [
+          
