@@ -57,3 +57,31 @@ def parse_conll_file(conll_file):
         conll = f.read()
     return parse_conll(conll)
 
+def parse_conllx(conllx):
+    sents = [x for x in conllx.split('\n\n') if x]
+    parsed_sents = []
+    for sent in sents:
+        lines = sent.split('\n')
+        parsed = {
+            'metadata': dict([x[2:].split(' = ') for x in lines if x.startswith('#')]),
+            'tokens': [
+                {
+                    'id': int(cols[0]),
+                    'token': cols[1],
+                    'unk1': cols[2],
+                    'pos': cols[3],
+                    'unk2': cols[4],
+                    'unk3': cols[5],
+                    'head': int(cols[6]),
+                } for l in lines if l and l[0] != '#' for cols in [[x if x != '_' else None for x in l.split('\t')]]
+            ]
+        }
+        parsed_sents.append(parsed)
+
+    return parsed_sents
+
+def parse_conllx_file(conllx_file):
+    with open(conllx_file, 'r') as f:
+        conllx = f.read()
+    return parse_conllx(conllx)
+

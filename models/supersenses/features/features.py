@@ -11,8 +11,8 @@ def build_features(hyperparameters, override=None):
     override = override or {}
     hp = hyperparameters.clone(override)
     return Features([
-        Feature('token-word2vec',   FeatureType.ENUM, vocabs.TOKENS,     embeddings.TOKENS_WORD2VEC,  default_zero_vec=True,   extractor=lambda tok, sent: tok.token,     mount_point=LSTM, enable=hp.use_token, update=hp.update_token_embd, masked_only=False),
-        Feature('token.lemma-word2vec',  FeatureType.ENUM, vocabs.LEMMAS,  embeddings.LEMMAS_WORD2VEC,  default_zero_vec=True, update=hp.update_lemmas_embd, extractor=lambda tok, sent: tok.lemma, mount_point=LSTM,  enable=True, masked_only=False),
+        Feature('token-word2vec',   FeatureType.ENUM, vocabs.TOKENS,     embeddings.TOKENS_WORD2VEC,  embedding_fallback=lambda tok: tok.tok_embedding, default_zero_vec=True,   extractor=lambda tok, sent: tok.token,     mount_point=LSTM, enable=hp.use_token, update=hp.update_token_embd, masked_only=False),
+        Feature('token.lemma-word2vec',  FeatureType.ENUM, vocabs.LEMMAS,  embeddings.LEMMAS_WORD2VEC,  embedding_fallback=lambda tok: tok.tok_lemma_embedding,  default_zero_vec=True, update=hp.update_lemmas_embd, extractor=lambda tok, sent: tok.lemma, mount_point=LSTM,  enable=True, masked_only=False),
         Feature('token-internal',   FeatureType.ENUM, vocabs.TOKENS,     embeddings.AUTO,  extractor=lambda tok, sent: tok.token,     mount_point=LSTM, enable=hp.use_token_internal, dim=hp.token_internal_embd_dim, update=True, masked_only=False),
         Feature('token.ud_xpos',     FeatureType.ENUM, vocabs.UD_XPOS,     embeddings.AUTO,  dim=hp.ud_xpos_embd_dim,  update=True,        extractor=lambda tok, sent: tok.ud_xpos, mount_point=MLP,  enable=hp.use_ud_xpos),
         Feature('token.dep',     FeatureType.ENUM, vocabs.UD_DEPS,    embeddings.AUTO,   dim=hp.ud_deps_embd_dim,  update=True,    extractor=lambda tok, sent: tok.ud_dep,    mount_point=MLP,  enable=hp.use_ud_dep),

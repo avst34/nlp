@@ -27,7 +27,7 @@ class Word2VecModel:
         return item in self.model
 
     def get(self, word):
-        return self.model[word] if word in self.model else None
+        return [float(x) for x in list(self.model[word])] if word in self.model else None
 
     def collect_missing(self, words):
         return [w for w in words if w not in self.model]
