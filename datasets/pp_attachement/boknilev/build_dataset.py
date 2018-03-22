@@ -118,7 +118,8 @@ def match_sentence_annotations(sent, anns):
 def match_annotations(annotations, sents, cur_matches=None):
     match_counts = []
     matches = cur_matches or {}
-    match_cands = {ann: [tuple(match)] for ann, match in matches.items()}
+    # match_cands = {ann: [tuple(match)] for ann, match in matches.items()}
+    match_cands = {}
     sents = copy.deepcopy(sents)
     for sent in sents:
         sent['word_next_pos'] = [(sent['sent'][ind], sent['pos'][ind + 1]) for ind, _ in enumerate(sent['sent'][:-1])]
@@ -126,42 +127,45 @@ def match_annotations(annotations, sents, cur_matches=None):
         sent['word_head'] = [(sent['sent'][ind], sent['head'][ind]) for ind, _ in enumerate(sent['sent'][:-1])]
         sent['word_head_lc'] = [(sent['sent'][ind].lower(), sent['head'][ind]) for ind, _ in enumerate(sent['sent'][:-1])]
         sent['sent_lc'] = [x.lower() for x in sent['sent']]
-    for ann_ind, ann in enumerate(annotations[:200]):
+    for ann_ind, ann in enumerate(annotations):
         if ann['id'] in match_cands:
             continue
         match_cands[ann['id']] = []
-        for sent_key, wnp_key, wh_key in [('sent', 'word_next_pos', 'word_head'), ('sent_lc', 'word_next_pos_lc', 'word_head_lc')]:
-            for sent in sents:
-                # if 'wsj.23' in ann['id'] and 'wsj.23' not in sent['id']:
-                #     continue
-                # if 'wsj.2-21' in ann['id'] and 'wsj.2-21' not in sent['id']:
-                #     continue
-                if ann['children.words'][0] not in sent[sent_key]:
-                    continue
+        for filter_label in [True, False]:
+            for sent_key, wnp_key, wh_key in [('sent', 'word_next_pos', 'word_head'), ('sent_lc', 'word_next_pos_lc', 'word_head_lc')]:
+                for sent in sents:
+                    # if 'wsj.23' in ann['id'] and 'wsj.23' not in sent['id']:
+                    #     continue
+                    # if 'wsj.2-21' in ann['id'] and 'wsj.2-21' not in sent['id']:
+                    #     continue
+                    if ann['children.words'][0] not in sent[sent_key]:
+                        continue
 
-                for ind, (word, head) in enumerate(sent[wh_key]):
-                    if word == ann['preps.words'][0] and \
-                       0 <= (head - 1) and \
-                       sent[sent_key][head - 1] == ann['heads.words'][int(ann['labels'][0]) - 1]:
-                            window = sent[sent_key][max(ind - 10, 0):ind]
-                            found = True
-                            for h in ann['heads.words']:
-                                try:
-                                    window = window[window.index(h) + 1:]
-                                except ValueError:
-                                    found = False
-                            if not found:
-                                continue
-                            window = sent[wnp_key][max(ind - 10, 0):ind]
-                            found = True
-                            for wnp in zip(ann['heads.words'], ann['heads.next.pos']):
-                                try:
-                                    window = window[window.index(wnp) + 1:]
-                                except ValueError:
-                                    found = False
-                            if not found:
-                                continue
-                            match_cands[ann['id']].append((sent['id'], ind))
+                    for ind, (word, head) in enumerate(sent[wh_key]):
+                        if word == ann['preps.words'][0] and \
+                          (not(filter_label) or 0 <= (head - 1) and
+                            sent[sent_key][head - 1] == ann['heads.words'][int(ann['labels'][0]) - 1]):
+                                window = sent[sent_key][max(ind - 10, 0):ind]
+                                found = True
+                                for h in ann['heads.words']:
+                                    try:
+                                        window = window[window.index(h) + 1:]
+                                    except ValueError:
+                                        found = False
+                                if not found:
+                                    continue
+                                window = sent[wnp_key][max(ind - 10, 0):ind]
+                                found = True
+                                for wnp in zip(ann['heads.words'], ann['heads.next.pos']):
+                                    try:
+                                        window = window[window.index(wnp) + 1:]
+                                    except ValueError:
+                                        found = False
+                                if not found:
+                                    continue
+                                match_cands[ann['id']].append((sent['id'], ind, filter_label))
+                if match_cands[ann['id']]:
+                    break
             if match_cands[ann['id']]:
                 break
 
@@ -190,14 +194,18 @@ def match_annotations(annotations, sents, cur_matches=None):
             matches_per_sent_pp[match] = matches_per_sent_pp.get(match) or []
             matches_per_sent_pp[match].append(ann_id)
 
-    closed_matches = {ann_ids[0]: match for match, ann_ids in matches_per_sent_pp.items() if len(ann_ids) == 1}
+    closed_matches = {ann_ids[0]: match for match, ann_ids in matches_per_sent_pp.items() if len(ann_ids) == 1 and match[2]}
+    closed_matches_missed_label = {ann_ids[0]: match for match, ann_ids in matches_per_sent_pp.items() if len(ann_ids) == 1 and not match[2]}
 
-    for ann_id, (sent_id, tok_ind) in closed_matches.items():
+    for ann_id, (sent_id, tok_ind, matched_label) in closed_matches.items():
         ann = annotations[ann_id_to_ind[ann_id]]
         ann['sent_id'] = sent_id
         ann['tok_ind'] = tok_ind
+        ann['matched_label'] = matched_label
 
-    print("Matched %d/%d" % (len(closed_matches), len(annotations)))
+    print("Matched (w.label) %d/%d" % (len(closed_matches), len(annotations)))
+    print("Matched (missed label) %d/%d" % (len(closed_matches_missed_label), len(annotations)))
+    print("Matched (total) %d/%d" % (len(closed_matches_missed_label) + len(closed_matches), len(annotations)))
     return closed_matches
 
 
