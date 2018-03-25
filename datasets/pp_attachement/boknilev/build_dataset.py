@@ -9,7 +9,7 @@ import copy
 import sys
 from nltk.corpus import ptb
 
-# from models.supersenses.preprocessing import preprocess_sentence
+from models.supersenses.preprocessing import preprocess_sentence
 from utils import parse_conllx, parse_conllx_file
 
 dropped = set()
@@ -122,6 +122,7 @@ def match_sentence_annotations(sent, anns):
 
 def match_annotations(annotations, sents):
     ann_id_to_ann = {ann['id']: ann for ann in annotations}
+    sent_id_to_sent = {sent['id']: sent for sent in sents}
     match_counts = []
     mismatch_reason = {}
     sents = copy.deepcopy(sents)
@@ -146,10 +147,10 @@ def match_annotations(annotations, sents):
             for filter_label in [True, False]:
                 for sent_key, wnp_key, wh_key in [('sent', 'word_next_pos', 'word_head'), ('sent_lc', 'word_next_pos_lc', 'word_head_lc')]:
                     for sent in sents:
-                        # if 'wsj.23' in ann['id'] and 'wsj.23' not in sent['id']:
-                        #     continue
-                        # if 'wsj.2-21' in ann['id'] and 'wsj.2-21' not in sent['id']:
-                        #     continue
+                        if 'wsj.23' in ann['id'] and 'wsj.23' not in sent['id']:
+                            continue
+                        if 'wsj.2-21' in ann['id'] and all([('wsj_%02d' % i) not in sent['id'] for i in range(2,22)]):
+                            continue
                         if ann['children.words'][0] not in sent[sent_key]:
                             continue
 
@@ -201,12 +202,10 @@ def match_annotations(annotations, sents):
     for ann_id, cands in match_cands.items():
         match_cands[ann_id] = [(x[0], x[1]) for x in cands]
 
-
-
     print(Counter(match_counts))
 
     # missing = [ann_id for ann_id in match_cands if ann_id not in matches]
-    # print(sorted(missing))
+    # print(sorted(m]issing))
     print('train:', len([ann_id for ann_id in match_cands if 'wsj.2-21.txt.dep.' in ann_id]))
     print('test:', len([ann_id for ann_id in match_cands if 'wsj.23.txt.dep.' in ann_id]))
 
@@ -220,8 +219,6 @@ def match_annotations(annotations, sents):
             matches_per_sent_pp[match].append(ann_id_to_ann[ann_id])
 
     print("Matches: %d Anns: %d" % (len(matches_per_sent_pp), len(annotations)))
-
-
 
     def m():
         print('Clearing by single..')
@@ -363,8 +360,12 @@ def match_annotations(annotations, sents):
     for ann_id, (sent_id, tok_ind) in closed_matches.items():
         ann = ann_id_to_ann[ann_id]
         ann['sent_id'] = sent_id
+        # ann['sent_tokens'] = sent_id_to_sent[sent_id]['sent']
         ann['tok_ind'] = tok_ind
 
+    print('len(closed_matches)', len(closed_matches))
+
+    annotations.extend(new_annotations)
     return closed_matches
 
 
@@ -374,6 +375,8 @@ def build_sample(sent, anns):
         "tokens": sent["sent"],
         "sent_id": sent["id"],
         "pps": [{
+            "id": ann['id'],
+            "copy_of": ann.get('copy_of') or ann['id'],
             "ind": ann['tok_ind'],
             "head_inds": [max(ann['tok_ind'] - 10, 0) + lc_toks[max(ann['tok_ind'] - 10, 0): ann['tok_ind']].index(head) for head in ann['heads.words']],
         } for ann in anns]
@@ -388,7 +391,9 @@ def build_sample(sent, anns):
 def build_samples(sents, annotations):
     sent_id_to_sent = {s['id']: s for s in sents}
 
+    print('len(annotations) - before', len(annotations))
     annotations = [ann for ann in annotations if 'sent_id' in ann]
+    print('len(annotations) - after', len(annotations))
 
     sent_to_anns = {}
     for ann in annotations:
@@ -405,9 +410,10 @@ def preprocess_samples(samples):
     preprocessed = []
     def process(sample):
         sample = copy.copy(sample)
-        sample['preprocessing'] = preprocess_sentence(sample['tokens'])
+        # sample['preprocessing'] = preprocess_sentence(sample['tokens'])
+        sample['preprocessing'] = {}
         preprocessed.append(sample)
-        print('%d/%d' % (len(preprocessed), len(samples)))
+        # print('%d/%d' % (len(preprocessed), len(samples)))
     with ThreadPoolExecutor(10) as tpe:
         list(tpe.map(process, samples))
     return preprocessed
@@ -447,8 +453,12 @@ if __name__ == '__main__':
         with open(os.path.dirname(__file__) + '/data/pp-data-english/wsj_matches.json', 'w') as f:
             json.dump(matches, f)
 
-        sys.exit(0)
+        print("annotations:", len(annotations))
         train_samples, test_samples = build_samples(sents, annotations)
+        print("00 train", len([pp for t in train_samples for pp in t['pps']]),
+              "test", len([pp for t in test_samples for pp in t['pps']]),
+              "all", len([pp for t in test_samples for pp in t['pps']]) + len([pp for t in train_samples for pp in t['pps']])
+              )
     else:
         with open(train_path, 'r') as f:
             train_samples = json.load(f)
@@ -457,6 +467,10 @@ if __name__ == '__main__':
 
     train_samples = preprocess_samples(train_samples)
     test_samples = preprocess_samples(test_samples)
+    print("train", len([pp for t in train_samples for pp in t['pps']]),
+          "test", len([pp for t in test_samples for pp in t['pps']]),
+          "all", len([pp for t in test_samples for pp in t['pps']]) + len([pp for t in train_samples for pp in t['pps']])
+          )
     dump_dataset(train_samples, test_samples, train_path=train_path, test_path=test_path)
 
     # print(dropped)
