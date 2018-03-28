@@ -56,6 +56,7 @@ def collect_sents(mrg_dir=os.path.dirname(__file__) + '/wsj', outf_path=os.path.
 
 def collect_pp_annotations(base_files=(
     os.path.dirname(__file__) + '/data/pp-data-english/wsj.2-21.txt.dep.pp',
+    os.path.dirname(__file__) + '/data/pp-data-english/wsj.22.txt.dep.pp',
     os.path.dirname(__file__) + '/data/pp-data-english/wsj.23.txt.dep.pp'
 ), outf_path=os.path.dirname(__file__) + '/data/pp-data-english/annotations.json'):
     annotations = []
@@ -67,13 +68,18 @@ def collect_pp_annotations(base_files=(
             'heads.next.pos',
             'heads.words',
             'labels',
-            'nheads'
+            'nheads',
+            'sentinds'
         ]
         fields_data = {}
         for field in fields:
-            with open(base_file + '.' + field, 'r') as f:
-                fields_data[field] = [l.strip().replace('\t', ' ').split(' ') for l in f.readlines()]
-        cur_annotations = [{fld: data for fld, data in zip(fields, ann)} for ann in zip(*[fields_data[field] for field in fields])]
+            try:
+                with open(base_file + '.' + field, 'r') as f:
+                    fields_data[field] = [l.strip().replace('\t', ' ').split(' ') for l in f.readlines()]
+            except FileNotFoundError as e:
+                if field != 'sentinds':
+                    raise
+        cur_annotations = [{fld: data for fld, data in zip(fields, ann)} for ann in zip(*[fields_data[field] for field in fields if field in fields_data])]
         for ind, ann in enumerate(cur_annotations):
             ann['id'] = os.path.basename(base_file) + '_%06d' % ind
             annotations.append(ann)
@@ -135,19 +141,27 @@ def match_annotations(annotations, sents):
 
     try:
         with open(os.path.dirname(__file__) + '/data/pp-data-english/wsj_cache.json', 'r') as f:
-            match_cands = {k: [tuple(vv) for vv in v]  for k, v in json.load(f).items()}
+            match_cands = {k: [tuple(vv) for vv in v]  for k, v in json.load(f).items() if 'wsj.22' not in k}
             match_cands_orig = copy.deepcopy(match_cands)
     except:
         match_cands = {}
         match_cands_orig = {}
 
+    first_22_sent_ind = sents.index([x for x in sents if 'wsj_22' in x['id']][0])
+
     for ann_ind, ann in enumerate(annotations):
-        if ann['id'] not in match_cands:
+        if not match_cands.get(ann['id']) or len(match_cands.get(ann['id'])[0]) != 3 or 'wsj.22' in ann['id']:
             match_cands[ann['id']] = []
+            if ann.get('sentinds'):
+                sent_ind, pp_ind = [int(x) for x in ann['sentinds'][0].split(':')]
+                assert 'wsj.22' in ann['id']
+                sent_ind += first_22_sent_ind
+                match_cands[ann['id']] = [(sents[sent_ind]['id'], pp_ind, True)]
+                continue
             for filter_label in [True, False]:
                 for sent_key, wnp_key, wh_key in [('sent', 'word_next_pos', 'word_head'), ('sent_lc', 'word_next_pos_lc', 'word_head_lc')]:
                     for sent in sents:
-                        if 'wsj.23' in ann['id'] and 'wsj.23' not in sent['id']:
+                        if 'wsj.23' in ann['id'] and 'wsj_23' not in sent['id']:
                             continue
                         if 'wsj.2-21' in ann['id'] and all([('wsj_%02d' % i) not in sent['id'] for i in range(2,22)]):
                             continue
@@ -371,16 +385,19 @@ def match_annotations(annotations, sents):
 
 def build_sample(sent, anns):
     lc_toks = [t.lower() for t in sent['sent']]
-    sample = {
-        "tokens": sent["sent"],
-        "sent_id": sent["id"],
-        "pps": [{
-            "id": ann['id'],
-            "copy_of": ann.get('copy_of') or ann['id'],
-            "ind": ann['tok_ind'],
-            "head_inds": [max(ann['tok_ind'] - 10, 0) + lc_toks[max(ann['tok_ind'] - 10, 0): ann['tok_ind']].index(head) for head in ann['heads.words']],
-        } for ann in anns]
-    }
+    try:
+        sample = {
+            "tokens": sent["sent"],
+            "sent_id": sent["id"],
+            "pps": [{
+                "id": ann['id'],
+                "copy_of": ann.get('copy_of') or ann['id'],
+                "ind": ann['tok_ind'],
+                "head_inds": [max(ann['tok_ind'] - 10, 0) + lc_toks[max(ann['tok_ind'] - 10, 0): ann['tok_ind']].index(head) for head in ann['heads.words']],
+            } for ann in anns]
+        }
+    except:
+        raise
 
     for (pp, ann) in zip(sample['pps'], anns):
         assert sample['tokens'][pp['ind']].lower() == ann['preps.words'][0]
@@ -401,17 +418,17 @@ def build_samples(sents, annotations):
         sent_to_anns[ann['sent_id']].append(ann)
 
     train = [build_sample(sent_id_to_sent[sent_id], anns) for sent_id, anns in sent_to_anns.items() if all(['2-21' in ann['id'] for ann in anns])]
+    dev = [build_sample(sent_id_to_sent[sent_id], anns) for sent_id, anns in sent_to_anns.items() if all(['wsj.22' in ann['id'] for ann in anns])]
     test = [build_sample(sent_id_to_sent[sent_id], anns) for sent_id, anns in sent_to_anns.items() if all(['wsj.23' in ann['id'] for ann in anns])]
 
-    return train, test
+    return train, dev, test
 
 
 def preprocess_samples(samples):
     preprocessed = []
     def process(sample):
         sample = copy.copy(sample)
-        # sample['preprocessing'] = preprocess_sentence(sample['tokens'])
-        sample['preprocessing'] = {}
+        sample['preprocessing'] = preprocess_sentence(sample['tokens'])
         preprocessed.append(sample)
         # print('%d/%d' % (len(preprocessed), len(samples)))
     with ThreadPoolExecutor(10) as tpe:
@@ -419,17 +436,20 @@ def preprocess_samples(samples):
     return preprocessed
 
 
-def dump_dataset(train_samples, test_samples, train_path, test_path):
+def dump_dataset(train_samples, dev_samples, test_samples, train_path, dev_path, test_path):
     with open(train_path, 'w') as f:
         json.dump(train_samples, f, indent=2)
+    with open(dev_path, 'w') as f:
+        json.dump(dev_samples, f, indent=2)
     with open(test_path, 'w') as f:
         json.dump(test_samples, f, indent=2)
 
 
 if __name__ == '__main__':
     # sents = collect_sents()
-    # annotations = collect_pp_annotations()
+    annotations = collect_pp_annotations()
     train_path = os.path.dirname(__file__) + '/data/pp-data-english/train.json'
+    dev_path = os.path.dirname(__file__) + '/data/pp-data-english/dev.json'
     test_path = os.path.dirname(__file__) + '/data/pp-data-english/test.json'
 
     if True:
@@ -454,24 +474,28 @@ if __name__ == '__main__':
             json.dump(matches, f)
 
         print("annotations:", len(annotations))
-        train_samples, test_samples = build_samples(sents, annotations)
+        train_samples, dev_samples, test_samples = build_samples(sents, annotations)
         print("00 train", len([pp for t in train_samples for pp in t['pps']]),
+              "dev", len([pp for t in dev_samples for pp in t['pps']]),
               "test", len([pp for t in test_samples for pp in t['pps']]),
               "all", len([pp for t in test_samples for pp in t['pps']]) + len([pp for t in train_samples for pp in t['pps']])
               )
     else:
         with open(train_path, 'r') as f:
             train_samples = json.load(f)
+        with open(dev_path, 'r') as f:
+            dev_samples = json.load(f)
         with open(test_path, 'r') as f:
             test_samples = json.load(f)
 
     train_samples = preprocess_samples(train_samples)
+    dev_samples = preprocess_samples(dev_samples)
     test_samples = preprocess_samples(test_samples)
     print("train", len([pp for t in train_samples for pp in t['pps']]),
           "test", len([pp for t in test_samples for pp in t['pps']]),
           "all", len([pp for t in test_samples for pp in t['pps']]) + len([pp for t in train_samples for pp in t['pps']])
           )
-    dump_dataset(train_samples, test_samples, train_path=train_path, test_path=test_path)
+    dump_dataset(train_samples, dev_samples, test_samples, train_path=train_path, dev_path=dev_path, test_path=test_path)
 
     # print(dropped)
 
