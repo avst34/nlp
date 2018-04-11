@@ -35,9 +35,10 @@ def preprocess_sentence(tokens):
                 'head': d['governor'],
                 'xpos': t['pos'],
                 'deprel': d['dep'],
-                '#': d['dependentGloss'],
+                '#': t['index'],
                 'lemma': t['lemma']
             } for t, d in zip(parsed_tokens, parsed_deps)]
         }) for tok in parsed_tokens]
     }
+
     return s

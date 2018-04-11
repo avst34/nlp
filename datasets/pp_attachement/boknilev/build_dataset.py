@@ -393,9 +393,12 @@ def build_sample(sent, anns):
                 "id": ann['id'],
                 "copy_of": ann.get('copy_of') or ann['id'],
                 "ind": ann['tok_ind'],
-                "head_inds": [max(ann['tok_ind'] - 10, 0) + lc_toks[max(ann['tok_ind'] - 10, 0): ann['tok_ind']].index(head) for head in ann['heads.words']],
+                "head_cand_inds": [max(ann['tok_ind'] - 10, 0) + lc_toks[max(ann['tok_ind'] - 10, 0): ann['tok_ind']].index(head) for head in ann['heads.words']],
             } for ann in anns]
         }
+        for pp, ann in zip(sample['pps'], anns):
+            pp['head_ind'] = pp['head_cand_inds'][int(ann['labels'][0]) - 1]
+
     except:
         raise
 
@@ -435,6 +438,13 @@ def preprocess_samples(samples):
         list(tpe.map(process, samples))
     return preprocessed
 
+def set_head_ind(samples, anns):
+    ann_id_to_ann = {x['id']: x for x in anns}
+    for sample in samples:
+        for pp in sample['pps']:
+            ann = ann_id_to_ann[pp['copy_of']]
+            pp['head_cand_inds'] = pp.get('head_cand_inds') or pp['head_inds']
+            pp['head_ind'] = pp['head_cand_inds'][int(ann['labels'][0]) - 1]
 
 def dump_dataset(train_samples, dev_samples, test_samples, train_path, dev_path, test_path):
     with open(train_path, 'w') as f:
@@ -452,7 +462,7 @@ if __name__ == '__main__':
     dev_path = os.path.dirname(__file__) + '/data/pp-data-english/dev.json'
     test_path = os.path.dirname(__file__) + '/data/pp-data-english/test.json'
 
-    if True:
+    if False:
         try:
             with open(os.path.dirname(__file__) + '/data/pp-data-english/annotations.json', 'r') as f:
                 annotations = json.load(f)
@@ -469,10 +479,10 @@ if __name__ == '__main__':
         except:
             matches = {}
 
-        matches = match_annotations(annotations, sents)
-        with open(os.path.dirname(__file__) + '/data/pp-data-english/wsj_matches.json', 'w') as f:
-            json.dump(matches, f)
-
+        # matches = match_annotations(annotations, sents)
+        # with open(os.path.dirname(__file__) + '/data/pp-data-english/wsj_matches.json', 'w') as f:
+        #     json.dump(matches, f)
+        #
         print("annotations:", len(annotations))
         train_samples, dev_samples, test_samples = build_samples(sents, annotations)
         print("00 train", len([pp for t in train_samples for pp in t['pps']]),
@@ -488,9 +498,14 @@ if __name__ == '__main__':
         with open(test_path, 'r') as f:
             test_samples = json.load(f)
 
+    set_head_ind(train_samples, annotations)
+    set_head_ind(dev_samples, annotations)
+    set_head_ind(test_samples, annotations)
+
     train_samples = preprocess_samples(train_samples)
     dev_samples = preprocess_samples(dev_samples)
     test_samples = preprocess_samples(test_samples)
+
     print("train", len([pp for t in train_samples for pp in t['pps']]),
           "test", len([pp for t in test_samples for pp in t['pps']]),
           "all", len([pp for t in test_samples for pp in t['pps']]) + len([pp for t in train_samples for pp in t['pps']])
