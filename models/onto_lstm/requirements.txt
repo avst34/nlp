@@ -1,0 +1,7 @@
+# Library dependencies for OntoLSM
+# Run `pip install -r requirements.txt` before using OntoLSTM
+tensorflow==0.12.1
+keras==1.2.1
+h5py
+nltk
+overrides

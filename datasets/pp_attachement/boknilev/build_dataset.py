@@ -203,6 +203,8 @@ def match_annotations(annotations, sents):
         match_counts.append(len(match_cands[ann['id']]))
         print("%d/%d" % (ann_ind, len(annotations)))
 
+    print('matched for wsj.2-21.txt.dep.pp_031739:', match_cands['wsj.2-21.txt.dep.pp_031739'])
+
     with open(os.path.dirname(__file__) + '/data/pp-data-english/wsj_cache.json', 'w') as f:
         json.dump(match_cands, f)
 
@@ -296,6 +298,7 @@ def match_annotations(annotations, sents):
             for ann2 in all_anns:
                 if ann1['heads.words'] != ann2['heads.words'] or \
                    ann1['preps.words'] != ann2['preps.words'] or \
+                   ann1['children.words'] != ann2['children.words'] or \
                    ann1['labels'] != ann2['labels']:
                     found_inconsistency = True
                     print(ann1)
@@ -393,6 +396,8 @@ def build_sample(sent, anns):
                 "id": ann['id'],
                 "copy_of": ann.get('copy_of') or ann['id'],
                 "ind": ann['tok_ind'],
+                "child_ind": lc_toks.index(ann['children.words'][0]),
+                # "child_ind": ann['tok_ind'] + lc_toks[ann['tok_ind']: ann['tok_ind'] + 200].index(ann['children.words'][0]),
                 "head_cand_inds": [max(ann['tok_ind'] - 10, 0) + lc_toks[max(ann['tok_ind'] - 10, 0): ann['tok_ind']].index(head) for head in ann['heads.words']],
             } for ann in anns]
         }
@@ -404,7 +409,7 @@ def build_sample(sent, anns):
 
     for (pp, ann) in zip(sample['pps'], anns):
         assert sample['tokens'][pp['ind']].lower() == ann['preps.words'][0]
-        assert [sample['tokens'][head_ind].lower() for head_ind in pp['head_inds']] == ann['heads.words']
+        assert [sample['tokens'][head_ind].lower() for head_ind in pp['head_cand_inds']] == ann['heads.words']
     return sample
 
 
@@ -438,6 +443,7 @@ def preprocess_samples(samples):
         list(tpe.map(process, samples))
     return preprocessed
 
+
 def set_head_ind(samples, anns):
     ann_id_to_ann = {x['id']: x for x in anns}
     for sample in samples:
@@ -445,6 +451,20 @@ def set_head_ind(samples, anns):
             ann = ann_id_to_ann[pp['copy_of']]
             pp['head_cand_inds'] = pp.get('head_cand_inds') or pp['head_inds']
             pp['head_ind'] = pp['head_cand_inds'][int(ann['labels'][0]) - 1]
+            lc_toks = [t.lower() for t in sample['tokens']]
+            try:
+                pp["child_ind"] = pp.get('child_ind') or pp['ind'] + lc_toks[pp['ind']: pp['ind'] + 200].index(ann['children.words'][0]),
+            except:
+                print('child mismatch')
+                try:
+                    pp["child_ind"] = pp.get('child_ind') or max(pp['ind'] - 1, 0) + lc_toks[max(pp['ind'] - 1, 0): pp['ind'] + 200].index(ann['children.words'][0]),
+                except:
+                    try:
+                        pp["child_ind"] = pp.get('child_ind') or max(pp['ind'] - 20, 0) + lc_toks[max(pp['ind'] - 20, 0): pp['ind'] + 200].index(ann['children.words'][0]),
+                    except:
+                        print(sample)
+                        raise
+
 
 def dump_dataset(train_samples, dev_samples, test_samples, train_path, dev_path, test_path):
     with open(train_path, 'w') as f:
@@ -462,7 +482,7 @@ if __name__ == '__main__':
     dev_path = os.path.dirname(__file__) + '/data/pp-data-english/dev.json'
     test_path = os.path.dirname(__file__) + '/data/pp-data-english/test.json'
 
-    if False:
+    if True:
         try:
             with open(os.path.dirname(__file__) + '/data/pp-data-english/annotations.json', 'r') as f:
                 annotations = json.load(f)
@@ -479,10 +499,10 @@ if __name__ == '__main__':
         except:
             matches = {}
 
-        # matches = match_annotations(annotations, sents)
-        # with open(os.path.dirname(__file__) + '/data/pp-data-english/wsj_matches.json', 'w') as f:
-        #     json.dump(matches, f)
-        #
+        matches = match_annotations(annotations, sents)
+        with open(os.path.dirname(__file__) + '/data/pp-data-english/wsj_matches.json', 'w') as f:
+            json.dump(matches, f)
+
         print("annotations:", len(annotations))
         train_samples, dev_samples, test_samples = build_samples(sents, annotations)
         print("00 train", len([pp for t in train_samples for pp in t['pps']]),

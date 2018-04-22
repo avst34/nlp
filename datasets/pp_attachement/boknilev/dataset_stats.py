@@ -43,7 +43,7 @@ def print_stats():
         # print(missing_old_ann_ids)
         n_missing_old_ann_ids = len(missing_old_ann_ids)
 
-        n_cands_per_sample = [len(x['head_inds']) for s in data for x in s['pps']]
+        n_cands_per_sample = [len(x['head_cand_inds']) for s in data for x in s['pps']]
         assert all(n_cands_per_sample)
         avg_n_cands = sum(n_cands_per_sample) / len(n_cands_per_sample)
 

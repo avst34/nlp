@@ -4,3 +4,4 @@ sents.json
 datasets/pp_attachement/boknilev/data/pp-data-english/pp-data-english/train.json
 datasets/pp_attachement/boknilev/data/pp-data-english/pp-data-english/dev.json
 datasets/pp_attachement/boknilev/data/pp-data-english/pp-data-english/test.json
+autoextend_wn3_glove.100d.txt.gz
