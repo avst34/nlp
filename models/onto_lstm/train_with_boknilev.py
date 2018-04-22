@@ -25,9 +25,9 @@ def save_file(path, content):
 def train_with_boknilev():
     train, dev, test = load_boknilev()
     train_tsv, dev_tsv, test_tsv = convert_samples_to_tsv(train), convert_samples_to_tsv(dev), convert_samples_to_tsv(test)
-    train_path = os.path.dirname(__file__) + '/data/train.tsv'
-    dev_path = os.path.dirname(__file__) + '/data/dev.tsv'
-    test_path = os.path.dirname(__file__) + '/data/test.tsv'
+    train_path = os.path.dirname(__file__) or '.' + '/data/train.tsv'
+    dev_path = os.path.dirname(__file__) or '.' + '/data/dev.tsv'
+    test_path = os.path.dirname(__file__) or '.' + '/data/test.tsv'
     save_file(train_path, train_tsv)
     save_file(dev_path, dev_tsv)
     save_file(test_path, test_tsv)
