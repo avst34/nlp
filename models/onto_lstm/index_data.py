@@ -1,3 +1,4 @@
+import random
 import re
 import os
 import sys
@@ -326,7 +327,7 @@ class DataProcessor(object):
         embedding_map = {}
         rep_max = -float("inf")
         rep_min = float("inf")
-        for line in gzip.open(embedding_file):
+        for line in gzip.open(embedding_file, 'rt', encoding='utf8'):
             ln_parts = line.strip().split()
             if len(ln_parts) == 2:
                 continue
@@ -351,7 +352,7 @@ class DataProcessor(object):
                 vec = embedding_map[element]
                 target_embedding[target_index[element]] = vec
                 num_found_elements += 1
-        print("Found vectors for %.4f of the words" % (float(num_found_elements) / num_all_elements), file=sys.stderr)
+        print("Found vectors for %.4f of the words (%f/%f)" % (float(num_found_elements) / num_all_elements, float(num_found_elements), num_all_elements), file=sys.stderr)
         return target_embedding
 
     def get_token_from_index(self, index, onto_aware=True):

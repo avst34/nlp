@@ -1,4 +1,6 @@
 import os
+import theano
+from theano import ifelse
 import subprocess
 from datasets.pp_attachement.boknilev.load_boknilev import load_boknilev
 
@@ -25,16 +27,16 @@ def save_file(path, content):
 def train_with_boknilev():
     train, dev, test = load_boknilev()
     train_tsv, dev_tsv, test_tsv = convert_samples_to_tsv(train), convert_samples_to_tsv(dev), convert_samples_to_tsv(test)
-    train_path = os.path.dirname(__file__) or '.' + '/data/train.tsv'
-    dev_path = os.path.dirname(__file__) or '.' + '/data/dev.tsv'
-    test_path = os.path.dirname(__file__) or '.' + '/data/test.tsv'
+    train_path = (os.path.dirname(__file__) or '.') + '/data/train.tsv'
+    dev_path = (os.path.dirname(__file__) or '.') + '/data/dev.tsv'
+    test_path = (os.path.dirname(__file__) or '.') + '/data/test.tsv'
     save_file(train_path, train_tsv)
     save_file(dev_path, dev_tsv)
     save_file(test_path, test_tsv)
 
     PYTHON_PATH = os.environ.get('PYTHON_PATH') or r'c:\anaconda3\envs\tensorflow\python'
 
-    output = subprocess.check_output([PYTHON_PATH,
+    output = subprocess.call([PYTHON_PATH,
                                       'model_pp_attachment.py',
                                       '--train_file',
                                       train_path,
