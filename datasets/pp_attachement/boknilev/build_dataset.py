@@ -9,7 +9,7 @@ import copy
 import sys
 from nltk.corpus import ptb
 
-from models.supersenses.preprocessing import preprocess_sentence
+# from models.supersenses.preprocessing import preprocess_sentence
 from utils import parse_conllx, parse_conllx_file
 
 dropped = set()
@@ -449,13 +449,26 @@ def set_head_ind(samples, anns):
     for sample in samples:
         for pp in sample['pps']:
             ann = ann_id_to_ann[pp['copy_of']]
+            assert len(pp['head_cand_inds']) == len(ann['heads.words'])
+            assert len(pp['head_cand_inds']) == len(ann['heads.pos'])
+            assert len(ann['heads.next.pos']) in [len(pp['head_cand_inds']), len(pp['head_cand_inds']) - 1]
             pp['head_cand_inds'] = pp.get('head_cand_inds') or pp['head_inds']
+            pp['head_cands'] = [
+                {
+                    "ind": head_token_ind,
+                    "gold": {
+                        "is_verb": ann['heads.pos'][head_ind] == "1",
+                        "is_noun": ann['heads.pos'][head_ind] == "-1",
+                        "next_pos": (ann['heads.next.pos'] + [None])[head_ind]
+                    }
+                }
+                for head_ind, head_token_ind in enumerate(pp.get('head_cand_inds') or pp['head_inds'])
+            ]
             pp['head_ind'] = pp['head_cand_inds'][int(ann['labels'][0]) - 1]
             lc_toks = [t.lower() for t in sample['tokens']]
             try:
                 pp["child_ind"] = pp.get('child_ind') or pp['ind'] + lc_toks[pp['ind']: pp['ind'] + 200].index(ann['children.words'][0]),
             except:
-                print('child mismatch')
                 try:
                     pp["child_ind"] = pp.get('child_ind') or max(pp['ind'] - 1, 0) + lc_toks[max(pp['ind'] - 1, 0): pp['ind'] + 200].index(ann['children.words'][0]),
                 except:
@@ -463,7 +476,7 @@ def set_head_ind(samples, anns):
                         pp["child_ind"] = pp.get('child_ind') or max(pp['ind'] - 20, 0) + lc_toks[max(pp['ind'] - 20, 0): pp['ind'] + 200].index(ann['children.words'][0]),
                     except:
                         print(sample)
-                        raise
+                        # raise
 
 
 def dump_dataset(train_samples, dev_samples, test_samples, train_path, dev_path, test_path):
@@ -477,12 +490,17 @@ def dump_dataset(train_samples, dev_samples, test_samples, train_path, dev_path,
 
 if __name__ == '__main__':
     # sents = collect_sents()
-    annotations = collect_pp_annotations()
+    try:
+        with open(os.path.dirname(__file__) + '/data/pp-data-english/annotations.json', 'r') as f:
+            annotations = json.load(f)
+    except:
+        print('Collecting annotations')
+        annotations = collect_pp_annotations()
     train_path = os.path.dirname(__file__) + '/data/pp-data-english/train.json'
     dev_path = os.path.dirname(__file__) + '/data/pp-data-english/dev.json'
     test_path = os.path.dirname(__file__) + '/data/pp-data-english/test.json'
 
-    if True:
+    if False:
         try:
             with open(os.path.dirname(__file__) + '/data/pp-data-english/annotations.json', 'r') as f:
                 annotations = json.load(f)
@@ -522,9 +540,9 @@ if __name__ == '__main__':
     set_head_ind(dev_samples, annotations)
     set_head_ind(test_samples, annotations)
 
-    train_samples = preprocess_samples(train_samples)
-    dev_samples = preprocess_samples(dev_samples)
-    test_samples = preprocess_samples(test_samples)
+    # train_samples = preprocess_samples(train_samples)
+    # dev_samples = preprocess_samples(dev_samples)
+    # test_samples = preprocess_samples(test_samples)
 
     print("train", len([pp for t in train_samples for pp in t['pps']]),
           "test", len([pp for t in test_samples for pp in t['pps']]),

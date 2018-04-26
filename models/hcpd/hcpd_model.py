@@ -10,12 +10,9 @@ import json
 import numpy as np
 import math
 
-# There are more hidden parameters coming from the LSTMs
-import zlib
-
-from dynet_utils import get_activation_function
-from utils import update_dict
 from vocabulary import Vocabulary
+
+TOP_NOUN_HYPERNYMS = ['entity.n.01', 'abstraction.n.06', 'physical_entity.n.01', 'thing.n.08', 'attribute.n.02', 'communication.n.02', 'group.n.01', 'measure.n.02', 'otherworld.n.01', 'psychological_feature.n.01', 'relation.n.01', 'set.n.02', 'causal_agent.n.01', 'matter.n.03', 'object.n.01', 'process.n.06', 'substance.n.04', 'thing.n.12', 'change.n.06', 'freshener.n.01', 'horror.n.02', 'jimdandy.n.02', 'pacifier.n.02', 'security_blanket.n.01', 'stinker.n.02', 'whacker.n.01']
 
 SingleLayerParams = namedtuple('SingleLayerParams', [
     'W',
@@ -35,8 +32,6 @@ MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
 
 class HCPDModel(object):
 
-    Sample = namedtuple('Sample', ['xs', 'ys', 'mask'])
-
     class HeadCand:
         def __init__(self, word, pp_distance, is_verb, is_noun, next_pos, hypernyms, is_pp_in_verbnet_frame):
             self.next_pos = next_pos
@@ -51,27 +46,35 @@ class HCPDModel(object):
     Child = namedtuple('PP', ['word', 'hypernyms'])
 
     class SampleX:
-        def __init__(self, heand_cands, pp, child):
-            self.heand_cands = heand_cands
+        def __init__(self, head_cands, pp, child):
+            self.head_cands = head_cands
             self.pp = pp
             self.child = child
 
     class SampleY:
-        def __init__(self, correct_head_cand, scored_heads):
-            self.correct_head_cand = correct_head_cand
+        def __init__(self, scored_heads):
             self.scored_heads = scored_heads
+            self.correct_head_cand = max([sh for sh in self.scored_heads], key=lambda x: x[0])[1]
+
+    class Sample:
+        def __init__(self, x, y):
+            self.x = x
+            self.y = y
+            assert self.y.correct_head_cand in self.x.head_cands
+        def get_correct_head_ind(self):
+            return self.x.head_cands.index(self.y.correct_head_cand)
 
     class HyperParameters:
         def __init__(self, 
                      max_head_distance=5,
                      dropout_p=0.5,
                      update_embeddings=True,
-                     layer_dim=??
+                     epochs=100
                      ):
             self.max_head_distance = max_head_distance
             self.dropout_p = dropout_p
-            self.layer_dim = layer_dim
             self.update_embeddings = update_embeddings
+            self.epochs = epochs
 
     def __init__(self,
                  words_vocab=None,
@@ -90,8 +93,6 @@ class HCPDModel(object):
         self.train_set_evaluation = None
         self.pc = self._build_network_params()
 
-        self.validate_params()
-
     def _build_network_params(self):
         pc = dy.ParameterCollection()
         hp = self.hyperparameters
@@ -102,22 +103,24 @@ class HCPDModel(object):
                       + 1 \
                       + self.wordnet_hypernyms_vocab.size()
 
+        layer_dim = self.word_vec_dim
+
         p1_vec_input_dim = 2 * self.word_vec_dim
-        p2_vec_input_dim = hp.layer_dim + self.word_vec_dim
+        p2_vec_input_dim = layer_dim + self.word_vec_dim
 
         self.params = ModelOptimizedParams(
             word_embeddings=pc.add_lookup_parameters(self.words_vocab.size(), self.get_word_embd_dim()),
             p1_layer=SingleLayerParams(
-                pc.add_parameters((hp.layer_dim, p1_vec_input_dim)),
-                pc.add_parameters((hp.layer_dim,))
+                pc.add_parameters((layer_dim, p1_vec_input_dim)),
+                pc.add_parameters((layer_dim,))
             ),
             p2_layers=[
                 SingleLayerParams(
-                    pc.add_parameters((hp.layer_dim, p2_vec_input_dim)),
-                    pc.add_parameters((hp.layer_dim,))
+                    pc.add_parameters((layer_dim, p2_vec_input_dim)),
+                    pc.add_parameters((layer_dim,))
                 ) for _ in range(hp.max_head_distance)
             ],
-            w=pc.add_parameters((1, hp.layer_dim))
+            w=pc.add_parameters((1, layer_dim))
         )
 
         for word in self.words_vocab.all_words():
@@ -161,60 +164,39 @@ class HCPDModel(object):
             self.word_vec_dim
         )
 
-    def _build_network_for_input(self, sample_x, apply_dropout):
+    def _build_network_for_input(self, sample_x):
         dropout_p = self.hyperparameters.dropout_p
 
         scores = []
         for head_cand in sample_x.head_cands:
-            p1_inp_vec = dy.concatenate([
-                self._build_child_vec(sample_x.child),
-                self._build_prep_vec(sample_x.pp)
-            ])
-            p1_vec = p1_activation(dy.parameter(self.params.p1_layer.W) * p1_inp_vec + dy.parameter(self.params.p1_layer.b))
+            p1_inp_vec = dy.dropout(
+                dy.concatenate([
+                    self._build_child_vec(sample_x.child),
+                    self._build_prep_vec(sample_x.pp)
+                ]),
+                self.hyperparameters.dropout_p
+            )
+            p1_vec = dy.tanh(
+                dy.dropout(
+                    dy.parameter(self.params.p1_layer.W) * p1_inp_vec + dy.parameter(self.params.p1_layer.b),
+                    dropout_p
+                )
+            )
             p2_inp_vec = dy.concatenate([self._build_head_vec(head_cand, sample_x.pp), p1_vec])
             head_dist = min(head_cand.pp_distance, self.hyperparameters.max_head_distance)
             layer_params = self.params.p2_layers[head_dist - 1]
-            p2_vec = p2_activation(dy.parameter(layer_params.W) * p2_inp_vec + dy.parameter(layer_params.b))
+            p2_vec = dy.tanh(dy.parameter(layer_params.W) * p2_inp_vec + dy.parameter(layer_params.b))
             score = p2_vec * self.params.w
             scores.append(score)
 
         return scores
 
     def _build_loss(self, sample, out_scores):
-        raise Exception('not implemented')
-        # losses = []
-        # for out, y in zip(outputs, ys):
-        #     if out is not None:
-        #         if y is None:
-        #             y = [None] * self.hyperparameters.n_labels_to_predict
-        #         assert len([label_y is None for label_y in y]) in [0, len(y)], "Got a sample with partial None labels"
-        #         for label_out, label_y in zip(out, y):
-        #             if self.output_vocabulary.has_word(label_y):
-        #                 ss_ind = self.output_vocabulary.get_index(label_y)
-        #                 loss = -dy.pick(label_out, ss_ind)
-        #                 losses.append(loss)
-        #             else:
-        #                 assert label_y is None
-        # if len(losses):
-        #     loss = dy.esum(losses)
-        # else:
-        #     loss = None
-        # return loss
+        correct_head_score = out_scores[sample.get_correct_head_ind()]
+        return dy.max(
+            [score - correct_head_score + (1 if ind == sample.get_correct_head_ind() else 0) for ind, score in enumerate(out_scores)]
+        )
 
-    # def _build_vocabularies(self, samples):
-    #     if not self.input_vocabularies:
-    #         self.input_vocabularies = {}
-    #     for field in self.all_input_fields:
-    #         if not self.input_vocabularies.get(field):
-    #             vocab = Vocabulary(field)
-    #             vocab.add_words([x.fields.get(field) for s in samples for x in s.xs])
-    #             self.input_vocabularies[field] = vocab
-    #
-    #     if not self.output_vocabulary:
-    #         vocab = Vocabulary('output')
-    #         vocab.add_words([y for s in samples for y in s.ys])
-    #         self.output_vocabulary = vocab
-    #
     def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
         self.pc = self._build_network_params()
@@ -239,13 +221,13 @@ class HCPDModel(object):
             random.shuffle(train)
             loss_sum = 0
 
-            BATCH_SIZE = 20
+            BATCH_SIZE = 500
             batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
             for batch_ind, batch in enumerate(batches):
                 dy.renew_cg(immediate_compute=True, check_validity=True)
                 losses = []
                 for sample in batch:
-                    out_scores = self._build_network_for_input(sample.xs, sample.mask, apply_dropout=True)
+                    out_scores = self._build_network_for_input(sample.x)
                     sample_loss = self._build_loss(sample, out_scores)
                     if sample_loss is not None:
                         losses.append(sample_loss)
@@ -279,25 +261,12 @@ class HCPDModel(object):
 
         return self
 
-    def predict(self, sample_xs, mask=None):
+    def predict(self, sample_x):
         dy.renew_cg()
-        if mask is None:
-            mask = [True] * len(sample_xs)
-        outputs = self._build_network_for_input(sample_xs, mask, apply_dropout=False)
-        ys = []
-        for token_ind, out in enumerate(outputs):
-            if not mask[token_ind] or out is None:
-                predictions = [None] * self.hyperparameters.n_labels_to_predict
-            else:
-                predictions = []
-                for klass_out in out:
-                    ind = np.argmax(klass_out.npvalue())
-                    predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
-                    predictions.append(predicted)
-            predictions = tuple(predictions)
-            ys.append(predictions)
-        assert all([y is None or type(y) is tuple and len(y) == self.hyperparameters.n_labels_to_predict for y in ys])
-        return ys
+        out_scores = [s.value() for s in self._build_network_for_input(sample_x)]
+        return HCPDModel.SampleY(
+            list(zip(out_scores, sample_x.head_cands))
+        )
 
     def save(self, base_path):
         def pythonize_embds(embds):
@@ -306,16 +275,13 @@ class HCPDModel(object):
         self.pc.save(base_path)
         with open(base_path + '.hp', 'w') as f:
             json.dump(vars(self.hyperparameters), f, indent=2)
-        input_vocabularies = {
-            name: vocab.pack() for name, vocab in self.input_vocabularies.items()
+        vocabs = {
+            name: vocab.pack() for name, vocab in {'pos': self.pos_vocab, 'words': self.words_vocab, 'hypernyms': self.wordnet_hypernyms_vocab}
         }
-        with open(base_path + '.in_vocabs', 'w') as f:
-            json.dump(input_vocabularies, f)
-        output_vocabulary = self.output_vocabulary.pack()
-        with open(base_path + '.out_vocab', 'w') as f:
-            json.dump(output_vocabulary, f)
+        with open(base_path + '.vocabs', 'w') as f:
+            json.dump(vocabs, f)
         with open(base_path + '.embds', 'w') as f:
-            json.dump({name: pythonize_embds(embds) for name, embds in self.input_embeddings.items()}, f)
+            json.dump(pythonize_embds(self.word_embeddings), f)
 
         zip_path = base_path + '.zip'
         if os.path.exists(zip_path):
@@ -335,17 +301,18 @@ class HCPDModel(object):
             zh.extractall(os.path.dirname(base_path))
         try:
             with open(base_path + '.hp', 'r') as hp_f:
-                with open(base_path + '.in_vocabs', 'r') as in_vocabs_f:
-                    with open(base_path + '.out_vocab', 'r') as out_vocabs_f:
-                        with open(base_path + '.embds', 'r') as embds_f:
-                            model = LstmMlpMulticlassModel(
-                                input_vocabularies={name: Vocabulary.unpack(packed) for name, packed in json.load(in_vocabs_f).items()},
-                                output_vocabulary=Vocabulary.unpack(json.load(out_vocabs_f)),
-                                input_embeddings=json.load(embds_f),
-                                hyperparameters=LstmMlpMulticlassModel.HyperParameters(**json.load(hp_f))
-                            )
-                            model.pc.populate(base_path)
-                            return model
+                with open(base_path + '.vocabs', 'r') as vocabs_f:
+                    with open(base_path + '.embds', 'r') as embds_f:
+                        vocabs_data = json.load(vocabs_f)
+                        model = HCPDModel(
+                            hyperparameters=HCPDModel.HyperParameters(**json.load(hp_f)),
+                            words_vocab=Vocabulary.unpack(vocabs_data['words']),
+                            pos_vocab=Vocabulary.unpack(vocabs_data['pos']),
+                            wordnet_hypernyms_vocab=Vocabulary.unpack(vocabs_data['hypernym']),
+                            word_embeddings=json.load(embds_f)
+                        )
+                        model.pc.populate(base_path)
+                        return model
         finally:
             files = glob(base_path + ".*") + [base_path]
             for fname in files:
