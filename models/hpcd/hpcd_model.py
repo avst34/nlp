@@ -64,10 +64,14 @@ class HCPDModel(object):
     class HyperParameters:
         def __init__(self, 
                      max_head_distance=5,
-                     dropout_p=0.5
+                     dropout_p=0.5,
+                     update_embeddings=True,
+                     layer_dim=??
                      ):
             self.max_head_distance = max_head_distance
             self.dropout_p = dropout_p
+            self.layer_dim = layer_dim
+            self.update_embeddings = update_embeddings
 
     def __init__(self,
                  words_vocab=None,
@@ -88,48 +92,18 @@ class HCPDModel(object):
 
         self.validate_params()
 
-
-    @property
-    def all_input_fields(self):
-        return self.hyperparameters.lstm_input_fields + self.hyperparameters.mlp_input_fields
-
-    def validate_params(self):
-        # Make sure input embedding dimensions fit embedding vectors size (if given)
-        for field in self.all_input_fields:
-            if self.input_embeddings.get(field):
-                embd_vec_dim = len(list(self.input_embeddings[field].values())[0])
-                given_dim = self.hyperparameters.input_embedding_dims[field]
-                if embd_vec_dim != given_dim:
-                    raise Exception("Input field '%s': Mismatch between given embedding vector size (%d) and given embedding size (%d)" % (field, embd_vec_dim, given_dim))
-
-    def get_embd_dim(self, field):
-        dim = None
-        if self.input_embeddings.get(field):
-            for vec in self.input_embeddings[field].values():
-                dim = len(vec)
-                break
-        elif field in self.hyperparameters.input_embedding_dims:
-            dim = self.hyperparameters.input_embedding_dims[field]
-        else:
-            dim = self.hyperparameters.input_embeddings_default_dim
-        assert dim is not None, 'Unable to resolve embeddings dimensions for field: ' + field
-        return dim
-
     def _build_network_params(self):
         pc = dy.ParameterCollection()
         hp = self.hyperparameters
-        mlp_input_dim = self.hyperparameters.lstm_h_dim
-        mlp_input_dim += sum([self.get_embd_dim(field) for field in self.hyperparameters.mlp_input_fields])
-        mlp_input_dim += (1 + self.hyperparameters.lstm_h_dim) * len(self.hyperparameters.token_neighbour_types)
 
-        word_vec_dim = self.get_word_embd_dim() \
+        self.word_vec_dim = self.get_word_embd_dim() \
                       + 2 \
                       + self.pos_vocab.size() \
                       + 1 \
                       + self.wordnet_hypernyms_vocab.size()
 
-        p1_vec_input_dim = 2 * word_vec_dim
-        p2_vec_input_dim = hp.layer_dim + word_vec_dim
+        p1_vec_input_dim = 2 * self.word_vec_dim
+        p2_vec_input_dim = hp.layer_dim + self.word_vec_dim
 
         self.params = ModelOptimizedParams(
             word_embeddings=pc.add_lookup_parameters(self.words_vocab.size(), self.get_word_embd_dim()),
@@ -143,7 +117,7 @@ class HCPDModel(object):
                     pc.add_parameters((hp.layer_dim,))
                 ) for _ in range(hp.max_head_distance)
             ],
-            w=pc.add_parameters((hp.layer_dim, hp.layer_dim))
+            w=pc.add_parameters((1, hp.layer_dim))
         )
 
         for word in self.words_vocab.all_words():
@@ -154,68 +128,78 @@ class HCPDModel(object):
 
         return pc
 
+    def _get_binary_vec(self, vocab, words):
+        vec = [0] * vocab.size()
+        for word in words:
+            vec[vocab.get_index(word)] = 1
+        return vec
+
+
+    def _build_head_vec(self, head_cand, pp):
+        return dy.concatenate([
+            dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(head_cand.word), update=self.hyperparameters.update_embeddings),
+            dy.constant([1, 0] if head_cand.is_noun else [0, 1]),
+            dy.constant(self._get_binary_vec(self.pos_vocab, head_cand.next_pos)),
+            dy.constant([1] if head_cand.is_pp_in_verbnet_frame else [0]),
+            dy.constant(self._get_binary_vec(self.wordnet_hypernyms_vocab, head_cand.hypernyms))
+        ])
+
+    def _build_prep_vec(self, pp):
+        return dy.zero_pad(
+            dy.concatenate([
+                dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(pp.word), update=self.hyperparameters.update_embeddings),
+            ]),
+            self.word_vec_dim
+        )
+
+    def _build_child_vec(self, child):
+        return dy.zero_pad(
+            dy.concatenate([
+                dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(pp.word), update=self.hyperparameters.update_embeddings),
+                dy.constant(self._get_binary_vec(self.wordnet_hypernyms_vocab, child.hypernyms))
+            ]),
+            self.word_vec_dim
+        )
+
     def _build_network_for_input(self, sample_x, apply_dropout):
         dropout_p = self.hyperparameters.dropout_p
 
-        embeddings = [
-            dy.concatenate([
-                self.get_embd(token_data, field)
-                for field in self.hyperparameters.lstm_input_fields
+        scores = []
+        for head_cand in sample_x.head_cands:
+            p1_inp_vec = dy.concatenate([
+                self._build_child_vec(sample_x.child),
+                self._build_prep_vec(sample_x.pp)
             ])
-            for token_data in xs
-        ]
+            p1_vec = p1_activation(dy.parameter(self.params.p1_layer.W) * p1_inp_vec + dy.parameter(self.params.p1_layer.b))
+            p2_inp_vec = dy.concatenate([self._build_head_vec(head_cand, sample_x.pp), p1_vec])
+            head_dist = min(head_cand.pp_distance, self.hyperparameters.max_head_distance)
+            layer_params = self.params.p2_layers[head_dist - 1]
+            p2_vec = p2_activation(dy.parameter(layer_params.W) * p2_inp_vec + dy.parameter(layer_params.b))
+            score = p2_vec * self.params.w
+            scores.append(score)
 
-        lstm_outputs = cur_lstm_state.transduce(embeddings)
-        mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
-        outputs = []
-        for ind, lstm_out in enumerate(lstm_outputs):
-            if mask and not mask[ind]:
-                output = None
-            else:
-                cur_out = lstm_out
-                inp_token = xs[ind]
-                for neighbour_type in self.hyperparameters.token_neighbour_types:
-                    neighbour_ind = xs[ind].neighbors.get(neighbour_type)
-                    if neighbour_ind is None:
-                        cur_out = dy.concatenate([cur_out, dy.inputTensor([-1]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)])
-                    else:
-                        cur_out = dy.concatenate([cur_out, dy.inputTensor([1]), lstm_outputs[neighbour_ind]])
-                cur_out = dy.concatenate([cur_out] +
-                                         [dy.lookup(
-                                             self.params.input_lookups[field],
-                                             self.input_vocabularies[field].get_index(inp_token[field]),
-                                             update=self.hyperparameters.input_embeddings_to_update.get(field) or False
-                                         ) for field in self.hyperparameters.mlp_input_fields])
-                output = []
-                for mlp_params, softmax_params in zip(self.params.mlps, self.params.softmaxes):
-                    mlp_cur_out = cur_out
-                    for mlp_layer_params in mlp_params:
-                        mlp_cur_out = dy.dropout(mlp_cur_out, mlp_dropout_p)
-                        mlp_cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * mlp_cur_out + dy.parameter(mlp_layer_params.b))
-                    mlp_cur_out = dy.log_softmax(dy.parameter(softmax_params.W) * mlp_cur_out + dy.parameter(softmax_params.b))
-                    output.append(mlp_cur_out)
-            outputs.append(output)
-        return outputs
+        return scores
 
-    def _build_loss(self, outputs, ys):
-        losses = []
-        for out, y in zip(outputs, ys):
-            if out is not None:
-                if y is None:
-                    y = [None] * self.hyperparameters.n_labels_to_predict
-                assert len([label_y is None for label_y in y]) in [0, len(y)], "Got a sample with partial None labels"
-                for label_out, label_y in zip(out, y):
-                    if self.output_vocabulary.has_word(label_y):
-                        ss_ind = self.output_vocabulary.get_index(label_y)
-                        loss = -dy.pick(label_out, ss_ind)
-                        losses.append(loss)
-                    else:
-                        assert label_y is None
-        if len(losses):
-            loss = dy.esum(losses)
-        else:
-            loss = None
-        return loss
+    def _build_loss(self, sample, out_scores):
+        raise Exception('not implemented')
+        # losses = []
+        # for out, y in zip(outputs, ys):
+        #     if out is not None:
+        #         if y is None:
+        #             y = [None] * self.hyperparameters.n_labels_to_predict
+        #         assert len([label_y is None for label_y in y]) in [0, len(y)], "Got a sample with partial None labels"
+        #         for label_out, label_y in zip(out, y):
+        #             if self.output_vocabulary.has_word(label_y):
+        #                 ss_ind = self.output_vocabulary.get_index(label_y)
+        #                 loss = -dy.pick(label_out, ss_ind)
+        #                 losses.append(loss)
+        #             else:
+        #                 assert label_y is None
+        # if len(losses):
+        #     loss = dy.esum(losses)
+        # else:
+        #     loss = None
+        # return loss
 
     # def _build_vocabularies(self, samples):
     #     if not self.input_vocabularies:
@@ -261,8 +245,8 @@ class HCPDModel(object):
                 dy.renew_cg(immediate_compute=True, check_validity=True)
                 losses = []
                 for sample in batch:
-                    outputs = self._build_network_for_input(sample.xs, sample.mask, apply_dropout=True)
-                    sample_loss = self._build_loss(outputs, sample.ys)
+                    out_scores = self._build_network_for_input(sample.xs, sample.mask, apply_dropout=True)
+                    sample_loss = self._build_loss(sample, out_scores)
                     if sample_loss is not None:
                         losses.append(sample_loss)
                 if len(losses):
