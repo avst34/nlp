@@ -17,7 +17,7 @@ def is_word_in_verb_frames(verb, word):
     classids = vn.classids(verb)
     frames = [frame for cid in classids for frame in vn.frames(cid)]
     for frame in frames:
-        if word.lower() in frame['exapmle'].lower().replace('.', '').split(' '):
+        if word.lower() in frame['example'].lower().replace('.', '').split(' '):
             return True
     return False
 

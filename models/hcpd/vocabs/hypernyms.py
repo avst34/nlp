@@ -1,0 +1,30 @@
+from vocabulary import Vocabulary
+            
+HYPERNYMS = Vocabulary('HYPERNYMS', [
+    'entity.n.01',
+    'abstraction.n.06',
+    'physical_entity.n.01',
+    'thing.n.08',
+    'attribute.n.02',
+    'communication.n.02',
+    'group.n.01',
+    'measure.n.02',
+    'otherworld.n.01',
+    'psychological_feature.n.01',
+    'relation.n.01',
+    'set.n.02',
+    'causal_agent.n.01',
+    'matter.n.03',
+    'object.n.01',
+    'process.n.06',
+    'substance.n.04',
+    'thing.n.12',
+    'change.n.06',
+    'freshener.n.01',
+    'horror.n.02',
+    'jimdandy.n.02',
+    'pacifier.n.02',
+    'security_blanket.n.01',
+    'stinker.n.02',
+    'whacker.n.01'
+])

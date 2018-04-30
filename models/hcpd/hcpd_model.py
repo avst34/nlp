@@ -11,8 +11,8 @@ import numpy as np
 import math
 
 from vocabulary import Vocabulary
-
-TOP_NOUN_HYPERNYMS = ['entity.n.01', 'abstraction.n.06', 'physical_entity.n.01', 'thing.n.08', 'attribute.n.02', 'communication.n.02', 'group.n.01', 'measure.n.02', 'otherworld.n.01', 'psychological_feature.n.01', 'relation.n.01', 'set.n.02', 'causal_agent.n.01', 'matter.n.03', 'object.n.01', 'process.n.06', 'substance.n.04', 'thing.n.12', 'change.n.06', 'freshener.n.01', 'horror.n.02', 'jimdandy.n.02', 'pacifier.n.02', 'security_blanket.n.01', 'stinker.n.02', 'whacker.n.01']
+import vocabs
+import embeddings
 
 SingleLayerParams = namedtuple('SingleLayerParams', [
     'W',
@@ -33,7 +33,8 @@ MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
 class HCPDModel(object):
 
     class HeadCand:
-        def __init__(self, word, pp_distance, is_verb, is_noun, next_pos, hypernyms, is_pp_in_verbnet_frame):
+        def __init__(self, ind, word, pp_distance, is_verb, is_noun, next_pos, hypernyms, is_pp_in_verbnet_frame):
+            self.ind = ind
             self.next_pos = next_pos
             self.hypernyms = hypernyms
             self.is_pp_in_verbnet_frame = is_pp_in_verbnet_frame
@@ -56,6 +57,11 @@ class HCPDModel(object):
             self.scored_heads = scored_heads
             self.correct_head_cand = max([sh for sh in self.scored_heads], key=lambda x: x[0])[1]
 
+        def pprint(self, only_best=False):
+            for score, head in sorted(self.scored_heads):
+                print("[%s: %1.2f]" % (head.word, score), end='\t')
+            print("")
+
     class Sample:
         def __init__(self, x, y):
             self.x = x
@@ -63,6 +69,10 @@ class HCPDModel(object):
             assert self.y.correct_head_cand in self.x.head_cands
         def get_correct_head_ind(self):
             return self.x.head_cands.index(self.y.correct_head_cand)
+        def pprint(self):
+            print("[PP: %s]" % self.x.pp.word)
+            print("Correct Head:", end=' ')
+            self.y.pprint()
 
     class HyperParameters:
         def __init__(self, 
@@ -77,11 +87,11 @@ class HCPDModel(object):
             self.epochs = epochs
 
     def __init__(self,
-                 words_vocab=None,
-                 pos_vocab=None,
-                 word_embeddings=None,
-                 wordnet_hypernyms_vocab=None,
-                 hyperparameters=None):
+                 words_vocab=vocabs.WORDS,
+                 pos_vocab=vocabs.GOLD_POS,
+                 wordnet_hypernyms_vocab=vocabs.HYPERNYMS,
+                 word_embeddings=embeddings.SYNTAX_WORD_VECTORS,
+                 hyperparameters=HCPDModel.HyperParameters()):
 
         self.wordnet_hypernyms_vocab = wordnet_hypernyms_vocab
         self.words_vocab = words_vocab

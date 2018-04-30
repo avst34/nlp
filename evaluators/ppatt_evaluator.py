@@ -7,21 +7,17 @@ to_precentage = lambda s: int(s * 10000) / 100 if s is not None else None
 
 class ClassifierEvaluator:
 
-    ALL_CLASSES = '___ALL_CLASSES__'
-    ALL_CLASSES_STRICT = '___ALL_CLASSES_STRICT__'
-
     def __init__(self, predictor=None):
         self.predictor = predictor
 
-    def print_prediction(self, sample, predicted_ys):
+    def print_prediction(self, sample, predicted_y):
         try:
             print("Sample:")
             print("------")
-            for x, y_true, y_predicted in zip(sample.xs, sample.ys, predicted_ys):
-                print(''.join(['{:<30}'.format("[%s] %s" % (f, x[f])) for f in sorted(x.keys())]))
-                if any(y_true or []) or any(y_predicted or []):
-                    print('^ [%s]  ACTUAL: %10s  PREDICTED: %10s' % ('X' if y_true != y_predicted else 'V', y_true, y_predicted) \
-                            if y_true else ' ')
+            print(''.join(['{:<30}'.format("[%s] %s" % (f, x[f])) for f in sorted(x.keys())]))
+            if any(y_true or []) or any(y_predicted or []):
+                print('^ [%s]  ACTUAL: %10s  PREDICTED: %10s' % ('X' if y_true != y_predicted else 'V', y_true, y_predicted) \
+                        if y_true else ' ')
         except UnicodeEncodeError:
             pass
 
