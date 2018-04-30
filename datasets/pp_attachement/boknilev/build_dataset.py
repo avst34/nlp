@@ -9,7 +9,8 @@ import copy
 import sys
 from nltk.corpus import ptb
 
-# from models.supersenses.preprocessing import preprocess_sentence
+from models.supersenses.preprocessing import preprocess_sentence as supersenses_preprocess
+from models.hcpd.preprocessing import preprocess_sentence as hcpd_preprocess
 from utils import parse_conllx, parse_conllx_file
 
 dropped = set()
@@ -436,7 +437,8 @@ def preprocess_samples(samples):
     preprocessed = []
     def process(sample):
         sample = copy.copy(sample)
-        sample['preprocessing'] = preprocess_sentence(sample['tokens'])
+        sample['preprocessing'] = supersenses_preprocess(sample['tokens'])
+        sample['preprocessing'].update(hcpd_preprocess(sample['tokens']))
         preprocessed.append(sample)
         # print('%d/%d' % (len(preprocessed), len(samples)))
     with ThreadPoolExecutor(10) as tpe:
@@ -478,6 +480,9 @@ def set_head_ind(samples, anns):
                         print(sample)
                         # raise
 
+def add_preprocessing(samples):
+    for s in samples:
+        s['preprocessing'].update(hcpd_preprocess(s['tokens']))
 
 def dump_dataset(train_samples, dev_samples, test_samples, train_path, dev_path, test_path):
     with open(train_path, 'w') as f:
@@ -536,9 +541,13 @@ if __name__ == '__main__':
         with open(test_path, 'r') as f:
             test_samples = json.load(f)
 
-    set_head_ind(train_samples, annotations)
-    set_head_ind(dev_samples, annotations)
-    set_head_ind(test_samples, annotations)
+    # set_head_ind(train_samples, annotations)
+    # set_head_ind(dev_samples, annotations)
+    # set_head_ind(test_samples, annotations)
+
+    add_preprocessing(train_samples)
+    add_preprocessing(dev_samples)
+    add_preprocessing(test_samples)
 
     # train_samples = preprocess_samples(train_samples)
     # dev_samples = preprocess_samples(dev_samples)

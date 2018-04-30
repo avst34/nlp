@@ -10,14 +10,15 @@ import json
 import numpy as np
 import math
 
+from models.hcpd import vocabs
+from models.hcpd import word_embeddings
 from vocabulary import Vocabulary
-import vocabs
-import embeddings
 
 SingleLayerParams = namedtuple('SingleLayerParams', [
     'W',
     'b'
 ])
+
 
 class ModelOptimizedParams:
 
@@ -29,6 +30,7 @@ class ModelOptimizedParams:
 
 
 MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
+
 
 class HCPDModel(object):
 
@@ -58,7 +60,7 @@ class HCPDModel(object):
             self.correct_head_cand = max([sh for sh in self.scored_heads], key=lambda x: x[0])[1]
 
         def pprint(self, only_best=False):
-            for score, head in sorted(self.scored_heads):
+            for score, head in sorted(self.scored_heads, key=lambda x: -x[0]):
                 print("[%s: %1.2f]" % (head.word, score), end='\t')
             print("")
 
@@ -71,13 +73,14 @@ class HCPDModel(object):
             return self.x.head_cands.index(self.y.correct_head_cand)
         def pprint(self):
             print("[PP: %s]" % self.x.pp.word)
-            print("Correct Head:", end=' ')
-            self.y.pprint()
+            print("Correct Head: " + self.y.correct_head_cand.word)
 
     class HyperParameters:
         def __init__(self, 
                      max_head_distance=5,
                      dropout_p=0.5,
+                     learning_rate=1,
+                     learning_rate_decay=0,
                      update_embeddings=True,
                      epochs=100
                      ):
@@ -85,13 +88,15 @@ class HCPDModel(object):
             self.dropout_p = dropout_p
             self.update_embeddings = update_embeddings
             self.epochs = epochs
+            self.learning_rate = learning_rate
+            self.learning_rate_decay = learning_rate_decay
 
     def __init__(self,
                  words_vocab=vocabs.WORDS,
                  pos_vocab=vocabs.GOLD_POS,
                  wordnet_hypernyms_vocab=vocabs.HYPERNYMS,
-                 word_embeddings=embeddings.SYNTAX_WORD_VECTORS,
-                 hyperparameters=HCPDModel.HyperParameters()):
+                 word_embeddings=word_embeddings.SYNTAX_WORD_VECTORS,
+                 hyperparameters=HyperParameters()):
 
         self.wordnet_hypernyms_vocab = wordnet_hypernyms_vocab
         self.words_vocab = words_vocab
@@ -119,7 +124,7 @@ class HCPDModel(object):
         p2_vec_input_dim = layer_dim + self.word_vec_dim
 
         self.params = ModelOptimizedParams(
-            word_embeddings=pc.add_lookup_parameters(self.words_vocab.size(), self.get_word_embd_dim()),
+            word_embeddings=pc.add_lookup_parameters((self.words_vocab.size(), self.get_word_embd_dim())),
             p1_layer=SingleLayerParams(
                 pc.add_parameters((layer_dim, p1_vec_input_dim)),
                 pc.add_parameters((layer_dim,))
@@ -143,36 +148,32 @@ class HCPDModel(object):
 
     def _get_binary_vec(self, vocab, words):
         vec = [0] * vocab.size()
-        for word in words:
+        for word in words or []:
             vec[vocab.get_index(word)] = 1
         return vec
 
 
-    def _build_head_vec(self, head_cand, pp):
+    def _build_head_vec(self, head_cand):
         return dy.concatenate([
             dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(head_cand.word), update=self.hyperparameters.update_embeddings),
-            dy.constant([1, 0] if head_cand.is_noun else [0, 1]),
-            dy.constant(self._get_binary_vec(self.pos_vocab, head_cand.next_pos)),
-            dy.constant([1] if head_cand.is_pp_in_verbnet_frame else [0]),
-            dy.constant(self._get_binary_vec(self.wordnet_hypernyms_vocab, head_cand.hypernyms))
+            dy.inputTensor([1, 0] if head_cand.is_noun else [0, 1]),
+            dy.inputTensor(self._get_binary_vec(self.pos_vocab, [head_cand.next_pos])),
+            dy.inputTensor([1] if head_cand.is_pp_in_verbnet_frame else [0]),
+            dy.inputTensor(self._get_binary_vec(self.wordnet_hypernyms_vocab, head_cand.hypernyms))
         ])
 
     def _build_prep_vec(self, pp):
-        return dy.zero_pad(
-            dy.concatenate([
-                dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(pp.word), update=self.hyperparameters.update_embeddings),
-            ]),
-            self.word_vec_dim
-        )
+        return dy.concatenate([
+            dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(pp.word), update=self.hyperparameters.update_embeddings),
+            dy.zeros(self.word_vec_dim - self.get_word_embd_dim())
+        ])
 
     def _build_child_vec(self, child):
-        return dy.zero_pad(
-            dy.concatenate([
-                dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(pp.word), update=self.hyperparameters.update_embeddings),
-                dy.constant(self._get_binary_vec(self.wordnet_hypernyms_vocab, child.hypernyms))
-            ]),
-            self.word_vec_dim
-        )
+        return dy.concatenate([
+            dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(child.word), update=self.hyperparameters.update_embeddings),
+            dy.inputTensor(self._get_binary_vec(self.wordnet_hypernyms_vocab, child.hypernyms)),
+            dy.zeros(self.word_vec_dim - self.get_word_embd_dim() - self.wordnet_hypernyms_vocab.size())
+        ])
 
     def _build_network_for_input(self, sample_x):
         dropout_p = self.hyperparameters.dropout_p
@@ -192,18 +193,18 @@ class HCPDModel(object):
                     dropout_p
                 )
             )
-            p2_inp_vec = dy.concatenate([self._build_head_vec(head_cand, sample_x.pp), p1_vec])
+            p2_inp_vec = dy.concatenate([self._build_head_vec(head_cand), p1_vec])
             head_dist = min(head_cand.pp_distance, self.hyperparameters.max_head_distance)
             layer_params = self.params.p2_layers[head_dist - 1]
             p2_vec = dy.tanh(dy.parameter(layer_params.W) * p2_inp_vec + dy.parameter(layer_params.b))
-            score = p2_vec * self.params.w
+            score = dy.parameter(self.params.w) * p2_vec
             scores.append(score)
 
         return scores
 
     def _build_loss(self, sample, out_scores):
         correct_head_score = out_scores[sample.get_correct_head_ind()]
-        return dy.max(
+        return dy.emax(
             [score - correct_head_score + (1 if ind == sample.get_correct_head_ind() else 0) for ind, score in enumerate(out_scores)]
         )
 
