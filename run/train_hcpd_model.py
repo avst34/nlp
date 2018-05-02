@@ -12,7 +12,11 @@ dev_samples = [s for r in dev_recs for s in boknilev_record_to_hcpd_samples(r)]
 test_samples = [s for r in test_recs for s in boknilev_record_to_hcpd_samples(r)]
 
 print("Training")
-model = HCPDModel()
-model.fit(train_samples, validation_samples=dev_samples, show_progress=True, show_epoch_eval=True, evaluator=PPAttEvaluator())
+model = HCPDModel(hyperparameters=HCPDModel.HyperParameters(epochs=100))
+model.fit(train_samples, validation_samples=dev_samples, show_progress=True)
+print("Training complete, saving model..")
+model.save('/tmp/hcpd_trained_model')
+print("Done saving model")
+print("Evaluating model on test:")
+PPAttEvaluator(predictor=model).evaluate(test_samples)
 
-print("Training complete")

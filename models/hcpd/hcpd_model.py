@@ -4,12 +4,14 @@ from collections import namedtuple
 
 import random
 from glob import glob
+from tempfile import NamedTemporaryFile
 
 import dynet as dy
 import json
 import numpy as np
 import math
 
+from evaluators.ppatt_evaluator import PPAttEvaluator
 from models.hcpd import vocabs
 from models.hcpd import word_embeddings
 from vocabulary import Vocabulary
@@ -205,11 +207,10 @@ class HCPDModel(object):
     def _build_loss(self, sample, out_scores):
         correct_head_score = out_scores[sample.get_correct_head_ind()]
         return dy.emax(
-            [score - correct_head_score + (1 if ind == sample.get_correct_head_ind() else 0) for ind, score in enumerate(out_scores)]
+            [score - correct_head_score + (0 if ind == sample.get_correct_head_ind() else 1) for ind, score in enumerate(out_scores)]
         )
 
-    def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
-            evaluator=None):
+    def fit(self, samples, validation_samples=None, show_progress=True):
         self.pc = self._build_network_params()
         # self._build_vocabularies(samples + validation_samples or [])
 
@@ -223,39 +224,43 @@ class HCPDModel(object):
         self.test_set_evaluation = []
         self.train_set_evaluation = []
 
-        trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
-        for epoch in range(1, self.hyperparameters.epochs + 1):
-            if np.isinf(trainer.learning_rate):
-                break
+        best_acc = None
+        best_epoch = None
+        model_file_path = '/tmp/_m_' + str(random.randrange(10000))
+        try:
+            trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
+            evaluator = PPAttEvaluator()
+            for epoch in range(1, self.hyperparameters.epochs + 1):
+                if np.isinf(trainer.learning_rate):
+                    break
 
-            train = list(train)
-            random.shuffle(train)
-            loss_sum = 0
+                train = list(train)
+                random.shuffle(train)
+                loss_sum = 0
 
-            BATCH_SIZE = 500
-            batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
-            for batch_ind, batch in enumerate(batches):
-                dy.renew_cg(immediate_compute=True, check_validity=True)
-                losses = []
-                for sample in batch:
-                    out_scores = self._build_network_for_input(sample.x)
-                    sample_loss = self._build_loss(sample, out_scores)
-                    if sample_loss is not None:
-                        losses.append(sample_loss)
-                if len(losses):
-                    batch_loss = dy.esum(losses)
-                    batch_loss.forward()
-                    batch_loss.backward()
-                    loss_sum += batch_loss.value()
-                    trainer.update()
-                if show_progress:
-                    if int((batch_ind + 1) / len(batches) * 100) > int(batch_ind / len(batches) * 100):
-                        per = int((batch_ind + 1) / len(batches) * 100)
-                        print('\r\rEpoch %3d (%d%%): |' % (epoch, per) + '#' * per + '-' * (100 - per) + '|',)
-            if self.hyperparameters.learning_rate_decay:
-                trainer.learning_rate /= (1 - self.hyperparameters.learning_rate_decay)
+                BATCH_SIZE = 500
+                batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
+                for batch_ind, batch in enumerate(batches):
+                    dy.renew_cg(immediate_compute=True, check_validity=True)
+                    losses = []
+                    for sample in batch:
+                        out_scores = self._build_network_for_input(sample.x)
+                        sample_loss = self._build_loss(sample, out_scores)
+                        if sample_loss is not None:
+                            losses.append(sample_loss)
+                    if len(losses):
+                        batch_loss = dy.esum(losses)
+                        batch_loss.forward()
+                        batch_loss.backward()
+                        loss_sum += batch_loss.value()
+                        trainer.update()
+                    if show_progress:
+                        if int((batch_ind + 1) / len(batches) * 100) > int(batch_ind / len(batches) * 100):
+                            per = int((batch_ind + 1) / len(batches) * 100)
+                            print('\r\rEpoch %3d (%d%%): |' % (epoch, per) + '#' * per + '-' * (100 - per) + '|',)
+                if self.hyperparameters.learning_rate_decay:
+                    trainer.learning_rate /= (1 - self.hyperparameters.learning_rate_decay)
 
-            if evaluator and show_epoch_eval:
                 print('--------------------------------------------')
                 print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
                 print('Validation data evaluation:')
@@ -266,9 +271,19 @@ class HCPDModel(object):
                 self.train_set_evaluation.append(epoch_train_eval)
                 print('--------------------------------------------')
 
-        print('--------------------------------------------')
-        print('Training is complete (%d samples, %d epochs)' % (len(train), self.hyperparameters.epochs))
-        print('--------------------------------------------')
+                acc = epoch_test_eval['acc']
+                if best_acc is None or acc > best_acc:
+                    print("Best epoch so far! with accuracy of: %1.2f" % acc)
+                    best_acc = acc
+                    best_epoch = epoch
+                    self.pc.save(model_file_path)
+
+            print('--------------------------------------------')
+            print('Training is complete (%d samples, %d epochs, best epoch - %d acc %1.2f)' % (len(train), self.hyperparameters.epochs, best_epoch, best_acc))
+            print('--------------------------------------------')
+            self.pc.populate(model_file_path)
+        finally:
+            os.remove(model_file_path)
 
         return self
 
@@ -287,7 +302,7 @@ class HCPDModel(object):
         with open(base_path + '.hp', 'w') as f:
             json.dump(vars(self.hyperparameters), f, indent=2)
         vocabs = {
-            name: vocab.pack() for name, vocab in {'pos': self.pos_vocab, 'words': self.words_vocab, 'hypernyms': self.wordnet_hypernyms_vocab}
+            name: vocab.pack() for name, vocab in {'pos': self.pos_vocab, 'words': self.words_vocab, 'hypernyms': self.wordnet_hypernyms_vocab}.items()
         }
         with open(base_path + '.vocabs', 'w') as f:
             json.dump(vocabs, f)

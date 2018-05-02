@@ -66,6 +66,7 @@ class PPAttEvaluator:
         return
 
     def evaluate(self, samples, examples_to_show=3, predictor=None):
+        predictor = predictor or self.predictor
         n_correct = 0
         samples = list(samples)
         random.shuffle(samples)
@@ -76,7 +77,7 @@ class PPAttEvaluator:
             if predicted_y.correct_head_cand == s.y.correct_head_cand:
                 n_correct += 1
         acc = n_correct / len(samples)
-        print("Accuracy: %1.2f" % acc)
+        print("Accuracy: %2.2f" % (acc*100))
         return {
             'acc': acc
         }
