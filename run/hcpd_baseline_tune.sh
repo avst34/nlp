@@ -11,5 +11,5 @@ source /cs/usr/aviramstern/lab/venvs/local/bin/activate
 while true; do
     #    #python3 $DIR/../run/tune_hcpd_model.py > ~/baseline.out
     # python3 $DIR/../main.py --dynet-gpu --dynet-autobatch > ~/baseline.out
-    python3 /cs/usr/aviramstern/nlp_prod/run/tune_hcpd_model.py
+    python3 /cs/usr/aviramstern/lab/nlp_prod/run/tune_hcpd_model.py
 done
