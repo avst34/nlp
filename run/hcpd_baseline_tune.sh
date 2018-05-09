@@ -13,5 +13,5 @@ export PYTHONPATH=$SRC_BASE
 while true; do
     #    #python3 $DIR/../run/tune_hcpd_model.py > ~/baseline.out
     # python3 $DIR/../main.py --dynet-gpu --dynet-autobatch > ~/baseline.out
-    python3 $SRC_BASE/run/tune_hcpd_model.py
+    python3 $SRC_BASE/run/tune_hcpd_model.py $SRC_BASE/../hcpd_tuning.csv
 done
