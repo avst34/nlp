@@ -19,13 +19,13 @@ def run():
     #
     # print('Predictor: original')
     #
-    # evaluator = ClassifierEvaluator(predictor=predictor.model)
+    # evaluator = PSSClasifierEvaluator(predictor=predictor.model)
     # ll_samples = [predictor.sample_to_lowlevel(x) for x in dev_samples]
     # evaluator.evaluate(ll_samples, examples_to_show=5)
     #
     # print('Predictor: loaded')
     #
-    # evaluator = ClassifierEvaluator(predictor=loaded_predictor.model)
+    # evaluator = PSSClasifierEvaluator(predictor=loaded_predictor.model)
     # ll_samples = [loaded_predictor.sample_to_lowlevel(x) for x in dev_samples]
     # evaluator.evaluate(ll_samples, examples_to_show=5)
 
@@ -54,7 +54,7 @@ def run():
     #                    dev_samples,
     #                    evaluator=evaluator)
     #
-    # # evaluator = ClassifierEvaluator(predictor=lstm_mlp_model.model)
+    # # evaluator = PSSClasifierEvaluator(predictor=lstm_mlp_model.model)
     # # ll_samples = [LstmMlpSupersensesModel.sample_to_lowlevel(x) for x in test_samples]
     # # evaluator.evaluate(ll_samples, examples_to_show=5)
 

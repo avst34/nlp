@@ -2,7 +2,7 @@ import os
 import random
 
 from datasets.streusle_v4 import StreusleLoader
-from evaluators.classifier_evaluator import ClassifierEvaluator
+from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
 from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP, AUTO_ID_AUTO_PREP, AUTO_ID_GOLD_PREP, \
     TASK_SETTINGS
 from models.supersenses.features.features_test import test_features
@@ -16,7 +16,7 @@ from vocabulary import Vocabulary
 import supersense_repo
 import json
 from hyperparameters_tuner import union_settings, override_settings
-evaluator = ClassifierEvaluator()
+evaluator = PSSClasifierEvaluator()
 
 def print_samples_statistics(name, samples):
     sentences = len(samples)
@@ -78,13 +78,13 @@ def run():
     #
     # print('Predictor: original')
     #
-    # evaluator = ClassifierEvaluator(predictor=predictor.model)
+    # evaluator = PSSClasifierEvaluator(predictor=predictor.model)
     # ll_samples = [predictor.sample_to_lowlevel(x) for x in dev_samples]
     # evaluator.evaluate(ll_samples, examples_to_show=5)
     #
     # print('Predictor: loaded')
     #
-    # evaluator = ClassifierEvaluator(predictor=loaded_predictor.model)
+    # evaluator = PSSClasifierEvaluator(predictor=loaded_predictor.model)
     # ll_samples = [loaded_predictor.sample_to_lowlevel(x) for x in dev_samples]
     # evaluator.evaluate(ll_samples, examples_to_show=5)
 
@@ -113,6 +113,6 @@ def run():
     #                    dev_samples,
     #                    evaluator=evaluator)
     #
-    # # evaluator = ClassifierEvaluator(predictor=lstm_mlp_model.model)
+    # # evaluator = PSSClasifierEvaluator(predictor=lstm_mlp_model.model)
     # # ll_samples = [LstmMlpSupersensesModel.sample_to_lowlevel(x) for x in test_samples]
     # # evaluator.evaluate(ll_samples, examples_to_show=5)

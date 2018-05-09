@@ -80,12 +80,18 @@ class HCPDModel(object):
     class HyperParameters:
         def __init__(self, 
                      max_head_distance=5,
+                     internal_layer_dim=None,
+                     activation='tanh',
                      dropout_p=0.5,
                      learning_rate=1,
                      learning_rate_decay=0,
                      update_embeddings=True,
+                     trainer="SimpleSGDTrainer",
                      epochs=100
                      ):
+            self.activation = activation
+            self.trainer = trainer
+            self.internal_layer_dim = internal_layer_dim
             self.max_head_distance = max_head_distance
             self.dropout_p = dropout_p
             self.update_embeddings = update_embeddings
@@ -120,24 +126,24 @@ class HCPDModel(object):
                       + 1 \
                       + self.wordnet_hypernyms_vocab.size()
 
-        layer_dim = self.word_vec_dim
+        internal_layer_dim = self.hyperparameters.internal_layer_dim or self.word_vec_dim
 
         p1_vec_input_dim = 2 * self.word_vec_dim
-        p2_vec_input_dim = layer_dim + self.word_vec_dim
+        p2_vec_input_dim = internal_layer_dim + self.word_vec_dim
 
         self.params = ModelOptimizedParams(
             word_embeddings=pc.add_lookup_parameters((self.words_vocab.size(), self.get_word_embd_dim())),
             p1_layer=SingleLayerParams(
-                pc.add_parameters((layer_dim, p1_vec_input_dim)),
-                pc.add_parameters((layer_dim,))
+                pc.add_parameters((internal_layer_dim, p1_vec_input_dim)),
+                pc.add_parameters((internal_layer_dim,))
             ),
             p2_layers=[
                 SingleLayerParams(
-                    pc.add_parameters((layer_dim, p2_vec_input_dim)),
-                    pc.add_parameters((layer_dim,))
+                    pc.add_parameters((internal_layer_dim, p2_vec_input_dim)),
+                    pc.add_parameters((internal_layer_dim,))
                 ) for _ in range(hp.max_head_distance)
             ],
-            w=pc.add_parameters((1, layer_dim))
+            w=pc.add_parameters((1, internal_layer_dim))
         )
 
         for word in self.words_vocab.all_words():
@@ -153,7 +159,6 @@ class HCPDModel(object):
         for word in words or []:
             vec[vocab.get_index(word)] = 1
         return vec
-
 
     def _build_head_vec(self, head_cand):
         return dy.concatenate([
@@ -189,7 +194,7 @@ class HCPDModel(object):
                 ]),
                 self.hyperparameters.dropout_p
             )
-            p1_vec = dy.tanh(
+            p1_vec = getattr(dy, self.hyperparameters.activation)(
                 dy.dropout(
                     dy.parameter(self.params.p1_layer.W) * p1_inp_vec + dy.parameter(self.params.p1_layer.b),
                     dropout_p
@@ -224,11 +229,13 @@ class HCPDModel(object):
         self.test_set_evaluation = []
         self.train_set_evaluation = []
 
-        best_acc = None
+        best_test_acc = None
+        train_acc = None
         best_epoch = None
         model_file_path = '/tmp/_m_' + str(random.randrange(10000))
         try:
-            trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
+            # trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
+            trainer = getattr(dy, self.hyperparameters.trainer)(self.pc, self.hyperparameters.learning_rate)
             evaluator = PPAttEvaluator()
             for epoch in range(1, self.hyperparameters.epochs + 1):
                 if np.isinf(trainer.learning_rate):
@@ -271,15 +278,19 @@ class HCPDModel(object):
                 self.train_set_evaluation.append(epoch_train_eval)
                 print('--------------------------------------------')
 
-                acc = epoch_test_eval['acc']
-                if best_acc is None or acc > best_acc:
-                    print("Best epoch so far! with accuracy of: %1.2f" % acc)
-                    best_acc = acc
+                test_acc = epoch_test_eval['acc']
+                if best_test_acc is None or test_acc > best_test_acc:
+                    print("Best epoch so far! with accuracy of: %1.2f" % test_acc)
+                    best_test_acc = test_acc
+                    train_acc = epoch_train_eval['acc']
                     best_epoch = epoch
                     self.pc.save(model_file_path)
 
+            self.train_set_evaluation = {'acc': train_acc}
+            self.test_set_evaluation = {'acc': best_test_acc}
+
             print('--------------------------------------------')
-            print('Training is complete (%d samples, %d epochs, best epoch - %d acc %1.2f)' % (len(train), self.hyperparameters.epochs, best_epoch, best_acc))
+            print('Training is complete (%d samples, %d epochs, best epoch - %d acc %1.2f)' % (len(train), self.hyperparameters.epochs, best_epoch, best_test_acc))
             print('--------------------------------------------')
             self.pc.populate(model_file_path)
         finally:

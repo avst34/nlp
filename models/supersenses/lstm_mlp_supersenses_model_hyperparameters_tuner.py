@@ -1,4 +1,4 @@
-from evaluators.classifier_evaluator import ClassifierEvaluator
+from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
 from evaluators.streusle_evaluator import StreusleEvaluator
 from hyperparameters_tuner import HyperparametersTuner
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
@@ -19,17 +19,17 @@ def build_csv_rows(params, result):
         for epoch, epoch_data in enumerate(scope_data):
             class_scores = epoch_data['class_scores']
             classes_ordered = sorted(class_scores.keys(), key=lambda k: str(k))
-            if ClassifierEvaluator.ALL_CLASSES in classes_ordered:
-                classes_ordered.remove(ClassifierEvaluator.ALL_CLASSES)
-                classes_ordered = [ClassifierEvaluator.ALL_CLASSES] + classes_ordered
+            if PSSClasifierEvaluator.ALL_CLASSES in classes_ordered:
+                classes_ordered.remove(PSSClasifierEvaluator.ALL_CLASSES)
+                classes_ordered = [PSSClasifierEvaluator.ALL_CLASSES] + classes_ordered
 
             is_last_epoch = epoch == len(scope_data) - 1
             is_best_epoch = epoch == best_epoch
             for klass in classes_ordered:
                 scores = class_scores[klass]
-                if klass == ClassifierEvaluator.ALL_CLASSES:
+                if klass == PSSClasifierEvaluator.ALL_CLASSES:
                     klass = '-- All Classes --'
-                elif klass == ClassifierEvaluator.ALL_CLASSES_STRICT:
+                elif klass == PSSClasifierEvaluator.ALL_CLASSES_STRICT:
                     klass = '-- All Classes (strict) --'
                 else:
                     if not is_best_epoch and not is_last_epoch:
@@ -61,7 +61,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
                  show_epoch_eval=True,
                  dump_models=False,
                  dump_pss_eval=False,
-                 evaluator=ClassifierEvaluator(),
+                 evaluator=PSSClasifierEvaluator(),
                  tuner_score_getter=lambda evaluations: max([e['f1'] or 0 for e in evaluations]),
                  tuner_results_getter=extract_classifier_evaluator_results,
                  task_name=''):

@@ -1,10 +1,10 @@
-from evaluators.classifier_evaluator import ClassifierEvaluator
+from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
 from models.general.predictor_ops import CombinedPredictor
 from models.general.simple_conditional_multiclass_model.model import MostFrequentClassModel
 from models.general.simple_conditional_multiclass_model.streusle_integration import \
     streusle_record_to_most_frequent_class_model_sample
 
-evaluator = ClassifierEvaluator()
+evaluator = PSSClasifierEvaluator()
 
 def run(train_records, test_records):
     for features in [[], ['token']]:
