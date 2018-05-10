@@ -1,5 +1,6 @@
 import json
 from collections import namedtuple
+from itertools import chain
 from pprint import pprint
 from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel
 from models.supersenses import vocabs
@@ -185,7 +186,7 @@ class LstmMlpSupersensesModel:
         names = lambda features: [f.name for f in features]
 
         self.model = LstmMlpMulticlassModel(
-            input_vocabularies={feat.name: feat.vocab for feat in self.features.list_enum_features()},
+            input_vocabularies={feat.name: feat.vocab for feat in chain(self.features.list_enum_features(), self.features.list_string_features())},
             input_embeddings={feat.name: feat.embedding for feat in self.features.list_features_with_embedding(include_auto=False)},
             output_vocabulary=vocabs.PSS if self.hyperparameters.allow_empty_prediction else vocabs.PSS_WITHOUT_NONE,
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
@@ -216,7 +217,7 @@ class LstmMlpSupersensesModel:
     def sample_x_to_lowlevel(self, sample_x, sample_xs, x_mask):
         return LstmMlpMulticlassModel.SampleX(
             fields={
-                f.name: f.extract(sample_x, sample_xs) for f in self.features.list_enum_features()
+                f.name: f.extract(sample_x, sample_xs) for f in chain(self.features.list_enum_features(), self.features.list_string_features())
                 if x_mask or not f.masked_only
             },
             neighbors={

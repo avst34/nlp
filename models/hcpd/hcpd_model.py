@@ -14,6 +14,7 @@ import math
 from evaluators.ppatt_evaluator import PPAttEvaluator
 from models.hcpd import vocabs
 from models.hcpd import word_embeddings
+from supersense_repo import get_pss_hierarchy
 from vocabulary import Vocabulary
 
 SingleLayerParams = namedtuple('SingleLayerParams', [
@@ -47,13 +48,15 @@ class HCPDModel(object):
             self.is_verb = is_verb
             self.is_noun = is_noun
             assert self.is_verb != self.is_noun
-    PP = namedtuple('PP', ['word'])
+    PP = namedtuple('PP', ['word', 'pss_role', 'pss_func'])
     Child = namedtuple('PP', ['word', 'hypernyms'])
 
     class SampleX:
-        def __init__(self, head_cands, pp, child):
+        def __init__(self, head_cands, pp, child, pss_role=None, pss_func=None):
             self.head_cands = head_cands
             self.pp = pp
+            self.pss_role = pss_role
+            self.pss_func = pss_func
             self.child = child
 
     class SampleY:
@@ -87,6 +90,7 @@ class HCPDModel(object):
                      learning_rate_decay=0,
                      update_embeddings=True,
                      trainer="SimpleSGDTrainer",
+                     use_pss=False,
                      epochs=100
                      ):
             self.activation = activation
@@ -98,17 +102,20 @@ class HCPDModel(object):
             self.epochs = epochs
             self.learning_rate = learning_rate
             self.learning_rate_decay = learning_rate_decay
+            self.use_pss = use_pss
 
     def __init__(self,
                  words_vocab=vocabs.WORDS,
                  pos_vocab=vocabs.GOLD_POS,
                  wordnet_hypernyms_vocab=vocabs.HYPERNYMS,
+                 pss_vocab=vocabs.PSS,
                  word_embeddings=word_embeddings.SYNTAX_WORD_VECTORS,
                  hyperparameters=HyperParameters()):
 
         self.wordnet_hypernyms_vocab = wordnet_hypernyms_vocab
         self.words_vocab = words_vocab
         self.pos_vocab = pos_vocab
+        self.pss_vocab = pss_vocab
         self.word_embeddings = word_embeddings
 
         self.hyperparameters = hyperparameters
@@ -120,30 +127,33 @@ class HCPDModel(object):
         pc = dy.ParameterCollection()
         hp = self.hyperparameters
 
-        self.word_vec_dim = self.get_word_embd_dim() \
-                      + 2 \
-                      + self.pos_vocab.size() \
-                      + 1 \
-                      + self.wordnet_hypernyms_vocab.size()
+        self.p1_vec_inp_dim = self.get_word_embd_dim() \
+                                   + self.wordnet_hypernyms_vocab.size()
 
-        internal_layer_dim = self.hyperparameters.internal_layer_dim or self.word_vec_dim
+        self.p1_vec_dim = hp.internal_layer_dim
 
-        p1_vec_input_dim = 2 * self.word_vec_dim
-        p2_vec_input_dim = internal_layer_dim + self.word_vec_dim
+        self.p2_vec_inp_dim = self.get_word_embd_dim() \
+                                   + 2 \
+                                   + self.pos_vocab.size() \
+                                   + 1 \
+                                   + self.wordnet_hypernyms_vocab.size()
+        if hp.use_pss:
+            self.p2_vec_inp_dim += self.pss_vocab.size() * 2
+        self.p2_vec_dim = hp.internal_layer_dim
 
         self.params = ModelOptimizedParams(
             word_embeddings=pc.add_lookup_parameters((self.words_vocab.size(), self.get_word_embd_dim())),
             p1_layer=SingleLayerParams(
-                pc.add_parameters((internal_layer_dim, p1_vec_input_dim)),
-                pc.add_parameters((internal_layer_dim,))
+                pc.add_parameters((hp.internal_layer_dim, self.p1_vec_inp_dim)),
+                pc.add_parameters((hp.internal_layer_dim,))
             ),
             p2_layers=[
                 SingleLayerParams(
-                    pc.add_parameters((internal_layer_dim, p2_vec_input_dim)),
-                    pc.add_parameters((internal_layer_dim,))
+                    pc.add_parameters((hp.internal_layer_dim, self.p2_vec_inp_dim)),
+                    pc.add_parameters((hp.internal_layer_dim,))
                 ) for _ in range(hp.max_head_distance)
             ],
-            w=pc.add_parameters((1, internal_layer_dim))
+            w=pc.add_parameters((1, hp.internal_layer_dim))
         )
 
         for word in self.words_vocab.all_words():
@@ -170,16 +180,19 @@ class HCPDModel(object):
         ])
 
     def _build_prep_vec(self, pp):
-        return dy.concatenate([
-            dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(pp.word), update=self.hyperparameters.update_embeddings),
-            dy.zeros(self.word_vec_dim - self.get_word_embd_dim())
-        ])
+        pv = dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(pp.word), update=self.hyperparameters.update_embeddings)
+        if self.hyperparameters.use_pss:
+            pv = dy.concatenate([
+                pv,
+                self._get_binary_vec(self.pss_vocab, get_pss_hierarchy(pp.pss_role)),
+                self._get_binary_vec(self.pss_vocab, get_pss_hierarchy(pp.pss_func))
+            ])
+        return pv
 
     def _build_child_vec(self, child):
         return dy.concatenate([
             dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(child.word), update=self.hyperparameters.update_embeddings),
             dy.inputTensor(self._get_binary_vec(self.wordnet_hypernyms_vocab, child.hypernyms)),
-            dy.zeros(self.word_vec_dim - self.get_word_embd_dim() - self.wordnet_hypernyms_vocab.size())
         ])
 
     def _build_network_for_input(self, sample_x):

@@ -105,3 +105,66 @@ PREPOSITION_SUPERSENSES = (
     'OrgRole'
 )
 
+PSS_TREE = {
+    'Circumstance': {
+        'Temporal': {
+            'Time': {
+                'StartTime': {},
+                'EndTime': {}},
+            'Frequency': {},
+            'Duration': {},
+            'Interval': {}},
+        'Locus': {
+            'Source': {},
+            'Goal': {}},
+        'Path': {
+            'Direction': {},
+            'Extent': {}},
+        'Means': {},
+        'Manner': {},
+        'Explanation': {
+            'Purpose': {}}},
+    'Participant': {
+        'Causer': {
+            'Agent': {
+                'Co-Agent': {}}},
+        'Theme': {
+            'Co-Theme': {},
+            'Topic': {}},
+        'Stimulus': {},
+        'Experiencer': {},
+        'Originator': {},
+        'Recipient': {},
+        'Cost': {},
+        'Beneficiary': {},
+        'Instrument': {}},
+    'Configuration': {
+        'Identity': {},
+        'Species': {},
+        'Gestalt': {
+            'Possessor': {},
+            'Whole': {}},
+        'Characteristic': {
+            'Possession': {},
+            'Part/Portion': {
+                'Stuff': {}}},
+        'Accompanier': {},
+        'InsteadOf': {},
+        'ComparisonRef': {},
+        'RateUnit': {},
+        'Quantity': {
+            'Approximator': {}},
+        'SocialRel': {
+            'OrgRole': {}}},
+}
+
+PSS_PARENTS = {}
+PSS_DEPTH = {}
+
+queue = [[ss,None,PSS_TREE[ss]] for ss in PSS_TREE]
+while queue:
+    ss, par, descendants = queue.pop()
+    PSS_PARENTS[ss] = par
+    PSS_DEPTH[ss] = 1 if par is None else PSS_DEPTH[par] + 1
+    queue.extend([[ch,ss,descendants[ch]] for ch in descendants])
+del queue, ss, par, descendants

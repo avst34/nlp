@@ -4,6 +4,7 @@ from models.supersenses import embeddings
 
 
 class FeatureType:
+    STRING = 'STRING'
     ENUM = 'ENUM'
     REF = 'REF'
 
@@ -39,7 +40,7 @@ class Feature(object):
         if self.type == FeatureType.REF and self.mount_point != MountPoint.MLP:
             raise Exception("Feature '%s' of type '%s' can only be mounted to MLP" % (self.name, self.type))
         if self.type != FeatureType.REF:
-            assert self.type == FeatureType.ENUM
+            assert self.type in (FeatureType.ENUM, FeatureType.STRING)
             assert self.vocab
             if self.embedding != embeddings.AUTO:
                 embd_dim = len(list(self.embedding.values())[0])
@@ -62,10 +63,11 @@ class Feature(object):
                 if not self.fall_to_none:
                     raise Exception("Error in feature '%s': extracted value '%s' is not in the associated vocabulary (%s)" % (self.name, val, self.vocab.name))
                 val = None
-        else:
-            assert self.type == FeatureType.REF
+        elif self.type == FeatureType.REF:
             if val is not None and (type(val) != int or not (0 <= val < len(sent))):
                 raise Exception("Error in feature '%s': extracted value '%s' is not a valid ref to the sentence (len: %d)" % (self.name, str(val), len(sent)))
+        else:
+            assert self.type == 'STRING'
 
         return val
 
@@ -96,6 +98,9 @@ class Features(object):
     def list_enum_features(self):
         return [f for f in self.features if f.type == FeatureType.ENUM]
 
+    def list_string_features(self):
+        return [f for f in self.features if f.type == FeatureType.STRING]
+
     def list_updatable_features(self):
         return [f for f in self.features if f.update]
 
@@ -106,12 +111,12 @@ class Features(object):
 
     def list_default_zero_vec_features(self):
         features = [f for f in self.features if f.default_zero_vec]
-        assert all([f.embedding != embeddings.AUTO and f.type == FeatureType.ENUM for f in features])
+        assert all([f.type != FeatureType.REF for f in features])
         return features
 
     def list_features_with_embedding_fallback(self):
         features = [f for f in self.features if f.embedding_fallback]
-        assert all([f.type == FeatureType.ENUM for f in features])
+        assert all([f.type != FeatureType.REF for f in features])
         return features
 
 

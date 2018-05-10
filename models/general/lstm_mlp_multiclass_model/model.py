@@ -226,7 +226,7 @@ class LstmMlpMulticlassModel(object):
                 update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field)
             )
         else:
-            embd = token_data['embeddings_override'].get('field')
+            embd = token_data.embeddings_override.get('field')
             if embd:
                 assert len(embd) == self.get_embd_dim(field)
                 return dy.inputTensor(embd)

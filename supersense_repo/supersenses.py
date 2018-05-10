@@ -1,4 +1,5 @@
 from supersense_repo import constants
+from supersense_repo.constants import PSS_PARENTS
 
 NOUN_SUPERSENSES_SET = set(constants.NOUN_SUPERSENSES)
 PREPOSITION_SUPERSENSES_SET = set(constants.PREPOSITION_SUPERSENSES)
@@ -24,3 +25,10 @@ def filter_non_supersense(maybe_supersense):
         return maybe_supersense
     else:
         return None
+
+def get_pss_hierarchy(pss):
+    psses = []
+    while pss:
+        psses.append(pss)
+        pss = PSS_PARENTS.get(pss)
+    return psses

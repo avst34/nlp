@@ -16,6 +16,8 @@ def raise_none(f):
 def get_tok(sent, ind):
     if ind is None:
         return None
+    if ind >= len(sent):
+        raise Exception("Index out of bounds")
     return sent[ind]
 
 @raise_none

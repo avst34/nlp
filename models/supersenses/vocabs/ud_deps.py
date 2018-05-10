@@ -1,6 +1,7 @@
 from vocabulary import Vocabulary
             
 UD_DEPS = Vocabulary('UD_DEPS', [
+'ROOT',
 'mark',
 'obj',
 'amod',
