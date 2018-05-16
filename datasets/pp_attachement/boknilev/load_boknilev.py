@@ -16,7 +16,8 @@ def load_boknilev():
     psses = load_boknilev_pss()
     for s in chain(train_samples, dev_samples, test_samples):
         for pp in s['pps']:
-            pp['pss_role'], pp['pss_func'] = psses[s['sent_id']][pp['ind']]
+            # print(s['tokens'], psses[s['sent_id']], pp['ind'])
+            pp['pss_role'], pp['pss_func'] = psses[s['sent_id']][str(pp['ind'])]
     return train_samples, dev_samples, test_samples
 
 def dump_boknilev_pss(predictions):
@@ -32,5 +33,5 @@ def dump_boknilev_pss(predictions):
 
 def load_boknilev_pss():
     pss_path = os.path.dirname(__file__) + '/data/pp-data-english/pss_predictions.json'
-    with open(pss_path, 'w') as f:
+    with open(pss_path, 'r') as f:
         return json.load(f)

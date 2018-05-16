@@ -9,6 +9,7 @@ def boknilev_record_to_hcpd_samples(record):
             head_cands=[HCPDModel.HeadCand(
                 ind=hc['ind'],
                 word=record['tokens'][hc['ind']],
+                lemma=record['preprocessing']['lemma'][hc['ind']],
                 pp_distance=dist + 1,
                 is_verb=hc['gold']['is_verb'],
                 is_noun=hc['gold']['is_noun'],
@@ -19,6 +20,7 @@ def boknilev_record_to_hcpd_samples(record):
             pp=HCPDModel.PP(word=record['tokens'][pp['ind']], pss_role=pp['pss_role'], pss_func=pp['pss_func']),
             child=HCPDModel.Child(
                 word=record['tokens'][pp['child_ind'][0]],
+                lemma=record['preprocessing']['lemma'][pp['child_ind'][0]],
                 hypernyms=record['preprocessing']['hypernyms'][pp['child_ind'][0]]
             )
         )

@@ -2,6 +2,7 @@ from datasets.pp_attachement.boknilev.load_boknilev import load_boknilev
 from evaluators.ppatt_evaluator import PPAttEvaluator
 from models.hcpd.hcpd_model import HCPDModel
 from models.hcpd.boknilev_integration import boknilev_record_to_hcpd_samples
+import json
 
 print("Loading dataset")
 train_recs, dev_recs, test_recs = load_boknilev()
@@ -12,7 +13,9 @@ dev_samples = [s for r in dev_recs for s in boknilev_record_to_hcpd_samples(r)]
 test_samples = [s for r in test_recs for s in boknilev_record_to_hcpd_samples(r)]
 
 print("Training")
-model = HCPDModel(hyperparameters=HCPDModel.HyperParameters(epochs=100))
+# model = HCPDModel(hyperparameters=HCPDModel.HyperParameters(epochs=100))
+model = HCPDModel(hyperparameters=HCPDModel.HyperParameters(**json.loads("""{"update_embeddings": true, "activation": "rectify", "dropout_p": 0.01, "learning_rate": 0.1, "trainer": "SimpleSGDTrainer", "epochs": 12, "internal_layer_dim": 150, "learning_rate_decay": 0, "max_head_distance": 5, "use_pss": false, "fallback_to_lemmas": false}""")))
+# model = HCPDModel(hyperparameters=HCPDModel.HyperParameters(**json.loads("""{"update_embeddings": true, "activation": "rectify", "dropout_p": 0.01, "learning_rate": 0.1, "trainer": "SimpleSGDTrainer", "epochs": 20, "internal_layer_dim": 150, "learning_rate_decay": 0, "max_head_distance": 5, "use_pss": true, "fallback_to_lemmas": true}""")))
 model.fit(train_samples, validation_samples=dev_samples, show_progress=True)
 print("Training complete, saving model..")
 model.save('/tmp/hcpd_trained_model')
