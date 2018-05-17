@@ -6,6 +6,8 @@ from wordnet_verbnet import is_word_in_verb_frames, get_noun_hypernyms
 def boknilev_record_to_hcpd_samples(record):
     sample_xs = [
         HCPDModel.SampleX(
+            sent_id=record['sent_id'],
+            tokens=record['tokens'],
             head_cands=[HCPDModel.HeadCand(
                 ind=hc['ind'],
                 word=record['tokens'][hc['ind']],
@@ -17,7 +19,7 @@ def boknilev_record_to_hcpd_samples(record):
                 hypernyms=record['preprocessing']['hypernyms'][hc['ind']],
                 is_pp_in_verbnet_frame=is_word_in_verb_frames(record['tokens'][hc['ind']], record['tokens'][pp['ind']])
             ) for dist, hc in enumerate(reversed(pp['head_cands']))],
-            pp=HCPDModel.PP(word=record['tokens'][pp['ind']], pss_role=pp['pss_role'], pss_func=pp['pss_func']),
+            pp=HCPDModel.PP(word=record['tokens'][pp['ind']], pss_role=pp['pss_role'], pss_func=pp['pss_func'], ind=pp['ind']),
             child=HCPDModel.Child(
                 word=record['tokens'][pp['child_ind'][0]],
                 lemma=record['preprocessing']['lemma'][pp['child_ind'][0]],

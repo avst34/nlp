@@ -6,14 +6,16 @@ PS = HyperparametersTuner.ParamSettings
 
 # For tuning
 TUNER_DOMAINS_TUNING = [
-    PS(name='max_head_distance', values=[5]),
-    PS(name='internal_layer_dim', values=[50, 100, 146, 200, 300]),
+    PS(name='max_head_distance', values=[1, 5]),
+    PS(name='p1_vec_dim', values=[50, 100, 146, 200, 300]),
+    PS(name='p2_vec_dim', values=[50, 100, 146, 200, 300]),
     PS(name='activation', values=['tanh', 'cube', 'rectify']),
+    PS(name='use_pss', values=[True, False]),
     PS(name='dropout_p', values=[0.01, 0.1, 0.3, 0.5, 0.7]),
     PS(name='learning_rate', values=[0.1, 1]),
     PS(name='learning_rate_decay', values=[0]),
     PS(name='update_embeddings', values=[True]),
-    PS(name='trainer', values=["SimpleSGDTrainer", "AdagradTrainer"]),
+    PS(name='trainer', values=["SimpleSGDTrainer"]),
     PS(name='epochs', values=[100])
 ]
 
