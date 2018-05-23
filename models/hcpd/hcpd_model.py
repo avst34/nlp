@@ -239,16 +239,30 @@ class HCPDModel(object):
                 ]),
                 self.hyperparameters.dropout_p
             )
-            p1_vec = getattr(dy, self.hyperparameters.activation)(
-                dy.dropout(
-                    dy.parameter(self.params.p1_mlp.layers[0].W) * p1_inp_vec + dy.parameter(self.params.p1_mlp.layers[0].b),
-                    dropout_p
+            p1_mlp_vec = p1_inp_vec
+            for ind, layer in enumerate(self.params.p1_mlp.layers):
+                p1_mlp_vec = getattr(dy, self.hyperparameters.activation)(
+                    dy.dropout(
+                        dy.parameter(layer.W) * p1_mlp_vec + dy.parameter(layer.b),
+                        dropout_p
+                    )
                 )
-            )
+            p1_vec = p1_mlp_vec
+
             p2_inp_vec = dy.concatenate([self._build_head_vec(head_cand), p1_vec])
             head_dist = min(head_cand.pp_distance, self.hyperparameters.max_head_distance)
-            layer_params = self.params.p2_mlps[head_dist - 1].layers[0]
-            p2_vec = dy.tanh(dy.parameter(layer_params.W) * p2_inp_vec + dy.parameter(layer_params.b))
+            p2_mlp_layers = self.params.p2_mlps[head_dist - 1].layers
+
+            p2_mlp_vec = p2_inp_vec
+            for ind, layer in enumerate(p2_mlp_layers):
+                p2_mlp_vec = getattr(dy, self.hyperparameters.activation)(
+                    dy.dropout(
+                        dy.parameter(layer.W) * p2_mlp_vec + dy.parameter(layer.b),
+                        dropout_p
+                    )
+                )
+            p2_vec = p2_mlp_vec
+
             score = dy.parameter(self.params.w) * p2_vec
             scores.append(score)
 
@@ -322,8 +336,8 @@ class HCPDModel(object):
                     best_epoch = epoch
                     self.pc.save(model_file_path)
 
-            self.train_set_evaluation = {'acc': train_acc}
-            self.test_set_evaluation = {'acc': best_test_acc}
+            self.train_set_evaluation = {'acc': train_acc, 'best_epoch': best_epoch}
+            self.test_set_evaluation = {'acc': best_test_acc, 'best_epoch': best_epoch}
 
             print('--------------------------------------------')
             print('Training is complete (%d samples, %d epochs, best epoch - %d acc %1.2f)' % (len(train), self.hyperparameters.epochs, best_epoch, best_test_acc))

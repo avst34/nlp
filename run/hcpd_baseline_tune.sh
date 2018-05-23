@@ -4,7 +4,7 @@
 #SBATCH --time=2-0
 ##SBATCH --gres=gpu:1
 
-source /cs/usr/aviramstern/lab/venvs/local/bin/activate
+source /cs/usr/aviramstern/lab/venvs/$1/bin/activate
 
 SRC_BASE=/cs/usr/aviramstern/lab/nlp_prod
 

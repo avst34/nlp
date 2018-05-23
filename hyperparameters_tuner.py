@@ -93,6 +93,8 @@ class HyperparametersTuner:
 
     def sample_execution(self, params=None):
         params = params or self.sample_params()
+        print("Tuner: sampled params - ")
+        print(params)
         enabled_params = {p: v for p, v in params.items() if self.param(p).enabled}
         start_time = time.time()
         result = self.executor(enabled_params)

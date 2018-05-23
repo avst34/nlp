@@ -16,6 +16,7 @@ def build_csv_rows(params, result):
     for scope, scope_data in result_data.items():
         row_tuples = \
             [("Scope", scope)] + \
+            [("Best Epoch", scope_data['best_epoch'])] + \
             [("Acc", scope_data['acc'])] + \
             [(k, str(v)) for k, v in sorted(params.items())] + \
             [("Hyperparams Json", json.dumps(params))]
