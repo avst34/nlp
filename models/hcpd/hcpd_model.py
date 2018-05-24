@@ -14,6 +14,7 @@ import math
 from evaluators.ppatt_evaluator import PPAttEvaluator
 from models.hcpd import vocabs
 from models.hcpd import word_embeddings
+from models.hcpd.pss_debug_evaluator import PSSDebugEvaluator
 from supersense_repo import get_pss_hierarchy
 from vocabulary import Vocabulary
 
@@ -26,14 +27,20 @@ MLPParams = namedtuple('MLPParams', [
     'layers'
 ])
 
+DebugParams = namedtuple('DebugParams', [
+    'W_debug_vec',
+    'W_pss_role',
+    'W_pss_func',
+])
 
 class ModelOptimizedParams:
 
-    def __init__(self, word_embeddings, p1_mlp, p2_mlps, w):
+    def __init__(self, word_embeddings, p1_mlp, p2_mlps, w, debug):
         self.p1_mlp = p1_mlp
         self.p2_mlps = p2_mlps
         self.w = w
         self.word_embeddings = word_embeddings
+        self.debug = debug
 
 
 MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
@@ -128,8 +135,10 @@ class HCPDModel(object):
                  wordnet_hypernyms_vocab=vocabs.HYPERNYMS,
                  pss_vocab=vocabs.PSS,
                  word_embeddings=word_embeddings.SYNTAX_WORD_VECTORS,
-                 hyperparameters=HyperParameters()):
+                 hyperparameters=HyperParameters(),
+                 debug_feature=None):
 
+        self.debug_feature = debug_feature
         self.wordnet_hypernyms_vocab = wordnet_hypernyms_vocab
         self.words_vocab = words_vocab
         self.words_to_lemmas = words_to_lemmas
@@ -176,7 +185,13 @@ class HCPDModel(object):
                     for layer_ind in range(hp.p2_mlp_layers)]
                 ) for _ in range(hp.max_head_distance)
             ],
-            w=pc.add_parameters((1, hp.p2_vec_dim))
+            w=pc.add_parameters((1, hp.p2_vec_dim)),
+
+            debug=DebugParams(
+                W_debug_vec=pc.add_parameters((hp.p2_vec_dim, hp.p2_vec_dim)),
+                W_pss_role=pc.add_parameters((self.pss_vocab.size(), hp.p2_vec_dim)),
+                W_pss_func=pc.add_parameters((self.pss_vocab.size(), hp.p2_vec_dim)),
+            )
         )
 
         n_words = self.words_vocab.size()
@@ -230,6 +245,8 @@ class HCPDModel(object):
     def _build_network_for_input(self, sample_x):
         dropout_p = self.hyperparameters.dropout_p
 
+        _debug_vec = None
+
         scores = []
         for head_cand in sample_x.head_cands:
             p1_inp_vec = dy.dropout(
@@ -263,20 +280,46 @@ class HCPDModel(object):
                 )
             p2_vec = p2_mlp_vec
 
+            _debug_vec = _debug_vec or p2_vec
+            _debug_vec = dy.tanh(dy.parameter(self.params.debug.W_debug_vec) * _debug_vec)
+
             score = dy.parameter(self.params.w) * p2_vec
             scores.append(score)
 
-        return scores
+        _debug_pss_role_probs = dy.log_softmax(dy.parameter(self.params.debug.W_pss_role) * _debug_vec)
+        _debug_pss_func_probs = dy.log_softmax(dy.parameter(self.params.debug.W_pss_func) * _debug_vec)
 
-    def _build_loss(self, sample, out_scores):
+        return {
+            'scores': scores,
+            'debug': [_debug_pss_role_probs, _debug_pss_func_probs]
+        }
+
+    def _build_loss(self, sample, network_out):
+        out_scores = network_out['scores']
         correct_head_score = out_scores[sample.get_correct_head_ind()]
         return dy.emax(
             [score - correct_head_score + (0 if ind == sample.get_correct_head_ind() else 1) for ind, score in enumerate(out_scores)]
         )
 
+    def _build_debug_loss_pss(self, sample, network_out):
+        _debug_pss_role_probs, _debug_pss_func_probs = network_out['debug']
+        loss_role = -dy.pick(_debug_pss_role_probs, self.pss_vocab.get_index(sample.x.pp.pss_role))
+        loss_func = -dy.pick(_debug_pss_func_probs, self.pss_vocab.get_index(sample.x.pp.pss_func))
+        return loss_role + loss_func
+
     def fit(self, samples, validation_samples, show_progress=True):
         self.pc = self._build_network_params()
         # self._build_vocabularies(samples + validation_samples or [])
+
+        if self.debug_feature == 'pss':
+            build_loss = self._build_debug_loss_pss
+            evaluator = PSSDebugEvaluator()
+        elif not self.debug_feature:
+            build_loss = self._build_loss
+            evaluator = PPAttEvaluator()
+        else:
+            raise Exception('Unsupported feature for debugging:', self.debug_feature)
+
 
         test = validation_samples
         train = samples
@@ -288,7 +331,6 @@ class HCPDModel(object):
         try:
             # trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
             trainer = getattr(dy, self.hyperparameters.trainer)(self.pc, self.hyperparameters.learning_rate)
-            evaluator = PPAttEvaluator()
             for epoch in range(1, self.hyperparameters.epochs + 1):
                 if np.isinf(trainer.learning_rate):
                     break
@@ -300,11 +342,12 @@ class HCPDModel(object):
                 BATCH_SIZE = 500
                 batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
                 for batch_ind, batch in enumerate(batches):
+                    _build_loss = random.choice([self._build_loss, build_loss])
                     dy.renew_cg(immediate_compute=True, check_validity=True)
                     losses = []
                     for sample in batch:
-                        out_scores = self._build_network_for_input(sample.x)
-                        sample_loss = self._build_loss(sample, out_scores)
+                        out = self._build_network_for_input(sample.x)
+                        sample_loss = _build_loss(sample, out)
                         if sample_loss is not None:
                             losses.append(sample_loss)
                     if len(losses):
@@ -350,10 +393,19 @@ class HCPDModel(object):
 
     def predict(self, sample_x):
         dy.renew_cg()
-        out_scores = [s.value() for s in self._build_network_for_input(sample_x)]
+        out_scores = [s.value() for s in self._build_network_for_input(sample_x)['scores']]
         return HCPDModel.SampleY(
             list(zip(out_scores, sample_x.head_cands))
         )
+
+    def debug_predict_pss(self, sample_x):
+        dy.renew_cg()
+        _debug_pss_role_probs, _debug_pss_func_probs = self._build_network_for_input(sample_x)['debug']
+        role_ind = np.argmax(_debug_pss_role_probs.npvalue())
+        role = self.pss_vocab.get_word(role_ind)
+        func_ind = np.argmax(_debug_pss_func_probs.npvalue())
+        func = self.pss_vocab.get_word(func_ind)
+        return [role, func]
 
     def save(self, base_path):
         def pythonize_embds(embds):
