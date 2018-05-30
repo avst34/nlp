@@ -283,7 +283,7 @@ class StreusleLoader(object):
     def __init__(self):
         pass
 
-    def load(self, conllulex_path, only_with_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET, input_format='conllulex'):
+    def load(self, conllulex_path=os.path.dirname(__file__) + '/streusle.conllulex', only_with_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET, input_format='conllulex'):
         assert input_format in ['conllulex', 'json']
         print('Loading streusle data from ' + conllulex_path)
         records = []

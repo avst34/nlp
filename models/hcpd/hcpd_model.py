@@ -35,12 +35,14 @@ DebugParams = namedtuple('DebugParams', [
 
 class ModelOptimizedParams:
 
-    def __init__(self, word_embeddings, p1_mlp, p2_mlps, w, debug):
+    def __init__(self, word_embeddings, p1_mlp, p2_mlps, w, verb_ss_embeddings, noun_ss_embeddings, debug):
         self.p1_mlp = p1_mlp
         self.p2_mlps = p2_mlps
         self.w = w
         self.word_embeddings = word_embeddings
         self.debug = debug
+        self.verb_ss_embeddings = verb_ss_embeddings
+        self.noun_ss_embeddings = noun_ss_embeddings
 
 
 MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
@@ -49,7 +51,7 @@ MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
 class HCPDModel(object):
 
     class HeadCand:
-        def __init__(self, ind, word, lemma, pp_distance, is_verb, is_noun, next_pos, hypernyms, is_pp_in_verbnet_frame):
+        def __init__(self, ind, word, lemma, pp_distance, is_verb, is_noun, next_pos, hypernyms, is_pp_in_verbnet_frame, verb_ss, noun_ss):
             self.ind = ind
             self.next_pos = next_pos
             self.hypernyms = hypernyms
@@ -59,9 +61,11 @@ class HCPDModel(object):
             self.lemma = lemma
             self.is_verb = is_verb
             self.is_noun = is_noun
+            self.verb_ss = verb_ss
+            self.noun_ss = noun_ss
             assert self.is_verb != self.is_noun
     PP = namedtuple('PP', ['word', 'ind', 'pss_role', 'pss_func'])
-    Child = namedtuple('PP', ['word', 'lemma', 'hypernyms'])
+    Child = namedtuple('PP', ['word', 'lemma', 'hypernyms', 'noun_ss'])
 
     class SampleX:
         def __init__(self, head_cands, pp, child, sent_id, tokens, pss_role=None, pss_func=None):
@@ -103,6 +107,8 @@ class HCPDModel(object):
                      p1_mlp_layers=1,
                      p2_vec_dim=150,
                      p2_mlp_layers=1,
+                     verb_ss_embedding_dim=10,
+                     noun_ss_embedding_dim=10,
                      activation='tanh',
                      dropout_p=0.5,
                      learning_rate=1,
@@ -110,7 +116,9 @@ class HCPDModel(object):
                      update_embeddings=True,
                      trainer="SimpleSGDTrainer",
                      use_pss=False,
+                     use_verb_noun_ss=False,
                      fallback_to_lemmas=False,
+                     update_embd_for_missing=False,
                      epochs=100
                      ):
             self.p1_mlp_layers = p1_mlp_layers
@@ -126,7 +134,11 @@ class HCPDModel(object):
             self.learning_rate = learning_rate
             self.learning_rate_decay = learning_rate_decay
             self.use_pss = use_pss
+            self.use_verb_noun_ss = use_verb_noun_ss
             self.fallback_to_lemmas = fallback_to_lemmas
+            self.verb_ss_embedding_dim = verb_ss_embedding_dim
+            self.noun_ss_embedding_dim = noun_ss_embedding_dim
+            self.update_embd_for_missing = update_embd_for_missing
 
     def __init__(self,
                  words_vocab=vocabs.WORDS,
@@ -134,6 +146,8 @@ class HCPDModel(object):
                  pos_vocab=vocabs.GOLD_POS,
                  wordnet_hypernyms_vocab=vocabs.HYPERNYMS,
                  pss_vocab=vocabs.PSS,
+                 verb_ss_vocab=vocabs.VERB_SS,
+                 noun_ss_vocab=vocabs.NOUN_SS,
                  word_embeddings=word_embeddings.SYNTAX_WORD_VECTORS,
                  hyperparameters=HyperParameters(),
                  debug_feature=None):
@@ -144,6 +158,8 @@ class HCPDModel(object):
         self.words_to_lemmas = words_to_lemmas
         self.pos_vocab = pos_vocab
         self.pss_vocab = pss_vocab
+        self.verb_ss_vocab = verb_ss_vocab
+        self.noun_ss_vocab = noun_ss_vocab
         self.word_embeddings = word_embeddings
 
         self.hyperparameters = hyperparameters
@@ -159,6 +175,8 @@ class HCPDModel(object):
                                    + self.wordnet_hypernyms_vocab.size()
         if hp.use_pss:
             self.p1_vec_inp_dim += self.pss_vocab.size() * 2
+        if hp.use_verb_noun_ss:
+            self.p1_vec_inp_dim += hp.noun_ss_embedding_dim
 
         self.p2_vec_inp_dim = hp.p1_vec_dim \
                                    + self.get_word_embd_dim() \
@@ -166,6 +184,8 @@ class HCPDModel(object):
                                    + self.pos_vocab.size() \
                                    + 1 \
                                    + self.wordnet_hypernyms_vocab.size()
+        if hp.use_verb_noun_ss:
+            self.p2_vec_inp_dim += hp.verb_ss_embedding_dim + hp.noun_ss_embedding_dim
 
         self.params = ModelOptimizedParams(
             word_embeddings=pc.add_lookup_parameters((self.words_vocab.size(), self.get_word_embd_dim())),
@@ -186,6 +206,8 @@ class HCPDModel(object):
                 ) for _ in range(hp.max_head_distance)
             ],
             w=pc.add_parameters((1, hp.p2_vec_dim)),
+            verb_ss_embeddings=pc.add_lookup_parameters((self.verb_ss_vocab.size(), hp.verb_ss_embedding_dim)),
+            noun_ss_embeddings=pc.add_lookup_parameters((self.noun_ss_vocab.size(), hp.noun_ss_embedding_dim)),
 
             debug=DebugParams(
                 W_debug_vec=pc.add_parameters((hp.p2_vec_dim, hp.p2_vec_dim)),
@@ -209,6 +231,13 @@ class HCPDModel(object):
 
         print("Embedding for %d/%d words (%d%%)" % (n_words_with_embeddings, n_words, int(n_words_with_embeddings/n_words*100)))
 
+        if hp.update_embd_for_missing:
+            self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_ind(None), [0] * hp.verb_ss_embedding_dim, update=True)
+            self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_ind(None), [0] * hp.noun_ss_embedding_dim, update=True)
+        else:
+            self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_ind(None), [0] * hp.verb_ss_embedding_dim, update=False)
+            self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_ind(None), [0] * hp.noun_ss_embedding_dim, update=False)
+
         return pc
 
     def _get_binary_vec(self, vocab, words):
@@ -218,13 +247,20 @@ class HCPDModel(object):
         return vec
 
     def _build_head_vec(self, head_cand):
-        return dy.concatenate([
+        pv = dy.concatenate([
             dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(head_cand.word), update=self.hyperparameters.update_embeddings),
             dy.inputTensor([1, 0] if head_cand.is_noun else [0, 1]),
             dy.inputTensor(self._get_binary_vec(self.pos_vocab, [head_cand.next_pos])),
             dy.inputTensor([1] if head_cand.is_pp_in_verbnet_frame else [0]),
             dy.inputTensor(self._get_binary_vec(self.wordnet_hypernyms_vocab, head_cand.hypernyms))
         ])
+        if self.hyperparameters.use_verb_noun_ss:
+            pv = dy.concatenate([
+                pv,
+                dy.lookup(self.params.noun_ss_embeddings, self.noun_ss_vocab.get_ind(head_cand.noun_ss)),
+                dy.lookup(self.params.verb_ss_embeddings, self.verb_ss_vocab.get_ind(head_cand.verb_ss)),
+            ])
+        return pv
 
     def _build_prep_vec(self, pp):
         pv = dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(pp.word), update=self.hyperparameters.update_embeddings)
@@ -237,10 +273,16 @@ class HCPDModel(object):
         return pv
 
     def _build_child_vec(self, child):
-        return dy.concatenate([
+        pv = dy.concatenate([
             dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(child.word), update=self.hyperparameters.update_embeddings),
             dy.inputTensor(self._get_binary_vec(self.wordnet_hypernyms_vocab, child.hypernyms)),
         ])
+        if self.hyperparameters.use_verb_noun_ss:
+            pv = dy.concatenate([
+                pv,
+                dy.lookup(self.params.noun_ss_embeddings, self.noun_ss_vocab.get_ind(child.noun_ss)),
+            ])
+        return pv
 
     def _build_network_for_input(self, sample_x):
         dropout_p = self.hyperparameters.dropout_p

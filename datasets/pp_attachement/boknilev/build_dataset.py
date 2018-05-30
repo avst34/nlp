@@ -71,6 +71,7 @@ def collect_pp_annotations(base_files=(
             'labels',
             'nheads',
             'sentinds'
+            'sentids'
         ]
         fields_data = {}
         for field in fields:
@@ -78,7 +79,7 @@ def collect_pp_annotations(base_files=(
                 with open(base_file + '.' + field, 'r') as f:
                     fields_data[field] = [l.strip().replace('\t', ' ').split(' ') for l in f.readlines()]
             except FileNotFoundError as e:
-                if field != 'sentinds':
+                if field not in ['sentinds', 'sentids']:
                     raise
         cur_annotations = [{fld: data for fld, data in zip(fields, ann)} for ann in zip(*[fields_data[field] for field in fields if field in fields_data])]
         for ind, ann in enumerate(cur_annotations):
