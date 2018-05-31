@@ -36,10 +36,11 @@ class Sentence(object):
     lemmas = []
     sentence_id = -1  # 0-based indexing
 
-    def __init__(self, tokens, poses, labels, parents, morphs=[]):
+    def __init__(self, tokens, poses, labels, parents, morphs=[], sent_id=None):
         if len(tokens) != len(poses) or len(poses) != len(labels) or len(labels) != len(parents):
             print 'Error: bad arguments to Sentence.__init__'
             return
+        self.sent_id = sent_id
         self.tokens = tokens
         self.poses = poses
         self.labels = labels

@@ -53,13 +53,15 @@ class ConllAttachment(object):
     orig_heads_ids = []
     sentence_start_line = -1
 
-    def __init__(self, heads, label, prep, child, heads_next=None, heads_pos=None, heads_next_pos=None, sent_ind=None, pp_ind_in_sent=None):
+    def __init__(self, heads, label, prep, child, heads_next=None, heads_pos=None, heads_next_pos=None, sent_ind=None, pp_ind_in_sent=None, sent_id=None, child_ind=None):
+        self.sent_id = sent_id
         self.heads = heads
         self.sent_ind = sent_ind
         self.pp_ind_in_sent = pp_ind_in_sent
         self.label = label
         self.prep = prep
         self.child = child
+        self.child_ind = child_ind
         if heads_next:
             self.heads_next = heads_next
         if heads_pos:
@@ -142,9 +144,9 @@ def get_pp_attachments_from_wsj_sentence(sentence, max_head_distance, max_child_
 
                     if len(heads) > 1:  # don't take unambiguous cases
                         if get_heads_next:
-                            attachment = EnglishAttachment(heads, gold_head_label, prep, child, heads_next=heads_next, heads_pos=heads_pos, heads_next_pos=heads_next_pos, pp_ind_in_sent=i)
+                            attachment = EnglishAttachment(heads, gold_head_label, prep, child, heads_next=heads_next, heads_pos=heads_pos, heads_next_pos=heads_next_pos, pp_ind_in_sent=i, sent_id=sentence.sent_id, child_ind=child_idx - 1)
                         else:
-                            attachment = EnglishAttachment(heads, gold_head_label, prep, child, heads_pos=heads_pos, heads_next_pos=heads_next_pos, pp_ind_in_sent=i)
+                            attachment = EnglishAttachment(heads, gold_head_label, prep, child, heads_pos=heads_pos, heads_next_pos=heads_next_pos, pp_ind_in_sent=i, sent_id=sentence.sent_id, child_ind=child_idx - 1)
                         attachment.set_prep_id(i)
                         attachment.set_heads_ids(heads_ids)
                         attachment.set_sentence_start_line(sentence.start_line)
@@ -851,8 +853,12 @@ def write_conll_attachments(attachments, output_pref, use_heads_next=False, use_
     g_nheads = open(output_pref + '.nheads', 'w')
     g_labels = open(output_pref + '.labels', 'w')
     g_sentinds = open(output_pref + '.sentinds', 'w')
+    g_sentids = open(output_pref + '.sentids', 'w')
     g_preps = codecs.open(output_pref + '.preps.words', 'w', encoding='utf-8')
+    g_prep_ids = codecs.open(output_pref + '.preps.ids', 'w', encoding='utf-8')
+    g_head_ids = codecs.open(output_pref + '.heads.ids', 'w', encoding='utf-8')
     g_children = codecs.open(output_pref + '.children.words', 'w', encoding='utf-8')
+    g_children_ids = codecs.open(output_pref + '.children.ids', 'w', encoding='utf-8')
     if use_heads_next:
         g_heads_next = codecs.open(output_pref + '.heads.next.words', 'w', encoding='utf-8')
     if use_heads_pos:
@@ -868,6 +874,10 @@ def write_conll_attachments(attachments, output_pref, use_heads_next=False, use_
         g_preps.write(a.prep + '\n')
         g_children.write(a.child + '\n')
         g_sentinds.write(str(a.sent_ind) + ':' + str(a.pp_ind_in_sent) + '\n')
+        g_sentids.write(str(a.sent_id) + '\n')
+        g_prep_ids.write(str(a.orig_prep_id) + '\n')
+        g_children_ids.write(str(a.child_ind) + '\n')
+        g_head_ids.write(' '.join([str(x) for x in a.orig_heads_ids]) + '\n')
         if use_heads_next:
             g_heads_next.write('\t'.join(a.heads_next) + '\n')
         if use_heads_pos:
@@ -1056,8 +1066,8 @@ MAX_CHILDREN = 0
 GET_HEADS_NEXT = False
 ONLY_CHILD_GRANDCHILD = False
 # run_spmrl(SPMRL_FILE, OUTPUT_PREF, WORD_VECTORS_FILE, 10, MAX_SPAN, MAX_CHILDREN, False, GET_HEADS_NEXT, ONLY_CHILD_GRANDCHILD)
-WSJ_FILE = '/cs/labs/oabend/aviramstern/nlp/datasets/pp_attachement/boknilev/wsj/22.all.conllx'
-OUTPUT_PREF = '/cs/labs/oabend/aviramstern/nlp/datasets/pp_attachement/boknilev/data/pp-data-english/wsj.22.txt.dep.pp'
+WSJ_FILE = '/cs/labs/oabend/aviramstern/nlp/datasets/pp_attachement/streusle/all.conllx'
+OUTPUT_PREF = '/cs/labs/oabend/aviramstern/nlp/datasets/pp_attachement/streusle/all.dep.pp'
 WORD_VECTORS_FILE = '/cs/usr/aviramstern/lab/nlp/datasets/pp_attachement/boknilev/data/vectors.english.100.txt'
 MAX_HEAD_DISTANCE = 10
 MAX_CHILD_DISTANCE = 200

@@ -8,7 +8,7 @@ from models.supersenses.streusle_integration import streusle_record_to_lstm_mode
 
 from datasets.streusle_v4.streusle import StreusleLoader
 
-STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
+STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/release'
 
 gold_records = StreusleLoader().load(STREUSLE_BASE + '/streusle.conllulex')
 gold_record_by_id = {r.id: r for r in gold_records}

@@ -64,13 +64,16 @@ def collect_pp_annotations(base_files=(
     for base_file in base_files:
         fields = [
             'preps.words',
+            'preps.ids',
             'children.words',
+            'children.ids',
             'heads.pos',
             'heads.next.pos',
             'heads.words',
+            'heads.ids',
             'labels',
             'nheads',
-            'sentinds'
+            'sentinds',
             'sentids'
         ]
         fields_data = {}
@@ -397,10 +400,10 @@ def build_sample(sent, anns):
             "pps": [{
                 "id": ann['id'],
                 "copy_of": ann.get('copy_of') or ann['id'],
-                "ind": ann['tok_ind'],
-                "child_ind": lc_toks.index(ann['children.words'][0]),
-                # "child_ind": ann['tok_ind'] + lc_toks[ann['tok_ind']: ann['tok_ind'] + 200].index(ann['children.words'][0]),
-                "head_cand_inds": [max(ann['tok_ind'] - 10, 0) + lc_toks[max(ann['tok_ind'] - 10, 0): ann['tok_ind']].index(head) for head in ann['heads.words']],
+                "ind": ann.get('tok_ind', int(ann['preps.ids'][0])),
+                "child_ind": int(ann['children.ids'][0]) if 'children.ids' in ann else lc_toks.index(ann['children.words'][0]),
+                "head_cand_inds": [int(x) for x in ann.get('heads.ids')] if 'heads.ids' in ann else \
+                                   [max(ann['tok_ind'] - 10, 0) + lc_toks[max(ann['tok_ind'] - 10, 0): ann['tok_ind']].index(head) for head in ann['heads.words']]
             } for ann in anns]
         }
         for pp, ann in zip(sample['pps'], anns):
@@ -410,7 +413,7 @@ def build_sample(sent, anns):
         raise
 
     for (pp, ann) in zip(sample['pps'], anns):
-        assert sample['tokens'][pp['ind']].lower() == ann['preps.words'][0]
+        assert sample['tokens'][pp['ind']].lower() == ann['preps.words'][0], '%s != %s (%s)' % (sample['tokens'][pp['ind']].lower(), ann['preps.words'][0], repr(sample['tokens']))
         assert [sample['tokens'][head_ind].lower() for head_ind in pp['head_cand_inds']] == ann['heads.words']
     return sample
 

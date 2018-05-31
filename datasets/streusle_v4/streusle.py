@@ -97,6 +97,8 @@ class TaggedToken:
                  token_word2vec,
                  supersense_role,
                  supersense_func,
+                 noun_ss,
+                 verb_ss,
                  ud_head_ind, ud_dep,
                  is_part_of_wmwe,
                  is_part_of_smwe,
@@ -107,6 +109,8 @@ class TaggedToken:
                  lemma,
                  ud_id,
                  gov_ind, obj_ind, govobj_config, lexcat, _raw_ss_ss2):
+        self.verb_ss = verb_ss
+        self.noun_ss = noun_ss
         self.lexcat = lexcat
         self.lemma = lemma
         self.ner = ner
@@ -219,6 +223,8 @@ class StreusleRecord:
                 ner=tok_data.get('ner'),
                 supersense_role=tok_ss[tok_data['#']][0],
                 supersense_func=tok_ss[tok_data['#']][1],
+                noun_ss=None,
+                verb_ss=None,
                 is_part_of_smwe=tok_data['#'] in smwes_toknums,
                 is_part_of_wmwe=tok_data['#'] in wmwes_toknums,
                 we_toknums=we_toknums.get(tok_data['#']),
@@ -232,6 +238,9 @@ class StreusleRecord:
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersense_repo.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersense_repo.PREPOSITION_SUPERSENSES_SET]
         assert {t.ud_id for t in self.pss_tokens} == {we['toknums'][0] for we in wes if (we.get('ss') or '').startswith('p.')}
+
+    def tokens(self):
+        return [tok.token for tok in self.tagged_tokens]
 
     def get_tok_by_ud_id(self, ud_id):
         return [t for t in self.tagged_tokens if t.ud_id == ud_id][0]
@@ -283,7 +292,7 @@ class StreusleLoader(object):
     def __init__(self):
         pass
 
-    def load(self, conllulex_path=os.path.dirname(__file__) + '/streusle.conllulex', only_with_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET, input_format='conllulex'):
+    def load(self, conllulex_path=STREUSLE_DIR + '/streusle.conllulex', only_with_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET, input_format='conllulex'):
         assert input_format in ['conllulex', 'json']
         print('Loading streusle data from ' + conllulex_path)
         records = []
