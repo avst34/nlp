@@ -2,7 +2,6 @@ from nltk.corpus import wordnet as wn
 from nltk.corpus import verbnet as vn
 
 
-
 def get_noun_hypernyms(word, hypernyms_set=None):
     hypernyms = set()
     queue = wn.synsets(word, 'n')
@@ -12,6 +11,7 @@ def get_noun_hypernyms(word, hypernyms_set=None):
         if not hypernyms_set or ss.name() in hypernyms_set:
             hypernyms.add(ss.name())
     return list(hypernyms)
+
 
 def is_word_in_verb_frames(verb, word):
     classids = vn.classids(verb)

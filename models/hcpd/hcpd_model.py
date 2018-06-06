@@ -110,7 +110,7 @@ class HCPDModel(object):
                      verb_ss_embedding_dim=10,
                      noun_ss_embedding_dim=10,
                      activation='tanh',
-                     dropout_p=0.5,
+                     dropout_p=0.01,
                      learning_rate=1,
                      learning_rate_decay=0,
                      update_embeddings=True,
@@ -118,7 +118,6 @@ class HCPDModel(object):
                      use_pss=False,
                      use_verb_noun_ss=False,
                      fallback_to_lemmas=False,
-                     update_embd_for_missing=False,
                      epochs=100
                      ):
             self.p1_mlp_layers = p1_mlp_layers
@@ -138,7 +137,6 @@ class HCPDModel(object):
             self.fallback_to_lemmas = fallback_to_lemmas
             self.verb_ss_embedding_dim = verb_ss_embedding_dim
             self.noun_ss_embedding_dim = noun_ss_embedding_dim
-            self.update_embd_for_missing = update_embd_for_missing
 
     def __init__(self,
                  words_vocab=vocabs.WORDS,
@@ -231,13 +229,13 @@ class HCPDModel(object):
 
         print("Embedding for %d/%d words (%d%%)" % (n_words_with_embeddings, n_words, int(n_words_with_embeddings/n_words*100)))
 
-        if hp.update_embd_for_missing:
-            self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_ind(None), [0] * hp.verb_ss_embedding_dim, update=True)
-            self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_ind(None), [0] * hp.noun_ss_embedding_dim, update=True)
-        else:
-            self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_ind(None), [0] * hp.verb_ss_embedding_dim, update=False)
-            self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_ind(None), [0] * hp.noun_ss_embedding_dim, update=False)
-
+        # if hp.update_embd_for_missing:
+        #     self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_index(None), [0] * hp.verb_ss_embedding_dim, update=True)
+        #     self.params.noun_ss_embeddings.init_row(self.noun_ss_vocab.get_index(None), [0] * hp.noun_ss_embedding_dim, update=True)
+        # else:
+        #     self.params.verb_ss_embeddings.init_row(self.verb_ss_vocab.get_index(None), [0] * hp.verb_ss_embedding_dim, update=False)
+        #     self.params.noun_ss_embeddings.init_row(self.noun_ss_vocab.get_index(None), [0] * hp.noun_ss_embedding_dim, update=False)
+        #
         return pc
 
     def _get_binary_vec(self, vocab, words):
@@ -257,8 +255,8 @@ class HCPDModel(object):
         if self.hyperparameters.use_verb_noun_ss:
             pv = dy.concatenate([
                 pv,
-                dy.lookup(self.params.noun_ss_embeddings, self.noun_ss_vocab.get_ind(head_cand.noun_ss)),
-                dy.lookup(self.params.verb_ss_embeddings, self.verb_ss_vocab.get_ind(head_cand.verb_ss)),
+                dy.lookup(self.params.noun_ss_embeddings, self.noun_ss_vocab.get_index(head_cand.noun_ss)),
+                dy.lookup(self.params.verb_ss_embeddings, self.verb_ss_vocab.get_index(head_cand.verb_ss)),
             ])
         return pv
 
@@ -280,7 +278,7 @@ class HCPDModel(object):
         if self.hyperparameters.use_verb_noun_ss:
             pv = dy.concatenate([
                 pv,
-                dy.lookup(self.params.noun_ss_embeddings, self.noun_ss_vocab.get_ind(child.noun_ss)),
+                dy.lookup(self.params.noun_ss_embeddings, self.noun_ss_vocab.get_index(child.noun_ss)),
             ])
         return pv
 
@@ -349,8 +347,10 @@ class HCPDModel(object):
         loss_func = -dy.pick(_debug_pss_func_probs, self.pss_vocab.get_index(sample.x.pp.pss_func))
         return loss_role + loss_func
 
-    def fit(self, samples, validation_samples, show_progress=True):
-        self.pc = self._build_network_params()
+    def fit(self, samples, validation_samples, additional_validation_sets=None, show_progress=True, show_sample_predictions=False, resume=False):
+        additional_validation_sets = additional_validation_sets or {}
+        if not resume:
+            self.pc = self._build_network_params()
         # self._build_vocabularies(samples + validation_samples or [])
 
         if self.debug_feature == 'pss':
@@ -381,7 +381,7 @@ class HCPDModel(object):
                 random.shuffle(train)
                 loss_sum = 0
 
-                BATCH_SIZE = 500
+                BATCH_SIZE = 500 if len(train) > 10000 else 20
                 batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
                 for batch_ind, batch in enumerate(batches):
                     _build_loss = random.choice([self._build_loss, build_loss])
@@ -408,9 +408,12 @@ class HCPDModel(object):
                 print('--------------------------------------------')
                 print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
                 print('Validation data evaluation:')
-                epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self)
+                epoch_test_eval = evaluator.evaluate(test, examples_to_show=5 if show_sample_predictions else 0, predictor=self)
+                for name, vset in additional_validation_sets.items():
+                    print('Validation data evaluation (%s):' % name)
+                    evaluator.evaluate(vset, examples_to_show=5, predictor=self)
                 print('Training data evaluation:')
-                epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self)
+                epoch_train_eval = evaluator.evaluate(train, examples_to_show=5 if show_sample_predictions else 0, predictor=self)
                 print('--------------------------------------------')
 
                 test_acc = epoch_test_eval['acc']

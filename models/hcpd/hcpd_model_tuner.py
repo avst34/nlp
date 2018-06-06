@@ -9,25 +9,24 @@ from .tuner_domains import TUNER_DOMAINS
 def extract_classifier_evaluator_results(evaluation):
     return evaluation
 
-def build_csv_rows(params, result):
-    assert isinstance(result, HyperparametersTuner.ExecutionResult)
-    result_data = result.result_data
-    rows_tuples = []
-    for scope, scope_data in result_data.items():
-        row_tuples = \
-            [("Scope", scope)] + \
-            [("Best Epoch", scope_data['best_epoch'])] + \
-            [("Acc", scope_data['acc'])] + \
-            [(k, str(v)) for k, v in sorted(params.items())] + \
-            [("Hyperparams Json", json.dumps(params))]
-        rows_tuples.append(row_tuples)
-
-    headers = [x[0] for x in rows_tuples[0]]
-    rows = [[x[1] for x in row_tuples] for row_tuples in rows_tuples]
-    return headers, rows
-
-
 class HCPDModelTuner:
+
+    def build_csv_rows(self, params, result):
+        assert isinstance(result, HyperparametersTuner.ExecutionResult)
+        result_data = result.result_data
+        rows_tuples = []
+        for scope, scope_data in result_data.items():
+            row_tuples = \
+                [("Scope", scope)] + \
+                [("Best Epoch", scope_data['best_epoch'])] + \
+                [("Acc", scope_data['acc'])] + \
+                [(k, str(v)) for k, v in sorted(params.items())] + \
+                [("Hyperparams Json", json.dumps(params))]
+            rows_tuples.append(row_tuples)
+
+        headers = [x[0] for x in rows_tuples[0]]
+        rows = [[x[1] for x in row_tuples] for row_tuples in rows_tuples]
+        return headers, rows
 
     def __init__(self,
                  samples,
@@ -55,7 +54,7 @@ class HCPDModelTuner:
         self.tuner = HyperparametersTuner(task_name=task_name,
                                           results_csv_path=results_csv_path,
                                           params_settings=tuner_domains, executor=self._execute,
-                                          csv_row_builder=build_csv_rows, shared_csv=True,
+                                          csv_row_builder=self.build_csv_rows, shared_csv=True,
                                           lock_file_path=results_csv_path + '.lock',
                                           dump_result=dump_result)
 

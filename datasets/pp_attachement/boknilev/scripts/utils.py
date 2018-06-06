@@ -171,11 +171,12 @@ def read_wsj_dep_file(wsj_dep_filename, lower_case=False):
     poses = []
     labels = []
     parents = []
+    sent_id = ''
     start_line = 0
     for i in xrange(len(lines)):
         line = lines[i]
-        if line.strip() == '' or not sentences:
-            s = EnglishSentence(tokens, poses, labels, parents)
+        if line.strip() == '':
+            s = EnglishSentence(tokens, poses, labels, parents, sent_id=sent_id)
             s.set_start_line(start_line)
             start_line = i+1
             sentences.append(s)
@@ -184,7 +185,7 @@ def read_wsj_dep_file(wsj_dep_filename, lower_case=False):
             labels = []
             parents = []
         elif line[0] == '#':
-            sentences[-1].sent_id = line.strip()[1:]
+            sent_id = line.strip()[1:]
         else:
             splt = line.strip().split()
             tok = splt[1]

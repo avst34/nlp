@@ -415,6 +415,7 @@ def build_sample(sent, anns):
     for (pp, ann) in zip(sample['pps'], anns):
         assert sample['tokens'][pp['ind']].lower() == ann['preps.words'][0], '%s != %s (%s)' % (sample['tokens'][pp['ind']].lower(), ann['preps.words'][0], repr(sample['tokens']))
         assert [sample['tokens'][head_ind].lower() for head_ind in pp['head_cand_inds']] == ann['heads.words']
+    set_head_ind([sample], anns)
     return sample
 
 
@@ -441,11 +442,12 @@ def preprocess_samples(samples):
     preprocessed = []
     def process(sample):
         sample = copy.copy(sample)
-        sample['preprocessing'] = supersenses_preprocess(sample['tokens'])
+        sample['preprocessing'] = sample.get('preprocessing') or {}
+        sample['preprocessing'].update(supersenses_preprocess(sample['tokens']))
         sample['preprocessing'].update(hcpd_preprocess(sample['tokens']))
         preprocessed.append(sample)
         # print('%d/%d' % (len(preprocessed), len(samples)))
-    with ThreadPoolExecutor(10) as tpe:
+    with ThreadPoolExecutor(1) as tpe:
         list(tpe.map(process, samples))
     return preprocessed
 

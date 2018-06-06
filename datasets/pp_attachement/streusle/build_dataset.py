@@ -91,9 +91,9 @@ def build_dataset(boknilev_input_base_path=BASE_PATH + '/all.dep.pp'):
         preprocess_samples(samples)
 
         with open(BASE_PATH + '/' + out_path, 'w') as out_f:
-            json.dump(samples, out_f)
+            json.dump(samples, out_f, indent=2)
 
 
 if __name__ == '__main__':
-    # build_conllx('/cs/usr/aviramstern/lab/eng_web_tbk/data/reviews/penntree', BASE_PATH + '/all.conllx')
+    build_conllx('/cs/usr/aviramstern/lab/eng_web_tbk/data/reviews/penntree', BASE_PATH + '/all.conllx')
     build_dataset()
