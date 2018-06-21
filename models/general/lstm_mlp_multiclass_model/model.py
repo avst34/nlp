@@ -340,52 +340,68 @@ class LstmMlpMulticlassModel(object):
         self.test_set_evaluation = []
         self.train_set_evaluation = []
 
-        trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
-        for epoch in range(1, self.hyperparameters.epochs + 1):
-            if np.isinf(trainer.learning_rate):
-                break
+        best_test_acc = None
+        train_acc = None
+        best_epoch = None
+        model_file_path = '/tmp/_m_' + str(random.randrange(10000))
+        try:
+            trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
+            for epoch in range(1, self.hyperparameters.epochs + 1):
+                if np.isinf(trainer.learning_rate):
+                    break
 
-            train = list(train)
-            random.shuffle(train)
-            loss_sum = 0
+                train = list(train)
+                random.shuffle(train)
+                loss_sum = 0
 
-            BATCH_SIZE = 20
-            batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
-            for batch_ind, batch in enumerate(batches):
-                dy.renew_cg(immediate_compute=True, check_validity=True)
-                losses = []
-                for sample in batch:
-                    outputs = self._build_network_for_input(sample.xs, sample.mask, apply_dropout=True)
-                    sample_loss = self._build_loss(outputs, sample.ys)
-                    if sample_loss is not None:
-                        losses.append(sample_loss)
-                if len(losses):
-                    batch_loss = dy.esum(losses)
-                    batch_loss.forward()
-                    batch_loss.backward()
-                    loss_sum += batch_loss.value()
-                    trainer.update()
-                if show_progress:
-                    if int((batch_ind + 1) / len(batches) * 100) > int(batch_ind / len(batches) * 100):
-                        per = int((batch_ind + 1) / len(batches) * 100)
-                        print('\r\rEpoch %3d (%d%%): |' % (epoch, per) + '#' * per + '-' * (100 - per) + '|',)
-            if self.hyperparameters.learning_rate_decay:
-                trainer.learning_rate /= (1 - self.hyperparameters.learning_rate_decay)
+                BATCH_SIZE = 20
+                batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
+                for batch_ind, batch in enumerate(batches):
+                    dy.renew_cg(immediate_compute=True, check_validity=True)
+                    losses = []
+                    for sample in batch:
+                        outputs = self._build_network_for_input(sample.xs, sample.mask, apply_dropout=True)
+                        sample_loss = self._build_loss(outputs, sample.ys)
+                        if sample_loss is not None:
+                            losses.append(sample_loss)
+                    if len(losses):
+                        batch_loss = dy.esum(losses)
+                        batch_loss.forward()
+                        batch_loss.backward()
+                        loss_sum += batch_loss.value()
+                        trainer.update()
+                    if show_progress:
+                        if int((batch_ind + 1) / len(batches) * 100) > int(batch_ind / len(batches) * 100):
+                            per = int((batch_ind + 1) / len(batches) * 100)
+                            print('\r\rEpoch %3d (%d%%): |' % (epoch, per) + '#' * per + '-' * (100 - per) + '|',)
+                if self.hyperparameters.learning_rate_decay:
+                    trainer.learning_rate /= (1 - self.hyperparameters.learning_rate_decay)
 
-            if evaluator and show_epoch_eval:
-                print('--------------------------------------------')
-                print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
-                print('Validation data evaluation:')
-                epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self)
-                self.test_set_evaluation.append(epoch_test_eval)
-                print('Training data evaluation:')
-                epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self)
-                self.train_set_evaluation.append(epoch_train_eval)
-                print('--------------------------------------------')
+                if evaluator and show_epoch_eval:
+                    print('--------------------------------------------')
+                    print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
+                    print('Validation data evaluation:')
+                    epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self)
+                    self.test_set_evaluation.append(epoch_test_eval)
+                    print('Training data evaluation:')
+                    epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self)
+                    self.train_set_evaluation.append(epoch_train_eval)
+                    print('--------------------------------------------')
 
-        print('--------------------------------------------')
-        print('Training is complete (%d samples, %d epochs)' % (len(train), self.hyperparameters.epochs))
-        print('--------------------------------------------')
+                    test_acc = epoch_test_eval['f1']
+                    if best_test_acc is None or test_acc > best_test_acc:
+                        print("Best epoch so far! with f1 of: %1.2f" % test_acc)
+                        best_test_acc = test_acc
+                        train_acc = epoch_train_eval['f1']
+                        best_epoch = epoch
+                        self.pc.save(model_file_path)
+
+            print('--------------------------------------------')
+            print('Training is complete (%d samples, %d epochs)' % (len(train), self.hyperparameters.epochs))
+            print('--------------------------------------------')
+            self.pc.populate(model_file_path)
+        finally:
+            os.remove(model_file_path)
 
         return self
 

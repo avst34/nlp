@@ -1,6 +1,5 @@
 import json
 from collections import defaultdict
-from itertools import chain
 
 
 def build_confusion_matrix(sysf_path, goldf_path):
@@ -21,8 +20,8 @@ def build_confusion_matrix(sysf_path, goldf_path):
         assert sys_sent['sent_id'] == gold_sent['sent_id']
         sys_wes = list(sys_sent['swes'].values()) + list(sys_sent['smwes'].values())
         gold_wes = list(gold_sent['swes'].values()) + list(gold_sent['smwes'].values())
-
         for gold_we in gold_wes:
+            found = False
             for sys_we in sys_wes:
                 if set(sys_we['toknums']) == set(gold_we['toknums']):
                     if not (gold_we['ss'] or "").startswith('p.'):
@@ -32,6 +31,10 @@ def build_confusion_matrix(sysf_path, goldf_path):
                     role_mat[gold_ss][sys_ss] += 1
                     fxn_mat[gold_ss2][sys_ss2] += 1
                     exact_mat[format_pair(gold_ss, gold_ss2)][format_pair(sys_ss, sys_ss2)] += 1
+                    found = True
+            if not found:
+                print('Unmatched wes! ' + str(gold_we['ss']))
+
 
     def normalize(mat):
         return {
@@ -56,7 +59,8 @@ def build_confusion_matrix(sysf_path, goldf_path):
 
 from pprint import pprint
 
-pprint(build_confusion_matrix(
-    r"C:\temp\best_results\nn\goldid.goldsyn\goldid.goldsyn.test.sys.goldid.json",
-    r"C:\temp\best_results\nn\goldid.goldsyn\goldid.goldsyn.test.gold.json"
-))
+mat = build_confusion_matrix(
+    r"/cs/labs/oabend/aviramstern/streusle_results/results/aviram-NN/test/NN.goldsyn.goldid.json",
+    r"/cs/labs/oabend/aviramstern/streusle_results/results/vivek-SVM/test/SVM.goldsyn.goldid.json",
+)
+json.dump(mat, open('/tmp/mat.json', 'w'), indent=2)

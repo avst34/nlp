@@ -20,8 +20,15 @@ ratio = math.ceil(len(train_recs) / len(strain_recs))
 ratio_pps = math.ceil(len([pp for t in train_recs for pp in t['pps']]) / len([pp for t in strain_recs for pp in t['pps']]))
 all_train_recs = train_recs + strain_recs * ratio_pps
 
+print('Train')
 print('Boknilev/Streusle - sentences: %d/%d' % (len(train_recs), len(strain_recs)))
 print('Boknilev/Streusle - pps      : %d/%d' % (len([pp for t in train_recs for pp in t['pps']]), len([pp for t in strain_recs for pp in t['pps']])))
+print('Dev')
+print('Boknilev/Streusle - sentences: %d/%d' % (len(dev_recs), len(sdev_recs)))
+print('Boknilev/Streusle - pps      : %d/%d' % (len([pp for t in dev_recs for pp in t['pps']]), len([pp for t in sdev_recs for pp in t['pps']])))
+print('Test')
+print('Boknilev/Streusle - sentences: %d/%d' % (len(test_recs), len(stest_recs)))
+print('Boknilev/Streusle - pps      : %d/%d' % (len([pp for t in test_recs for pp in t['pps']]), len([pp for t in stest_recs for pp in t['pps']])))
 print('Ratio: %d' % ratio)
 print('Ratio (pps): %d' % ratio_pps)
 print('Final training samples size: %d sents, %d pps' % (len(all_train_recs), len([pp for t in all_train_recs for pp in t['pps']])))
@@ -41,7 +48,7 @@ print("Tuning..")
 class Tuner(HCPDModelTuner):
 
     def build_csv_rows(self, params, result):
-        assert isinstance(result, HyperparametersTuner.ExecutionResult)
+            assert isinstance(result, HyperparametersTuner.ExecutionResult)
         result_data = result.result_data
         rows_tuples = [[]]
         row_tuples = rows_tuples[0]
