@@ -19,7 +19,7 @@ from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesMode
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 from utils import csv_to_objs
 
-STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
+STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/release'
 
 
 def process_tuner_results(tuner_results_csv_path, output_dir=None):
@@ -65,7 +65,7 @@ def evaluate_most_frequent_baseline_model(output_dir):
         model = MostFrequentClassModel(['lemma'], include_empty=False, n_labels_to_predict=2)
         evaluate_model_on_task(task, model, streusle_record_to_most_frequent_class_model_sample, mfc_output_dir)
 
-def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir):
+def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, save_model=False):
     loader = StreusleLoader()
 
     if not os.path.exists(output_dir):
@@ -81,13 +81,16 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir):
     train_samples = [streusle_to_model_sample(r) for r in train_records]
     dev_samples = [streusle_to_model_sample(r) for r in dev_records]
 
+    fitted = False
     try:
         predictor = LstmMlpSupersensesModel.load(task_output + '/model')
         print('Loaded existing predictor')
     except:
+        fitted = False
         predictor = model.fit(train_samples, dev_samples, show_progress=True)
     print("Training done")
-    # predictor.save(task_output + '/model')
+    if save_model and fitted:
+        predictor.save(task_output + '/model')
     print("Save model done")
     evaluator = StreusleEvaluator(predictor)
     for stype, records in [('train', train_records), ('dev', dev_records), ('test', test_records)]:

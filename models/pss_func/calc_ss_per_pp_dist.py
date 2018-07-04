@@ -1,30 +1,10 @@
 from collections import defaultdict
 
 from datasets.streusle_v4 import StreusleLoader
+from models.pss_func.prepositions_ordering import DROP, TYPOS
 
-DROP = ['circa', 're', 'plus', "", 'and']
-TYPOS = {
-    'fo': 'for',
-    'fot': 'for',
-    "it's": 'its',
-    'thru': 'through',
-    'int': 'in',
-    's': "'s",
-    "'": "'s",
-    'abou': 'about',
-    'a': 'at',
-    'you': 'your',
-    'thier': 'their',
-    'till': 'untill',
-    'it': 'its',
-    '@': 'at',
-    'ur': 'your',
-    'btwn': 'between',
-    '4': 'for',
-    'untill': 'until'
-}
 
-def calc_ss_per_pp_dist(records, pss="role", as_probabilities=True):
+def calc_ss_per_pp_dist(records, pss="role", as_probabilities=True, top_k=None):
     assert pss in ['role', 'func']
     dropped = 0
     pps = 0
@@ -49,7 +29,10 @@ def calc_ss_per_pp_dist(records, pss="role", as_probabilities=True):
             for pss in counts:
                 counts[pss] /= tot
 
-    return {p: {pss: c for pss, c in pss_counts[p].items()} for p in pss_counts}
+    preps = [x[0] for x in sorted({(p, sum(pss_counts[p].values())) for p in pss_counts.keys()})[::-1]]
+    if top_k:
+        preps = preps[:top_k]
+    return {p: {pss: c for pss, c in pss_counts[p].items()} for p in preps}
 
 if __name__ == '__main__':
     records = StreusleLoader().load()

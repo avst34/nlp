@@ -37,9 +37,10 @@ class StreusleEvaluator:
                 for streusle_record in streusle_records:
                     sample = streusle_record_to_model_sample(streusle_record)
                     predictions = self.predictor.predict(sample.xs, mask=self.predictor.get_sample_mask(sample.xs))
+                    dists_predictions = self.predictor.predict_dist(sample.xs, mask=self.predictor.get_sample_mask(sample.xs))
                     if predictions and type(predictions[0]) is not tuple:
                         predictions = [(p.supersense_role, p.supersense_func) for p in predictions]
-                    sent_data = streusle_record.build_data_with_supersenses(predictions, ident)
+                    sent_data = streusle_record.build_data_with_supersenses(predictions, ident, supersenses_dists=dists_predictions)
                     sys_data.append(sent_data)
                 print("Dumping sys file")
                 json.dump(sys_data, sys_f)

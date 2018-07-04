@@ -303,6 +303,13 @@ class LstmMlpSupersensesModel:
         ys = tuple([self.lowlevel_to_sample_y(ll_s) for ll_s in ll_ys])
         return ys
 
+    def predict_dist(self, sample_xs, mask=None):
+        if not mask:
+            mask = [True] * len(sample_xs)
+        ll_xs = [self.sample_x_to_lowlevel(x, sample_xs, x_mask) for x_mask, x in zip(mask, sample_xs)]
+        dists = self.model.predict_dist(ll_xs, mask=mask)
+        return dists
+
     @property
     def test_set_evaluation(self):
         return self.model.test_set_evaluation

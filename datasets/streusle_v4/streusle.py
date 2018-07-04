@@ -245,8 +245,9 @@ class StreusleRecord:
     def get_tok_by_ud_id(self, ud_id):
         return [t for t in self.tagged_tokens if t.ud_id == ud_id][0]
 
-    def build_data_with_supersenses(self, supersenses, ident):
+    def build_data_with_supersenses(self, supersenses, ident, supersenses_dists=None):
         # supersenses - [(role, func), (role, func), ...]
+        # supersenses dists - [(role dist, func dist), (role dist, func dist), ...]
         assert ident in ['autoid', 'goldid']
         assert len(self.tagged_tokens) == len(supersenses)
         format_supersense = lambda ss: 'p.' + ss if ss else None
@@ -265,7 +266,7 @@ class StreusleRecord:
         data['swes'] = {}
         data['wmwes'] = {}
         data['smwes'] = {}
-        for token, (role, func) in zip(self.tagged_tokens, supersenses):
+        for token, (role, func), (role_dist, func_dist) in zip(self.tagged_tokens, supersenses, supersenses_dists or [(None, None)] * len(supersenses)):
             found_we = None
             wes = chain(orig['swes'].values(), orig['smwes'].values())
             for we in wes:
@@ -276,7 +277,9 @@ class StreusleRecord:
                     'toknums': found_we['toknums'],
                     'lexcat': found_we.get('lexcat'),
                     'ss': format_supersense(role),
-                    'ss2': format_supersense(func)
+                    'ss2': format_supersense(func),
+                    'ss_dist': {format_supersense(r): p for r, p in role_dist.items()} if role_dist else None,
+                    'ss2_dist': {format_supersense(f): p for f, p in func_dist.items()} if func_dist else None,
                 }
                 data[found_we['we_type']][found_we['we_id']] = new_we
             elif role or func:
@@ -309,6 +312,15 @@ class StreusleLoader(object):
                 records.append(record)
 
         return records
+
+    def load_train(self):
+        return self.load(STREUSLE_DIR + '/streusle.ud_train.conllulex')
+
+    def load_dev(self):
+        return self.load(STREUSLE_DIR + '/streusle.ud_dev.conllulex')
+
+    def load_test(self):
+        return self.load(STREUSLE_DIR + '/streusle.ud_test.conllulex')
 
     @staticmethod
     def get_dist(records, all_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET):

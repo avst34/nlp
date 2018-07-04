@@ -14,6 +14,7 @@ import math
 import zlib
 
 from dynet_utils import get_activation_function
+from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
 from utils import update_dict
 from vocabulary import Vocabulary
 
@@ -327,6 +328,7 @@ class LstmMlpMulticlassModel(object):
     #
     def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
+        evaluator = evaluator or PSSClasifierEvaluator()
         self.pc = self._build_network_params()
         # self._build_vocabularies(samples + validation_samples or [])
 
@@ -401,7 +403,8 @@ class LstmMlpMulticlassModel(object):
             print('--------------------------------------------')
             self.pc.populate(model_file_path)
         finally:
-            os.remove(model_file_path)
+            if os.path.exists(model_file_path):
+                os.remove(model_file_path)
 
         return self
 
@@ -421,6 +424,28 @@ class LstmMlpMulticlassModel(object):
                     predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
                     predictions.append(predicted)
             predictions = tuple(predictions)
+            ys.append(predictions)
+        assert all([y is None or type(y) is tuple and len(y) == self.hyperparameters.n_labels_to_predict for y in ys])
+        return ys
+
+    def predict_dist(self, sample_xs, mask=None):
+        dy.renew_cg()
+        if mask is None:
+            mask = [True] * len(sample_xs)
+        outputs = self._build_network_for_input(sample_xs, mask, apply_dropout=False)
+        ys = []
+        for token_ind, out in enumerate(outputs):
+            if not mask[token_ind] or out is None:
+                predictions = tuple([None] * self.hyperparameters.n_labels_to_predict)
+            else:
+                predictions = []
+                for klass_out in out:
+                    logprobs = list(klass_out.npvalue())
+                    probs = [math.exp(lp) for lp in logprobs]
+                    assert sum(probs) > 0.99 and sum(probs) < 1.01, 'bad probs: ' + str(sum(probs))
+                    dist = {self.output_vocabulary.get_word(ind): p for ind, p in enumerate(probs)}
+                    predictions.append(dist)
+                predictions = tuple(predictions)
             ys.append(predictions)
         assert all([y is None or type(y) is tuple and len(y) == self.hyperparameters.n_labels_to_predict for y in ys])
         return ys
