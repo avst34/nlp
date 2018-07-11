@@ -1,13 +1,12 @@
-import os
 import copy
-import sys
-import csv
 import json
-from itertools import chain
-from pprint import pprint
+import os
+import sys
 from collections import namedtuple, defaultdict
+from itertools import chain
+
 import supersense_repo
-from vocabulary import Vocabulary, VocabularyBuilder
+from vocabulary import VocabularyBuilder
 from word2vec import Word2VecModel
 
 STREUSLE_DIR = os.path.join(os.path.dirname(__file__), 'release')
@@ -285,8 +284,10 @@ class StreusleRecord:
             elif role or func:
                 raise Exception("Couldn't find a match for system supersense in data (" + ident + ")")
 
+        is_pss = lambda pss: pss is not None and pss.startswith('p.')
+
         for we in chain(data['swes'].values(), data['smwes'].values()):
-            assert not self.get_tok_by_ud_id(we['toknums'][0]).identified_for_pss or we['ss'].startswith('p.') and we['ss2'].startswith('p.')
+            assert not self.get_tok_by_ud_id(we['toknums'][0]).identified_for_pss or is_pss(we['ss']) or is_pss(we['ss2'])
 
         return data
 
@@ -314,13 +315,13 @@ class StreusleLoader(object):
         return records
 
     def load_train(self):
-        return self.load(STREUSLE_DIR + '/streusle.ud_train.conllulex')
+        return self.load(STREUSLE_DIR + '/train/streusle.ud_train.conllulex')
 
     def load_dev(self):
-        return self.load(STREUSLE_DIR + '/streusle.ud_dev.conllulex')
+        return self.load(STREUSLE_DIR + '/dev/streusle.ud_dev.conllulex')
 
     def load_test(self):
-        return self.load(STREUSLE_DIR + '/streusle.ud_test.conllulex')
+        return self.load(STREUSLE_DIR + '/test/streusle.ud_test.conllulex')
 
     @staticmethod
     def get_dist(records, all_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET):

@@ -1,13 +1,12 @@
 import json
-from collections import namedtuple
 from itertools import chain
 from pprint import pprint
+
 from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel
 from models.supersenses import vocabs
 from models.supersenses.features.features import build_features
-from ptb_poses import assert_pos
-from utils import update_dict, clear_nones
-import numpy as np
+from utils import update_dict
+
 
 class LstmMlpSupersensesModel:
 
@@ -60,7 +59,7 @@ class LstmMlpSupersensesModel:
         def __init__(self, supersense_role=None, supersense_func=None):
             self.supersense_role = supersense_role
             self.supersense_func = supersense_func
-            assert supersense_role and supersense_func or (not supersense_role and not supersense_func)
+            # assert supersense_role and supersense_func or (not supersense_role and not supersense_func)
 
         def to_dict(self):
             return self.__dict__
@@ -167,6 +166,8 @@ class LstmMlpSupersensesModel:
             self.mlp_dropout_p = mlp_dropout_p
             self.epochs = epochs
             self.mask_mwes = mask_mwes
+
+            assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])])
 
         def clone(self, override=None):
             override = override or {}
@@ -308,6 +309,15 @@ class LstmMlpSupersensesModel:
             mask = [True] * len(sample_xs)
         ll_xs = [self.sample_x_to_lowlevel(x, sample_xs, x_mask) for x_mask, x in zip(mask, sample_xs)]
         dists = self.model.predict_dist(ll_xs, mask=mask)
+        for ind, dist in enumerate(dists):
+            if dist and len(dist) < 2:
+                if self.hyperparameters.labels_to_predict == [LstmMlpSupersensesModel.SUPERSENSE_FUNC]:
+                    dist = (None, dist[0])
+                elif self.hyperparameters.labels_to_predict == [LstmMlpSupersensesModel.SUPERSENSE_ROLE]:
+                    dist = (dist[0], None)
+                else:
+                    raise Exception('Unreachable')
+                dists[ind] = dist
         return dists
 
     @property

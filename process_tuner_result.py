@@ -3,13 +3,12 @@
 #     2.1 get the hyperparameters json
 #     2.2 train
 #     2.3 create psseval tsv for predictor
+import json
+import os
 from collections import defaultdict
 from itertools import chain
 
 from datasets.streusle_v4 import StreusleLoader, sys
-import os
-import json
-
 from datasets.streusle_v4.release.supersenses import coarsen_pss
 from evaluators.streusle_evaluator import StreusleEvaluator
 from models.general.simple_conditional_multiclass_model.model import MostFrequentClassModel
@@ -84,6 +83,7 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, sa
     fitted = False
     try:
         predictor = LstmMlpSupersensesModel.load(task_output + '/model')
+        fitted = True
         print('Loaded existing predictor')
     except:
         fitted = False
