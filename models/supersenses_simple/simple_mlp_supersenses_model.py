@@ -10,10 +10,10 @@ from pprint import pprint
 import dynet as dy
 import numpy as np
 
+from dynet_utils import get_activation_function
 from evaluators.simple_pss_classifier_evaluator import SimplePSSClassifierEvaluator
-from models.general.lstm_mlp_multiclass_model import SimpleMlpSupersensesModel, get_activation_function
-from models.supersenses import vocabs
 from models.supersenses_simple import embeddings
+from models.supersenses_simple import vocabs
 
 ModelOptimizedParams = namedtuple('ModelOptimizedParams', [
     'input_lookups',
@@ -39,6 +39,9 @@ class SimpleMlpSupersensesModel:
         def to_dict(self):
             return self.__dict__
 
+        def pprint(self):
+            print('[prep:%s,gov:%s,obj:%s]' % (' '.join(self.prep_tokens), self.gov_token, self.obj_token))
+
         @staticmethod
         def from_dict(d):
             return SimpleMlpSupersensesModel.SampleX(**d)
@@ -51,13 +54,16 @@ class SimpleMlpSupersensesModel:
         def __init__(self, supersense_role=None, supersense_func=None):
             self.supersense_role = supersense_role
             self.supersense_func = supersense_func
-            # assert supersense_role and supersense_func or (not supersense_role and not supersense_func)
+            assert supersense_role or supersense_func
 
         def to_dict(self):
             return self.__dict__
 
         def is_empty(self):
             return not self.supersense_func and not self.supersense_role
+
+        def pprint(self):
+            print('[role:%s,func:%s]' % (self.supersense_role, self.supersense_func))
 
         @staticmethod
         def from_dict(d):
@@ -85,6 +91,10 @@ class SimpleMlpSupersensesModel:
                 sample_id=d['sample_id']
             )
 
+        def pprint(self):
+            print('---')
+            self.x.pprint()
+            self.y.pprint()
 
     SUPERSENSE_ROLE = "supersense_role"
     SUPERSENSE_FUNC = "supersense_func"
@@ -143,8 +153,8 @@ class SimpleMlpSupersensesModel:
 
     def __init__(self, hyperparameters, gov_vocab=None, obj_vocab=None, prep_vocab=None, pss_vocab=None, token_embeddings=None):
         self.prep_vocab = prep_vocab or vocabs.PREPS
-        self.obj_vocab = obj_vocab or vocabs.OBJS
-        self.gov_vocab = gov_vocab or vocabs.GOVS
+        self.obj_vocab = obj_vocab or vocabs.OBJ
+        self.gov_vocab = gov_vocab or vocabs.GOV
         self.pss_vocab = pss_vocab or vocabs.PSS
         self.embeddings = token_embeddings or embeddings.TOKENS_WORD2VEC
         self.hyperparameters = hyperparameters
@@ -157,9 +167,9 @@ class SimpleMlpSupersensesModel:
         pc = dy.ParameterCollection()
         hp = self.hyperparameters
         mlp_input_dim = self.hyperparameters.lstm_h_dim + \
-            hp.token_embd_dim if hp.use_gov else 0 + \
-            hp.token_embd_dim if hp.use_obj else 0
-
+                        (hp.token_embd_dim if hp.use_gov else 0) + \
+                        (hp.token_embd_dim if hp.use_obj else 0)
+        print('mlp input dim', mlp_input_dim)
         self.params = ModelOptimizedParams(
             input_lookups={
                 "gov": pc.add_lookup_parameters((self.gov_vocab.size(), hp.token_embd_dim)),
@@ -169,15 +179,15 @@ class SimpleMlpSupersensesModel:
             },
             mlp_softmaxes={
               pss_type: MLPSoftmaxParam(
-                  mlp=MLPLayerParams(
+                  mlp=[MLPLayerParams(
                       W=pc.add_parameters((self.hyperparameters.mlp_layer_dim, self.hyperparameters.mlp_layer_dim if i > 0 else mlp_input_dim)),
                       b=pc.add_parameters((self.hyperparameters.mlp_layer_dim,))
-                  ),
+                  ) for i in range(self.hyperparameters.mlp_layers)],
                   softmax=MLPLayerParams(
                       W=pc.add_parameters((self.pss_vocab.size(), self.hyperparameters.mlp_layer_dim)),
                       b=pc.add_parameters((self.pss_vocab.size(),))
                   )
-              ) for pss_type in ['role', 'func']
+              ) for pss_type in self.hyperparameters.labels_to_predict
             }
         )
 
@@ -189,15 +199,18 @@ class SimpleMlpSupersensesModel:
         for field, lookup_param in sorted(self.params.input_lookups.items()):
             vocab = input_vocabs.get(field)
             if vocab:
+                miss = 0
                 for word in vocab.all_words():
                     word_index = input_vocabs[field].get_index(word)
-                    vector = self.embeddings.get(word)
+                    vector = self.embeddings.get(word, self.embeddings.get(word.lower()))
                     if vector is not None:
                         lookup_param.init_row(word_index, vector)
                     else:
                         # if field not in self.hyperparameters.input_embeddings_to_allow_partial:
                         #     raise Exception('Missing embedding vector for field: %s, word %s' % (field, word))
                         lookup_param.init_row(word_index, [0] * hp.token_embd_dim)
+                        miss += 1
+                print('%s: %d/%d embeddings missing (%2.2f%%)' % (field, miss, len(vocab.all_words()), miss / len(vocab.all_words()) * 100))
 
         embedded_input_dim = hp.token_embd_dim + hp.internal_token_embd_dim
         if self.hyperparameters.is_bilstm:
@@ -249,9 +262,9 @@ class SimpleMlpSupersensesModel:
         lstm_output = cur_lstm_state.transduce(embeddings)[-1]
         cur_out = lstm_output
         if self.hyperparameters.use_gov:
-            cur_out = dy.concatenate([cur_out, dy.lookup(self.params.input_lookups['gov'], self.gov_vocab.get_index(x.gov))])
+            cur_out = dy.concatenate([cur_out, dy.lookup(self.params.input_lookups['gov'], self.gov_vocab.get_index(x.gov_token))])
         if self.hyperparameters.use_obj:
-            cur_out = dy.concatenate([cur_out, dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(x.obj))])
+            cur_out = dy.concatenate([cur_out, dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(x.obj_token))])
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         output = {}
         for label, mlp_softmax in self.params.mlp_softmaxes.items():
@@ -269,7 +282,7 @@ class SimpleMlpSupersensesModel:
             ss_ind = self.pss_vocab.get_index(getattr(y, label))
             loss = -dy.pick(scores, ss_ind)
             losses.append(loss)
-        return loss
+        return dy.esum(losses)
 
     def fit(self, samples, validation_samples, show_progress=True, show_epoch_eval=True,
             evaluator=None):
@@ -329,14 +342,19 @@ class SimpleMlpSupersensesModel:
                     self.train_set_evaluation.append(epoch_train_eval)
                     print('--------------------------------------------')
 
-                    test_acc = epoch_test_eval['f1']
+                    get_acc = lambda ev: sum([ev[label] for label in self.hyperparameters.labels_to_predict]) / len(self.hyperparameters.labels_to_predict)
+
+                    test_acc = get_acc(epoch_test_eval)
                     if best_test_acc is None or test_acc > best_test_acc:
                         print("Best epoch so far! with f1 of: %1.2f" % test_acc)
                         best_test_acc = test_acc
-                        train_acc = epoch_train_eval['f1']
+                        train_acc = get_acc(epoch_train_eval)
                         best_epoch = epoch
                         self.pc.save(model_file_path)
 
+            self.train_acc = train_acc
+            self.test_acc = best_test_acc
+            self.best_epoch = best_epoch
             print('--------------------------------------------')
             print('Training is complete (%d samples, %d epochs)' % (len(train), self.hyperparameters.epochs))
             print('--------------------------------------------')
@@ -351,7 +369,7 @@ class SimpleMlpSupersensesModel:
         dy.renew_cg()
         output = self._build_network_for_input(sample_x, apply_dropout=False)
         prediction = {}
-        for label, scores in output:
+        for label, scores in output.items():
             ind = np.argmax(scores.npvalue())
             predicted = self.pss_vocab.get_word(ind)
             prediction[label] = predicted
@@ -361,7 +379,7 @@ class SimpleMlpSupersensesModel:
         dy.renew_cg()
         outputs = self._build_network_for_input(x, apply_dropout=False)
         predictions = {}
-        for label, scores in output:
+        for label, scores in output.items():
             logprobs = list(scores.npvalue())
             probs = [math.exp(lp) for lp in logprobs]
             assert sum(probs) > 0.99 and sum(probs) < 1.01, 'bad probs: ' + str(sum(probs))

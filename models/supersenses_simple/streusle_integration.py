@@ -1,4 +1,4 @@
-from models.supersenses_simple.lstm_mlp_supersenses_model import SimpleMlpSupersensesModel
+from models.supersenses_simple.simple_mlp_supersenses_model import SimpleMlpSupersensesModel
 
 
 def streusle_record_to_simple_lstm_model_samples(rec):

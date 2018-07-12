@@ -1,4 +1,5 @@
 import random
+from pprint import pprint
 
 to_precentage = lambda s: int(s * 10000) / 100 if s is not None else None
 
@@ -20,7 +21,6 @@ class SimplePSSClassifierEvaluator:
     def evaluate(self, samples, examples_to_show=3, predictor=None):
         predictor = predictor or self.predictor
 
-        n_correct = 0
         counts = {
             'supersense_role': 0,
             'supersense_func': 0
@@ -35,11 +35,10 @@ class SimplePSSClassifierEvaluator:
                 if getattr(predicted_y, f) == getattr(s.y, f):
                     counts[f] += 1
 
-        acc = n_correct / len(samples)
-        print("Accuracy: %2.2f" % (acc*100))
-
-        return {
+        acc = {
             'supersense_role': counts['supersense_role'] / len(samples),
             'supersense_func': counts['supersense_func'] / len(samples)
         }
+        pprint(acc)
+        return acc
 

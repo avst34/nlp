@@ -1,13 +1,13 @@
-import hashlib
-import time, datetime
-import random
 import csv
-import threading
+import hashlib
 import json
+import os
 import random
+import threading
+import time
 from collections import OrderedDict
 from collections import defaultdict
-import os
+
 from lockfile import Lockfile
 from utils import csv_to_objs
 
@@ -161,4 +161,4 @@ class HyperparametersTuner:
             if self.dump_result:
                 if result.score > current_highest_score or True:
                     os.mkdir(self.results_base_path + '/' + execution_id)
-                    self.dump_result(self.results_base_path + '/' + execution_id, result, params)
+                    self.dump_result(self.results_base_path + '/' + execution_id, result)

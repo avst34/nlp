@@ -107,6 +107,7 @@ class TaggedToken:
                  ud_upos, ud_xpos,
                  lemma,
                  ud_id,
+                 prep_toks,
                  gov_ind, obj_ind, govobj_config, lexcat, _raw_ss_ss2):
         self.verb_ss = verb_ss
         self.noun_ss = noun_ss
@@ -131,6 +132,7 @@ class TaggedToken:
         self.ud_upos = ud_upos
         self.ud_xpos = ud_xpos
         self._raw_ss_ss2 = _raw_ss_ss2
+        self.prep_toks = prep_toks
 
         if (self.supersense_role is not None) != (self.supersense_role is not None):
             raise Exception("TaggedToken initialized with only one supersense")
@@ -232,7 +234,8 @@ class StreusleRecord:
                 obj_ind=id_to_ind.get(tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('obj')),
                 govobj_config=tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('config'),
                 lexcat=tok_we.get(tok_data['#'], {}).get('lexcat'),
-                _raw_ss_ss2=''.join([tok_we.get(tok_data['#'], {}).get(ss) or '' for ss in ['ss', 'ss2']])
+                _raw_ss_ss2=''.join([tok_we.get(tok_data['#'], {}).get(ss) or '' for ss in ['ss', 'ss2']]),
+                prep_toks=[self.data['toks'][id_to_ind[tokid]]['word'] for tokid in we_toknums.get(tok_data['#'], [])]
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersense_repo.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersense_repo.PREPOSITION_SUPERSENSES_SET]
@@ -315,13 +318,13 @@ class StreusleLoader(object):
         return records
 
     def load_train(self):
-        return self.load(STREUSLE_DIR + '/train/streusle.ud_train.conllulex')
+        return self.load(STREUSLE_DIR + '/train/streusle.ud_train.goldid.goldsyn.json', input_format='json')
 
     def load_dev(self):
-        return self.load(STREUSLE_DIR + '/dev/streusle.ud_dev.conllulex')
+        return self.load(STREUSLE_DIR + '/dev/streusle.ud_dev.goldid.goldsyn.json', input_format='json')
 
     def load_test(self):
-        return self.load(STREUSLE_DIR + '/test/streusle.ud_test.conllulex')
+        return self.load(STREUSLE_DIR + '/test/streusle.ud_test.goldid.goldsyn.json', input_format='json')
 
     @staticmethod
     def get_dist(records, all_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET):
