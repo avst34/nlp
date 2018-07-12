@@ -28,7 +28,7 @@ TUNER_DOMAINS = [
     PS(name='is_bilstm', values=[True]),
     PS(name='mlp_dropout_p', values=np.arange(.51, step=.01)),
     PS(name='lstm_dropout_p', values=np.arange(.51, step=.01)),
-    PS(name='epochs', values=[80]),
+    PS(name='epochs', values=[130]),
     PS(name='learning_rate', values=np.logspace(-2, -1, 6)),
     PS(name='learning_rate_decay', values=np.r_[0, np.logspace(-5, -1, 9)]),
     PS(name='dynet_random_seed', values=[os.environ.get('DYNET_RANDOM_SEED')], enabled=True)
