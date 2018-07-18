@@ -1,4 +1,5 @@
 from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
+from datasets.streusle_v4 import StreusleLoader
 from models.general.predictor_ops import CombinedPredictor
 from models.general.simple_conditional_multiclass_model.model import MostFrequentClassModel
 from models.general.simple_conditional_multiclass_model.streusle_integration import \
@@ -7,9 +8,11 @@ from models.general.simple_conditional_multiclass_model.streusle_integration imp
 evaluator = PSSClasifierEvaluator()
 
 def run(train_records, test_records):
-    for features in [[], ['token']]:
-        for class_names_grp in [[['supersense_role']], [['supersense_func']], [['supersense_role'], ['supersense_func']], [['supersense_role', 'supersense_func']]]:
-            for include_empty in [True, False]:
+    # for features in [[], ['token']]:
+    #     for class_names_grp in [[['supersense_role']], [['supersense_func']], [['supersense_role'], ['supersense_func']], [['supersense_role', 'supersense_func']]]:
+    for features in [['token']]:
+        for class_names_grp in [[['supersense_role']], [['supersense_func']]]:
+            for include_empty in [False]:
                 predictors = []
                 for class_names in class_names_grp:
                     train_samples = [streusle_record_to_most_frequent_class_model_sample(r, class_names=class_names) for r in train_records]
@@ -30,3 +33,7 @@ def run(train_records, test_records):
                                                                                                         repr(class_names_grp)))
                 evaluator.evaluate(dev_samples, predictor=CombinedPredictor(predictors), examples_to_show=1)
 
+if __name__ == '__main__':
+    train = StreusleLoader().load_train()
+    dev = StreusleLoader().load_dev()
+    run(train, dev)

@@ -14,8 +14,11 @@ def eval_func_pred(prediction, records):
     }
 
 def eval_type_level_func_pred_token_level(prediction, tags):
+    return eval_type_level_pred_token_level(prediction, tags, 'ss_func')
+
+def eval_type_level_pred_token_level(prediction, tags, pss='ss_func'):
     total = len([t for t in tags if t.prep in prediction])
-    correct = len([t for t in tags if t.prep in prediction and t.ss_func == prediction[t.prep]])
+    correct = len([t for t in tags if t.prep in prediction and getattr(t, pss) == prediction[t.prep]])
     return {
         'acc': correct / total
     }

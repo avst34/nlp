@@ -103,6 +103,7 @@ class SimpleMlpSupersensesModel:
 
         def __init__(self,
                      labels_to_predict,
+                     use_prep,
                      use_gov,
                      use_obj,
                      update_prep_embd,
@@ -125,6 +126,7 @@ class SimpleMlpSupersensesModel:
                      ):
             self.internal_token_embd_dim = internal_token_embd_dim
             self.labels_to_predict = labels_to_predict
+            self.use_prep = use_prep
             self.use_gov = use_gov
             self.use_obj = use_obj
             self.update_prep_embd = update_prep_embd
@@ -166,7 +168,7 @@ class SimpleMlpSupersensesModel:
     def _build_network_params(self):
         pc = dy.ParameterCollection()
         hp = self.hyperparameters
-        mlp_input_dim = self.hyperparameters.lstm_h_dim + \
+        mlp_input_dim = (self.hyperparameters.lstm_h_dim  if hp.use_prep else 0) + \
                         (hp.token_embd_dim if hp.use_gov else 0) + \
                         (hp.token_embd_dim if hp.use_obj else 0)
         print('mlp input dim', mlp_input_dim)
@@ -240,31 +242,36 @@ class SimpleMlpSupersensesModel:
 
         self.lstm_builder.set_dropout(lstm_dropout_p)
 
-        if not self.hyperparameters.is_bilstm:
-            cur_lstm_state = self.lstm_builder.initial_state()
+        if self.hyperparameters.use_prep:
+            if not self.hyperparameters.is_bilstm:
+                cur_lstm_state = self.lstm_builder.initial_state()
+            else:
+                cur_lstm_state = self.lstm_builder
+            embeddings = [
+                dy.concatenate([
+                    dy.lookup(
+                        self.params.input_lookups['prep'],
+                        self.prep_vocab.get_index(tok),
+                        update=self.hyperparameters.update_prep_embd
+                    ),
+                    dy.lookup(
+                        self.params.input_lookups['prep_internal'],
+                        self.prep_vocab.get_index(tok),
+                        update=True
+                    )
+                ])
+                for tok in x.prep_tokens
+            ]
+            lstm_output = cur_lstm_state.transduce(embeddings)[-1]
+            vecs = [lstm_output]
         else:
-            cur_lstm_state = self.lstm_builder
-        embeddings = [
-            dy.concatenate([
-                dy.lookup(
-                    self.params.input_lookups['prep'],
-                    self.prep_vocab.get_index(tok),
-                    update=self.hyperparameters.update_prep_embd
-                ),
-                dy.lookup(
-                    self.params.input_lookups['prep_internal'],
-                    self.prep_vocab.get_index(tok),
-                    update=True
-                )
-            ])
-            for tok in x.prep_tokens
-        ]
-        lstm_output = cur_lstm_state.transduce(embeddings)[-1]
-        cur_out = lstm_output
+            vecs = []
         if self.hyperparameters.use_gov:
-            cur_out = dy.concatenate([cur_out, dy.lookup(self.params.input_lookups['gov'], self.gov_vocab.get_index(x.gov_token))])
+            cur_out = dy.concatenate(vecs + [dy.lookup(self.params.input_lookups['gov'], self.gov_vocab.get_index(x.gov_token))])
         if self.hyperparameters.use_obj:
-            cur_out = dy.concatenate([cur_out, dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(x.obj_token))])
+            cur_out = dy.concatenate(vecs + [dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(x.obj_token))])
+        if not self.hyperparameters.use_gov and not self.hyperparameters.use_obj:
+            cur_out = dy.concatenate(vecs)
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         output = {}
         for label, mlp_softmax in self.params.mlp_softmaxes.items():

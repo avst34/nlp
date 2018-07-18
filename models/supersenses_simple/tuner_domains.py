@@ -13,6 +13,7 @@ TUNER_DOMAINS = [
         ('supersense_role',),
         ('supersense_func',)
     ]),
+    PS(name='use_prep', values=[True, False]),
     PS(name='use_gov', values=[True, False]),
     PS(name='use_obj', values=[True, False]),
     PS(name='token_embd_dim', values=[300]),
