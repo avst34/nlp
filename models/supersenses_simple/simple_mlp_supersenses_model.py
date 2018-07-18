@@ -267,11 +267,10 @@ class SimpleMlpSupersensesModel:
         else:
             vecs = []
         if self.hyperparameters.use_gov:
-            cur_out = dy.concatenate(vecs + [dy.lookup(self.params.input_lookups['gov'], self.gov_vocab.get_index(x.gov_token))])
+            vecs.append(dy.lookup(self.params.input_lookups['gov'], self.gov_vocab.get_index(x.gov_token)))
         if self.hyperparameters.use_obj:
-            cur_out = dy.concatenate(vecs + [dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(x.obj_token))])
-        if not self.hyperparameters.use_gov and not self.hyperparameters.use_obj:
-            cur_out = dy.concatenate(vecs)
+            vecs.append(dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(x.obj_token)))
+        cur_out = dy.concatenate(vecs)
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         output = {}
         for label, mlp_softmax in self.params.mlp_softmaxes.items():

@@ -15,10 +15,10 @@ train_samples = [s for r in train_recs for s in streusle_record_to_simple_lstm_m
 dev_samples = [s for r in dev_recs for s in streusle_record_to_simple_lstm_model_samples(r)]
 
 tasks = {
-    'NO_PREP_OBJ_FUNC': OBJ_FUNC,
-    'NO_PREP_GOV_FUNC': GOV_FUNC,
-    'NO_PREP_OBJ_ROLE': OBJ_ROLE,
-    'NO_PREP_GOV_ROLE': GOV_ROLE,
+    # 'NO_PREP_OBJ_FUNC': OBJ_FUNC,
+    # 'NO_PREP_GOV_FUNC': GOV_FUNC,
+    # 'NO_PREP_OBJ_ROLE': OBJ_ROLE,
+    # 'NO_PREP_GOV_ROLE': GOV_ROLE,
     'NO_PREP_GOV_OBJ_FUNC': GOV_OBJ_FUNC,
     'NO_PREP_GOV_OBJ_ROLE': GOV_OBJ_ROLE,
 }
