@@ -6,7 +6,7 @@ from numpy import polyfit, poly1d
 from scipy.stats import pearsonr
 
 from datasets.streusle_v4 import StreusleLoader
-from models.pss_func.eval_func_pred import eval_type_level_func_pred_token_level
+from models.pss_func.eval_func_pred import eval_type_level_func_pred_token_level, eval_type_level_pred_token_level
 from models.pss_func.prepositions_ordering import DROP, TYPOS
 
 Tag = namedtuple('Tag', ['prep', 'ss_role', 'ss_func'])
@@ -15,6 +15,40 @@ def collect_train_dev_tags():
     train_records = StreusleLoader().load_train()
     dev_records = StreusleLoader().load_dev()
     records = train_records + dev_records
+
+    tags = []
+    for rec in records:
+        for ttok in rec.tagged_tokens:
+            if ttok.supersense_role:
+                if ttok.is_part_of_wmwe:
+                    continue
+                prep = ' '.join([rec.get_tok_by_ud_id(toknum).token for toknum in ttok.we_toknums]).lower()
+                if prep in DROP:
+                    continue
+                prep = TYPOS.get(prep, prep)
+                tags.append(Tag(prep, ttok.supersense_role, ttok.supersense_func))
+
+    return tags
+
+def collect_train_tags():
+    records = StreusleLoader().load_train()
+
+    tags = []
+    for rec in records:
+        for ttok in rec.tagged_tokens:
+            if ttok.supersense_role:
+                if ttok.is_part_of_wmwe:
+                    continue
+                prep = ' '.join([rec.get_tok_by_ud_id(toknum).token for toknum in ttok.we_toknums]).lower()
+                if prep in DROP:
+                    continue
+                prep = TYPOS.get(prep, prep)
+                tags.append(Tag(prep, ttok.supersense_role, ttok.supersense_func))
+
+    return tags
+
+def collect_dev_tags():
+    records = StreusleLoader().load_dev()
 
     tags = []
     for rec in records:
@@ -88,9 +122,9 @@ def mf_pss_per_prep(tags, pss_type='ss_role'):
     return mf_per_prep
 
 
-def eval_mf_baseline(tags):
-    mf_per_prep = mf_pss_per_prep(tags, 'ss_role')
-    return eval_type_level_func_pred_token_level(mf_per_prep, tags)
+def eval_mf_baseline(tags, from_pss='ss_role', to_pss='ss_func', train_tags=None):
+    mf_per_prep = mf_pss_per_prep(train_tags or tags, from_pss)
+    return eval_type_level_pred_token_level(mf_per_prep, tags, to_pss)
 
 def eval_mf_baseline_per_prep(tags):
     mf_per_prep = mf_pss_per_prep(tags, 'ss_role')
@@ -302,6 +336,13 @@ def generate_reports():
 
     # mf_baseline_token_level_acc = eval_mf_baseline(tags)['acc']
     # print('Token level MF baseline accuracy:', mf_baseline_token_level_acc)
+
+    train_tags = collect_train_tags()
+    dev_tags = collect_dev_tags()
+
+    mf_role_acc = eval_mf_baseline(dev_tags, from_pss='ss_role', to_pss='ss_role', train_tags=train_tags)['acc']
+    mf_func_acc = eval_mf_baseline(dev_tags, from_pss='ss_func', to_pss='ss_func', train_tags=train_tags)['acc']
+    print('MF role: %2.2f, MF func: %2.2f' % (mf_role_acc, mf_func_acc))
 
 if __name__ == '__main__':
     print(generate_reports())
