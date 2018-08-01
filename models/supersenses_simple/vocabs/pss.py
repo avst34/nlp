@@ -50,6 +50,5 @@ PSS = Vocabulary('PSS', [
 'Direction',
 'ComparisonRef',
 'Theme',
-'Path',
-None]
+'Path']
 )

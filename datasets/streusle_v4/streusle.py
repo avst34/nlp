@@ -1,8 +1,10 @@
 import copy
 import json
 import os
-import sys
 from collections import namedtuple, defaultdict
+
+import h5py
+import sys
 from itertools import chain
 
 import supersense_repo
@@ -10,8 +12,9 @@ from vocabulary import VocabularyBuilder
 from word2vec import Word2VecModel
 
 STREUSLE_DIR = os.path.join(os.path.dirname(__file__), 'release')
+ELMO_FILE = os.path.join(os.path.dirname(__file__), 'elmo/elmo_layers.hdf5')
 sys.path.append(STREUSLE_DIR)
-print(STREUSLE_DIR)
+
 from .release import conllulex2json
 
 ENHANCEMENTS = namedtuple('SEnhancements', ['WORD2VEC_PATH', 'WORD2VEC_MISSING_PATH', 'UD_LEMMAS_WORD2VEC_PATH', 'UD_LEMMAS_WORD2VEC_MISSING_PATH', 'SPACY_DEP_TREES', 'CORENLP_DEP_TREES', 'SPACY_NERS', 'CORENLP_NERS', 'SPACY_POS', 'CORENLP_POS', 'TRAIN_SET_SENTIDS_UD_SPLIT', 'DEV_SET_SENTIDS_UD_SPLIT', 'TEST_SET_SENTIDS_UD_SPLIT', 'UD_DEP_TREES', 'SPACY_LEMMAS', 'CORENLP_LEMMAS', 'SPACY_LEMMAS_WORD2VEC_PATH', 'CORENLP_LEMMAS_WORD2VEC_PATH', 'SPACY_LEMMAS_WORD2VEC_MISSING_PATH', 'CORENLP_LEMMAS_WORD2VEC_MISSING_PATH', 'STANFORD_CORE_NLP_OUTPUT', 'HEURISTIC_GOVOBJ'])(
@@ -108,7 +111,8 @@ class TaggedToken:
                  lemma,
                  ud_id,
                  prep_toks,
-                 gov_ind, obj_ind, govobj_config, lexcat, _raw_ss_ss2):
+                 gov_ind, obj_ind, govobj_config, lexcat, _raw_ss_ss2, elmo=None):
+        self.elmo = elmo
         self.verb_ss = verb_ss
         self.noun_ss = noun_ss
         self.lexcat = lexcat
@@ -163,7 +167,8 @@ class StreusleRecord:
                  id,
                  sentence,
                  data,
-                 only_supersenses=None):
+                 only_supersenses=None,
+                 elmo_h5py=None):
         super().__init__()
         self.id = id
         self.sentence = sentence
@@ -235,7 +240,8 @@ class StreusleRecord:
                 govobj_config=tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('config'),
                 lexcat=tok_we.get(tok_data['#'], {}).get('lexcat'),
                 _raw_ss_ss2=''.join([tok_we.get(tok_data['#'], {}).get(ss) or '' for ss in ['ss', 'ss2']]),
-                prep_toks=[self.data['toks'][id_to_ind[tokid]]['word'] for tokid in we_toknums.get(tok_data['#'], [])]
+                prep_toks=[self.data['toks'][id_to_ind[tokid]]['word'] for tokid in we_toknums.get(tok_data['#'], [])],
+                elmo=elmo_h5py[:, i, :][()].flatten() if elmo_h5py else None
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersense_repo.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersense_repo.PREPOSITION_SUPERSENSES_SET]
@@ -296,8 +302,11 @@ class StreusleRecord:
 
 class StreusleLoader(object):
 
-    def __init__(self):
-        pass
+    def __init__(self, load_elmo=False):
+        if load_elmo:
+            self.elmo_h5py = h5py.File(ELMO_FILE, 'r')
+        else:
+            self.elmo_h5py = None
 
     def load(self, conllulex_path=STREUSLE_DIR + '/streusle.conllulex', only_with_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET, input_format='conllulex'):
         assert input_format in ['conllulex', 'json']
@@ -309,10 +318,13 @@ class StreusleLoader(object):
             else:
                 sents = json.load(f)
             for sent in sents:
+                sent_txt = ' '.join(tok['word'] for tok in sent['toks'])
                 record = StreusleRecord(id=sent['streusle_sent_id'],
                                         sentence=sent['text'],
                                         data=sent,
-                                        only_supersenses=only_with_supersenses)
+                                        only_supersenses=only_with_supersenses,
+                                        elmo_h5py=(self.elmo_h5py or {}).get(sent_txt)
+                                        )
                 records.append(record)
 
         return records

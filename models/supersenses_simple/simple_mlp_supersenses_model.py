@@ -1,5 +1,4 @@
 import json
-import math
 import os
 import random
 import zipfile
@@ -8,6 +7,7 @@ from glob import glob
 from pprint import pprint
 
 import dynet as dy
+import math
 import numpy as np
 
 from dynet_utils import get_activation_function
@@ -31,10 +31,17 @@ class SimpleMlpSupersensesModel:
         def __init__(self,
                      prep_tokens,
                      gov_token,
-                     obj_token):
+                     obj_token,
+                     prep_embds=None,
+                     gov_embd=None,
+                     obj_embd=None
+                     ):
             self.prep_tokens = prep_tokens
             self.gov_token = gov_token
             self.obj_token = obj_token
+            self.gov_embd = gov_embd
+            self.prep_embds = prep_embds
+            self.obj_embd = obj_embd
 
         def to_dict(self):
             return self.__dict__
@@ -111,6 +118,7 @@ class SimpleMlpSupersensesModel:
                      update_obj_embd,
                      token_embd_dim,
                      internal_token_embd_dim,
+                     use_instance_embd,
                      mlp_layers,
                      mlp_layer_dim,
                      mlp_activation,
@@ -124,6 +132,7 @@ class SimpleMlpSupersensesModel:
                      learning_rate_decay,
                      dynet_random_seed
                      ):
+            self.use_instance_embd = use_instance_embd
             self.internal_token_embd_dim = internal_token_embd_dim
             self.labels_to_predict = labels_to_predict
             self.use_prep = use_prep
@@ -193,26 +202,27 @@ class SimpleMlpSupersensesModel:
             }
         )
 
-        input_vocabs = {
-            'gov': self.gov_vocab,
-            'obj': self.obj_vocab,
-            'prep': self.prep_vocab
-        }
-        for field, lookup_param in sorted(self.params.input_lookups.items()):
-            vocab = input_vocabs.get(field)
-            if vocab:
-                miss = 0
-                for word in vocab.all_words():
-                    word_index = input_vocabs[field].get_index(word)
-                    vector = self.embeddings.get(word, self.embeddings.get(word.lower()))
-                    if vector is not None:
-                        lookup_param.init_row(word_index, vector)
-                    else:
-                        # if field not in self.hyperparameters.input_embeddings_to_allow_partial:
-                        #     raise Exception('Missing embedding vector for field: %s, word %s' % (field, word))
-                        lookup_param.init_row(word_index, [0] * hp.token_embd_dim)
-                        miss += 1
-                print('%s: %d/%d embeddings missing (%2.2f%%)' % (field, miss, len(vocab.all_words()), miss / len(vocab.all_words()) * 100))
+        if not self.hyperparameters.use_instance_embd:
+            input_vocabs = {
+                'gov': self.gov_vocab,
+                'obj': self.obj_vocab,
+                'prep': self.prep_vocab
+            }
+            for field, lookup_param in sorted(self.params.input_lookups.items()):
+                vocab = input_vocabs.get(field)
+                if vocab:
+                    miss = 0
+                    for word in vocab.all_words():
+                        word_index = input_vocabs[field].get_index(word)
+                        vector = self.embeddings.get(word, self.embeddings.get(word.lower()))
+                        if vector is not None:
+                            lookup_param.init_row(word_index, vector)
+                        else:
+                            # if field not in self.hyperparameters.input_embeddings_to_allow_partial:
+                            #     raise Exception('Missing embedding vector for field: %s, word %s' % (field, word))
+                            lookup_param.init_row(word_index, [0] * hp.token_embd_dim)
+                            miss += 1
+                    print('%s: %d/%d embeddings missing (%2.2f%%)' % (field, miss, len(vocab.all_words()), miss / len(vocab.all_words()) * 100))
 
         embedded_input_dim = hp.token_embd_dim + hp.internal_token_embd_dim
         if self.hyperparameters.is_bilstm:
@@ -233,6 +243,11 @@ class SimpleMlpSupersensesModel:
         return embeddings
 
     def _build_network_for_input(self, x, apply_dropout):
+        if self.hyperparameters.use_instance_embd:
+            assert all([e is not None for  e in x.prep_embds])
+            assert x.gov_embd is not None
+            assert x.obj_embd is not None
+
         if apply_dropout:
             mlp_dropout_p = self.hyperparameters.mlp_dropout_p
             lstm_dropout_p = self.hyperparameters.lstm_dropout_p
@@ -249,7 +264,7 @@ class SimpleMlpSupersensesModel:
                 cur_lstm_state = self.lstm_builder
             embeddings = [
                 dy.concatenate([
-                    dy.lookup(
+                    dy.inputTensor(embd) if self.hyperparameters.use_instance_embd else dy.lookup(
                         self.params.input_lookups['prep'],
                         self.prep_vocab.get_index(tok),
                         update=self.hyperparameters.update_prep_embd
@@ -260,16 +275,22 @@ class SimpleMlpSupersensesModel:
                         update=True
                     )
                 ])
-                for tok in x.prep_tokens
+                for tok, embd in zip(x.prep_tokens, x.prep_embds or [None] * len(x.prep_tokens))
             ]
             lstm_output = cur_lstm_state.transduce(embeddings)[-1]
             vecs = [lstm_output]
         else:
             vecs = []
         if self.hyperparameters.use_gov:
-            vecs.append(dy.lookup(self.params.input_lookups['gov'], self.gov_vocab.get_index(x.gov_token)))
+            vecs.append(
+                dy.inputTensor(x.gov_embd) if self.hyperparameters.use_instance_embd else \
+                    dy.lookup(self.params.input_lookups['gov'], self.gov_vocab.get_index(x.gov_token))
+            )
         if self.hyperparameters.use_obj:
-            vecs.append(dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(x.obj_token)))
+            vecs.append(
+                dy.inputTensor(x.obj_embd) if self.hyperparameters.use_instance_embd else \
+                    dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(x.obj_token))
+            )
         cur_out = dy.concatenate(vecs)
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         output = {}
@@ -379,6 +400,8 @@ class SimpleMlpSupersensesModel:
             ind = np.argmax(scores.npvalue())
             predicted = self.pss_vocab.get_word(ind)
             prediction[label] = predicted
+        if not any(prediction.values()):
+            print('prediction:', prediction)
         return SimpleMlpSupersensesModel.SampleY(**prediction)
 
     def predict_dist(self, x):

@@ -16,6 +16,7 @@ TUNER_DOMAINS = [
     PS(name='use_prep', values=[True, False]),
     PS(name='use_gov', values=[True, False]),
     PS(name='use_obj', values=[True, False]),
+    PS(name='use_instance_embd', values=[True, False]),
     PS(name='token_embd_dim', values=[300]),
     PS(name='internal_token_embd_dim', values=[10, 25, 50, 100, 300]),
     PS(name='update_prep_embd', values=[True, False]),

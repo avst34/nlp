@@ -33,13 +33,15 @@ OBJ_ROLE = override_settings([TUNER_DOMAINS, [
 PREP_FUNC = override_settings([TUNER_DOMAINS, [
     PS(name='labels_to_predict', values=[('supersense_func',)]),
     PS(name='use_gov', values=[False]),
-    PS(name='use_obj', values=[False])
+    PS(name='use_obj', values=[False]),
+    PS(name='use_prep', values=[True]),
 ]])
 
 PREP_ROLE = override_settings([TUNER_DOMAINS, [
     PS(name='labels_to_predict', values=[('supersense_role',)]),
     PS(name='use_gov', values=[False]),
-    PS(name='use_obj', values=[False])
+    PS(name='use_obj', values=[False]),
+    PS(name='use_prep', values=[True]),
 ]])
 
 GOV_OBJ_FUNC = override_settings([TUNER_DOMAINS, [
