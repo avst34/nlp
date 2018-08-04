@@ -18,6 +18,8 @@ def streusle_record_to_lstm_model_sample(record):
             govobj_config=tagged_token.govobj_config,
             identified_for_pss=tagged_token.identified_for_pss,
             lexcat=tagged_token.lexcat,
+            token_embd=tagged_token.elmo,
+            lemma_embd=tagged_token.elmo
         ) for ind, tagged_token in enumerate(record.tagged_tokens)
         ],
         ys=[LstmMlpSupersensesModel.SampleY(

@@ -77,7 +77,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
 
         assert evaluator is not None
 
-        def dump_result(output_dir, result, params):
+        def dump_result(output_dir, result):
             if self.dump_models:
                 result.predictor.save(output_dir + '/model')
             if self.dump_pss_eval:

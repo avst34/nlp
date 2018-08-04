@@ -37,6 +37,7 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     dynet_random_seed=0,
     use_lexcat=True,
     lexcat_embd_dim=10,
+    use_instance_embd=False
 )
 
 test_sample = LstmMlpSupersensesModel.Sample.from_dict({
@@ -599,9 +600,9 @@ def test_capitalized_word_follows(feature):
 
 
 tests = {
-    'token-word2vec': test_token_word2vec,
+    'token-embd': test_token_word2vec,
     'token-internal': test_token_internal,
-    'token.lemma-word2vec': test_token_lemma_word2vec,
+    'token.lemma-embd': test_token_lemma_word2vec,
     'token.ud_xpos': test_token_ud_xpos,
     'token.dep': test_token_dep,
     'token.ner': test_token_ner,

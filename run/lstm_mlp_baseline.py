@@ -4,17 +4,12 @@ import random
 from datasets.streusle_v4 import StreusleLoader
 from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
 from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP, AUTO_ID_AUTO_PREP, AUTO_ID_GOLD_PREP, \
-    TASK_SETTINGS
+    ELMO_TASK_SETTINGS, PS
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
-from models.supersenses.tuner_domains import PS
-from run.dump_vocabs import dump_vocabs
-from vocabulary import Vocabulary
-import supersense_repo
-import json
 from hyperparameters_tuner import union_settings, override_settings
 evaluator = PSSClasifierEvaluator()
 
@@ -38,13 +33,12 @@ def run():
 
     tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
     task = random.choice(tasks)
-    task = 'autoid.autosyn'
+    task = 'goldid.goldsyn'
     for task in [task]:
-        loader = StreusleLoader()
-        STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
-        train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
-        dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
-        test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
+        loader = StreusleLoader(load_elmo=True)
+        train_records = loader.load_train()
+        dev_records = loader.load_dev()
+        test_records = loader.load_test()
 
         print_samples_statistics('train', train_records)
         print_samples_statistics('dev', dev_records)
@@ -58,13 +52,13 @@ def run():
 
         tuner = LstmMlpSupersensesModelHyperparametersTuner(
             task_name=task,
-            results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/results.csv',
+            results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/results_elmo.csv',
             samples=train_samples, # use all after testing
             validation_samples=dev_samples,
             show_progress=True,
             show_epoch_eval=True,
             tuner_domains=override_settings([
-                TASK_SETTINGS[task],
+                ELMO_TASK_SETTINGS[task],
                 # [PS(name='epochs', values=[1])] # remove after testing
             ]),
             dump_models=False
@@ -116,3 +110,6 @@ def run():
     # # evaluator = PSSClasifierEvaluator(predictor=lstm_mlp_model.model)
     # # ll_samples = [LstmMlpSupersensesModel.sample_to_lowlevel(x) for x in test_samples]
     # # evaluator.evaluate(ll_samples, examples_to_show=5)
+
+if __name__ == '__main__':
+    run()

@@ -25,10 +25,10 @@ class LstmMlpSupersensesModel:
                      gov_ind, obj_ind, govobj_config,
                      identified_for_pss,
                      lexcat,
-                     lemma_word2vec=None,
-                     token_word2vec=None):
-            self.token_word2vec = token_word2vec
-            self.lemma_word2vec = lemma_word2vec
+                     lemma_embd=None,
+                     token_embd=None):
+            self.token_embd = token_embd
+            self.lemma_embd = lemma_embd
             self.lexcat = lexcat
             self.govobj_config = govobj_config
             self.obj_ind = obj_ind
@@ -116,6 +116,7 @@ class LstmMlpSupersensesModel:
                      ud_xpos_embd_dim,
                      ud_deps_embd_dim,
                      ner_embd_dim,
+                     use_instance_embd,
                      govobj_config_embd_dim,
                      lexcat_embd_dim,
                      mlp_layers,
@@ -133,6 +134,7 @@ class LstmMlpSupersensesModel:
                      allow_empty_prediction,
                      dynet_random_seed
                      ):
+            self.use_instance_embd = use_instance_embd
             self.lexcat_embd_dim = lexcat_embd_dim
             self.use_lexcat = use_lexcat
             self.dynet_random_seed = dynet_random_seed
@@ -188,7 +190,7 @@ class LstmMlpSupersensesModel:
 
         self.model = LstmMlpMulticlassModel(
             input_vocabularies={feat.name: feat.vocab for feat in chain(self.features.list_enum_features(), self.features.list_string_features())},
-            input_embeddings={feat.name: feat.embedding for feat in self.features.list_features_with_embedding(include_auto=False)},
+            input_embeddings={feat.name: feat.embeddings for feat in self.features.list_features_with_embedding(include_auto=False)},
             output_vocabulary=vocabs.PSS if self.hyperparameters.allow_empty_prediction else vocabs.PSS_WITHOUT_NONE,
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
                     'lstm_input_fields': names(self.features.list_lstm_features()),
@@ -202,7 +204,7 @@ class LstmMlpSupersensesModel:
              },
              del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_ud_dep', 'use_ner', 'use_lexcat', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
                        'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim', 'lexcat_embd_dim',
-                       'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'mask_mwes', 'allow_empty_prediction']))
+                       'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):
@@ -226,7 +228,7 @@ class LstmMlpSupersensesModel:
                 if x_mask or not f.masked_only
             },
             embeddings_override={
-                f.name: f.embedding_fallback(sample_x) for f in self.features.list_features_with_embedding_fallback()
+                f.name: f.embedding_extractor(sample_x) for f in self.features.list_features_with_embedding_extractor()
             }
         )
 

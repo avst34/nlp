@@ -25,3 +25,14 @@ TASK_SETTINGS = {
     'autoid.goldsyn': AUTO_ID_GOLD_PREP,
     'autoid.autosyn': AUTO_ID_AUTO_PREP,
 }
+
+ELMO_TASK_SETTINGS = {
+    task: override_settings([
+        settings,
+        [
+            PS(name='token_embd_dim', values=[3072]),
+            PS(name='use_instance_embd', values=[True])
+        ]
+    ])
+    for task, settings in TASK_SETTINGS.items()
+}

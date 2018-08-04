@@ -17,13 +17,13 @@ class NoneFeatureValue(Exception):
 
 class Feature(object):
 
-    def __init__(self, name, type, vocab, embedding, extractor, enable, mount_point, embedding_fallback=None, dim=None, update=False, masked_only=True, fall_to_none=False, default_zero_vec=False):
-        self.embedding_fallback = embedding_fallback
+    def __init__(self, name, type, vocab, embeddings, extractor, enable, mount_point, embedding_extractor=None, dim=None, update=False, masked_only=True, fall_to_none=False, default_zero_vec=False):
+        self.embedding_extractor = embedding_extractor
         self.default_zero_vec = default_zero_vec
         self.name = name
         self.type = type
         self.vocab = vocab
-        self.embedding = embedding
+        self.embeddings = embeddings
         self.extractor = extractor
         self.enable = enable
         self.mount_point = mount_point
@@ -42,8 +42,8 @@ class Feature(object):
         if self.type != FeatureType.REF:
             assert self.type in (FeatureType.ENUM, FeatureType.STRING)
             assert self.vocab
-            if self.embedding != embeddings.AUTO:
-                embd_dim = len(list(self.embedding.values())[0])
+            if self.embeddings != embeddings.AUTO:
+                embd_dim = len(list(self.embeddings.values())[0])
                 assert self.dim is None or self.dim == embd_dim
                 self.dim = embd_dim
             else:
@@ -71,6 +71,8 @@ class Feature(object):
 
         return val
 
+    def extract_embedding(self, tok):
+        return self.embedding_extractor(tok) if self.embedding_extractor else self.embeddings.get(tok)
 
 class Features(object):
 
@@ -105,7 +107,7 @@ class Features(object):
         return [f for f in self.features if f.update]
 
     def list_features_with_embedding(self, include_auto=True):
-        features = [f for f in self.features if f.embedding and (include_auto or f.embedding != embeddings.AUTO)]
+        features = [f for f in self.features if f.embeddings and (include_auto or f.embeddings != embeddings.AUTO)]
         assert all([f.dim is not None for f in features])
         return features
 
@@ -114,8 +116,8 @@ class Features(object):
         assert all([f.type != FeatureType.REF for f in features])
         return features
 
-    def list_features_with_embedding_fallback(self):
-        features = [f for f in self.features if f.embedding_fallback]
+    def list_features_with_embedding_extractor(self):
+        features = [f for f in self.features if f.embedding_extractor]
         assert all([f.type != FeatureType.REF for f in features])
         return features
 
