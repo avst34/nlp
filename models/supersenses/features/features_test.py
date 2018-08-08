@@ -1,6 +1,5 @@
-import json
 import random
-from models.supersenses import vocabs
+
 from models.supersenses.features import build_features
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 
@@ -16,7 +15,7 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     use_token_internal=True,
     update_lemmas_embd=True,
     update_token_embd=True,
-    token_embd_dim=200,
+    token_embd_dim=300,
     token_internal_embd_dim=30,
     ud_xpos_embd_dim=20,
     ud_deps_embd_dim=20,

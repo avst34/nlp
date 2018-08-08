@@ -49,7 +49,7 @@ class Feature(object):
                 assert self.update, "AUTO embeddings must be updatable (feature: '%s')" % self.name
             else:
                 embd_dim = len(list(self.embeddings.values())[0])
-                assert self.dim is None or self.dim == embd_dim
+                assert self.dim is None or self.dim == embd_dim, '%s, %d, %d' % (self.name, self.dim, embd_dim)
                 self.dim = embd_dim
 
     def extract(self, tok, sent):
