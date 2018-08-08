@@ -65,7 +65,7 @@ def evaluate_most_frequent_baseline_model(output_dir):
         evaluate_model_on_task(task, model, streusle_record_to_most_frequent_class_model_sample, mfc_output_dir)
 
 def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, save_model=False):
-    loader = StreusleLoader()
+    loader = StreusleLoader(load_elmo=True)
 
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -354,8 +354,8 @@ if __name__ == '__main__':
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    # process_tuner_results(path, output_dir)
+    process_tuner_results(path, output_dir)
     # evaluate_most_frequent_baseline_model(output_dir)
     # build_confusion_matrices(output_dir)
-    template_input_path = output_dir + '/template_input.json'
-    build_template_input(output_dir, template_input_path)
+    # template_input_path = output_dir + '/template_input.json'
+    # build_template_input(output_dir, template_input_path)

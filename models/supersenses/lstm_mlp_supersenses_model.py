@@ -190,7 +190,7 @@ class LstmMlpSupersensesModel:
 
         self.model = LstmMlpMulticlassModel(
             input_vocabularies={feat.name: feat.vocab for feat in chain(self.features.list_enum_features(), self.features.list_string_features())},
-            input_embeddings={feat.name: feat.embeddings for feat in self.features.list_features_with_embedding(include_auto=False)},
+            input_embeddings={feat.name: feat.embeddings for feat in self.features.list_features_with_embedding(include_auto=False, include_instance=False)},
             output_vocabulary=vocabs.PSS if self.hyperparameters.allow_empty_prediction else vocabs.PSS_WITHOUT_NONE,
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
                     'lstm_input_fields': names(self.features.list_lstm_features()),
@@ -228,7 +228,7 @@ class LstmMlpSupersensesModel:
                 if x_mask or not f.masked_only
             },
             embeddings_override={
-                f.name: f.embedding_extractor(sample_x) for f in self.features.list_features_with_embedding_extractor()
+                f.name: f.extract_embedding(sample_x) for f in self.features.list_features_with_embedding_extractor()
             }
         )
 

@@ -1,9 +1,6 @@
-from collections import namedtuple
-
 from models.supersenses import vocabs, embeddings
 from models.supersenses.features.feature import Feature, FeatureType, MountPoint, Features
-from models.supersenses.features.features_utils import get_parent, get_grandparent, get_child_of_type, get_children, \
-    is_capitalized, get_gov, get_obj
+from models.supersenses.features.features_utils import is_capitalized, get_gov, get_obj
 
 [LSTM, MLP] = [MountPoint.LSTM, MountPoint.MLP]
 
@@ -11,8 +8,8 @@ def build_features(hyperparameters, override=None):
     override = override or {}
     hp = hyperparameters.clone(override)
     return Features([
-        Feature('token-embd',   FeatureType.STRING, vocabs.TOKENS,     embeddings.TOKENS_WORD2VEC,  embedding_extractor=(lambda tok: tok.token_embd) if hp.use_instance_embd else None, default_zero_vec=True, extractor=lambda tok, sent: tok.token,     mount_point=LSTM, enable=hp.use_token, update=not hp.use_instance_embd and hp.update_token_embd, masked_only=False),
-        Feature('token.lemma-embd',  FeatureType.STRING, vocabs.LEMMAS,  embeddings.LEMMAS_WORD2VEC,  embedding_extractor=(lambda tok: tok.lemma_embd) if hp.use_instance_embd else None,  default_zero_vec=True, update=not hp.use_instance_embd and hp.update_lemmas_embd, extractor=lambda tok, sent: tok.lemma, mount_point=LSTM,  enable=True, masked_only=False),
+        Feature('token-embd',   FeatureType.STRING, vocabs.TOKENS,     embeddings.INSTANCE if hp.use_instance_embd else embeddings.TOKENS_WORD2VEC,  embedding_extractor=(lambda tok: tok.token_embd) if hp.use_instance_embd else None, dim=hp.token_embd_dim, default_zero_vec=True, extractor=lambda tok, sent: tok.token,     mount_point=LSTM, enable=hp.use_token, update=not hp.use_instance_embd and hp.update_token_embd, masked_only=False),
+        Feature('token.lemma-embd',  FeatureType.STRING, vocabs.LEMMAS,  embeddings.INSTANCE if hp.use_instance_embd else embeddings.LEMMAS_WORD2VEC,  embedding_extractor=(lambda tok: tok.lemma_embd) if hp.use_instance_embd else None,  dim=hp.token_embd_dim, default_zero_vec=True, update=not hp.use_instance_embd and hp.update_lemmas_embd, extractor=lambda tok, sent: tok.lemma, mount_point=LSTM,  enable=True, masked_only=False),
         Feature('token-internal',   FeatureType.STRING, vocabs.TOKENS,     embeddings.AUTO,  extractor=lambda tok, sent: tok.token, embedding_extractor=lambda tok: [0] * hp.token_internal_embd_dim,  default_zero_vec=True,  mount_point=LSTM, enable=hp.use_token_internal, dim=hp.token_internal_embd_dim, update=True, masked_only=False),
         Feature('token.ud_xpos',     FeatureType.ENUM, vocabs.UD_XPOS,     embeddings.AUTO,  dim=hp.ud_xpos_embd_dim,  update=True,        extractor=lambda tok, sent: tok.ud_xpos, mount_point=MLP,  enable=hp.use_ud_xpos),
         Feature('token.dep',     FeatureType.ENUM, vocabs.UD_DEPS,    embeddings.AUTO,   dim=hp.ud_deps_embd_dim,  update=True,    extractor=lambda tok, sent: tok.ud_dep,    mount_point=MLP,  enable=hp.use_ud_dep),

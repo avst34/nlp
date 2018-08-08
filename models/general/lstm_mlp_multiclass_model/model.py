@@ -1,22 +1,19 @@
-import zipfile
+import json
+import math
 import os
-from collections import namedtuple
-
 import random
+import zipfile
+from collections import namedtuple
 from glob import glob
 
 import dynet as dy
-import json
 import numpy as np
-import math
-
-# There are more hidden parameters coming from the LSTMs
-import zlib
 
 from dynet_utils import get_activation_function
 from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
-from utils import update_dict
 from vocabulary import Vocabulary
+
+# There are more hidden parameters coming from the LSTMs
 
 ModelOptimizedParams = namedtuple('ModelOptimizedParams', [
     'input_lookups',
@@ -134,14 +131,15 @@ class LstmMlpMulticlassModel(object):
 
     def get_embd_dim(self, field):
         dim = None
-        if self.input_embeddings.get(field):
+        if field in self.hyperparameters.input_embedding_dims:
+            dim = self.hyperparameters.input_embedding_dims[field]
+        elif self.input_embeddings.get(field):
             for vec in self.input_embeddings[field].values():
                 dim = len(vec)
                 break
-        elif field in self.hyperparameters.input_embedding_dims:
-            dim = self.hyperparameters.input_embedding_dims[field]
         else:
             dim = self.hyperparameters.input_embeddings_default_dim
+        assert self.hyperparameters.input_embedding_dims.get(field, dim) == dim
         assert dim is not None, 'Unable to resolve embeddings dimensions for field: ' + field
         return dim
 
@@ -220,21 +218,22 @@ class LstmMlpMulticlassModel(object):
                         raise Exception("X without a dep:" + neighbor_type)
 
     def get_embd(self, token_data, field):
-        if self.input_vocabularies[field].has_word(token_data[field]):
-            return dy.lookup(
-                self.params.input_lookups[field],
-                self.input_vocabularies[field].get_index(token_data[field]),
-                update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field)
-            )
+        embd = token_data.embeddings_override.get('field')
+        if embd:
+            assert len(embd) == self.get_embd_dim(field)
+            return dy.inputTensor(embd)
         else:
-            embd = token_data.embeddings_override.get('field')
-            if embd:
-                assert len(embd) == self.get_embd_dim(field)
-                return dy.inputTensor(embd)
+            if self.input_vocabularies[field].has_word(token_data[field]):
+                return dy.lookup(
+                    self.params.input_lookups[field],
+                    self.input_vocabularies[field].get_index(token_data[field]),
+                    update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field)
+                )
             else:
                 if field not in self.hyperparameters.input_embeddings_to_allow_partial:
                     raise Exception('Missing embedding vector for field: %s, word %s' % (field, token_data[field]))
                 return dy.inputTensor([0] * self.get_embd_dim(field))
+
 
     def _build_network_for_input(self, xs, mask, apply_dropout):
         self._validate_xs(xs, mask)

@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 from models.supersenses import embeddings
 
 
@@ -42,15 +40,17 @@ class Feature(object):
         if self.type != FeatureType.REF:
             assert self.type in (FeatureType.ENUM, FeatureType.STRING)
             assert self.vocab
-            if self.embeddings != embeddings.AUTO:
-                embd_dim = len(list(self.embeddings.values())[0])
-                assert self.dim is None or self.dim == embd_dim
-                self.dim = embd_dim
-            else:
+            if self.embeddings == embeddings.INSTANCE:
+                assert self.dim is not None
+            elif self.embeddings == embeddings.AUTO:
                 assert self.dim is not None, "Must provide a vector dimension when embedding is AUTO (feature: '%s')" % self.name
                 if self.update is None:
                     self.update = True
                 assert self.update, "AUTO embeddings must be updatable (feature: '%s')" % self.name
+            else:
+                embd_dim = len(list(self.embeddings.values())[0])
+                assert self.dim is None or self.dim == embd_dim
+                self.dim = embd_dim
 
     def extract(self, tok, sent):
         try:
@@ -72,7 +72,9 @@ class Feature(object):
         return val
 
     def extract_embedding(self, tok):
-        return self.embedding_extractor(tok) if self.embedding_extractor else self.embeddings.get(tok)
+        embd = self.embedding_extractor(tok) if self.embedding_extractor else self.embeddings.get(tok)
+        assert len(embd) == self.dim
+
 
 class Features(object):
 
@@ -106,8 +108,9 @@ class Features(object):
     def list_updatable_features(self):
         return [f for f in self.features if f.update]
 
-    def list_features_with_embedding(self, include_auto=True):
-        features = [f for f in self.features if f.embeddings and (include_auto or f.embeddings != embeddings.AUTO)]
+    def list_features_with_embedding(self, include_auto=True, include_instance=True):
+        features = [f for f in self.features if f.embeddings and (include_auto or f.embeddings != embeddings.AUTO)
+                    and (include_instance or f.embeddings != embeddings.INSTANCE)]
         assert all([f.dim is not None for f in features])
         return features
 
