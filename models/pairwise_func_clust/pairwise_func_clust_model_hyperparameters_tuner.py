@@ -1,23 +1,23 @@
 import json
 
-from evaluators.simple_pss_classifier_evaluator import SimplePSSClassifierEvaluator
 from hyperparameters_tuner import HyperparametersTuner
-from models.supersenses_simple.simple_mlp_supersenses_model import SimpleMlpSupersensesModel
-from models.supersenses_simple.tuner_domains import TUNER_DOMAINS
+from models.pairwise_func_clust.pairwise_func_clust_evaluator import PairwiseFuncClustEvaluator
+from models.pairwise_func_clust.pairwise_func_clust_model import PairwiseFuncClustModel
+from models.pairwise_func_clust.tuner_domains import TUNER_DOMAINS
 
 
 def extract_classifier_evaluator_results(evaluation):
     return evaluation
 
 
-class SimpleSupersensesModelHyperparametersTuner:
+class PairwiseFuncClustModelHyperparametersTuner:
 
     def build_csv_rows(self, params, result):
         assert isinstance(result, HyperparametersTuner.ExecutionResult)
         result_data = result.result_data
         rows_tuples = [
             [("Best Epoch", result_data['best_epoch'])] + \
-            [("Train Acc", result_data['train_acc'])] + \
+            # [("Train Acc", result_data['train_acc'])] + \
             [("Test Acc", result_data['test_acc'])] + \
             [(k, str(v)) for k, v in sorted(params.items())] + \
             [("Hyperparams Json", json.dumps(params))]
@@ -37,7 +37,7 @@ class SimpleSupersensesModelHyperparametersTuner:
                  report_epoch_scores=False,
                  dump_models=False,
                  shared_csv=True,
-                 evaluator=SimplePSSClassifierEvaluator(),
+                 evaluator=PairwiseFuncClustEvaluator(),
                  task_name=''):
         self.task_name = task_name
         self.dump_models = dump_models
@@ -66,11 +66,11 @@ class SimpleSupersensesModelHyperparametersTuner:
         }
 
     def _execute(self, hyperparameters):
-        model = SimpleMlpSupersensesModel(hyperparameters=SimpleMlpSupersensesModel.HyperParameters(**hyperparameters))
+        model = PairwiseFuncClustModel(hyperparameters=PairwiseFuncClustModel.HyperParameters(**hyperparameters))
         model.fit(**self.fit_kwargs)
         return HyperparametersTuner.ExecutionResult(
             result_data={
-                'train_acc': model.train_acc,
+                # 'train_acc': model.train_acc,
                 'test_acc': model.test_acc,
                 'best_epoch': model.best_epoch
             },

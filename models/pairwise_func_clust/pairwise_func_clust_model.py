@@ -10,9 +10,9 @@ from pprint import pprint
 import dynet as dy
 import numpy as np
 
-from evaluators.simple_pss_classifier_evaluator import SimplePSSClassifierEvaluator
 from models.pairwise_func_clust import embeddings
 from models.pairwise_func_clust import vocabs
+from models.pairwise_func_clust.pairwise_func_clust_evaluator import PairwiseFuncClustEvaluator
 
 ModelOptimizedParams = namedtuple('ModelOptimizedParams', [
     'input_lookups',
@@ -30,7 +30,7 @@ class PairwiseFuncClustModel:
 
         def __init__(self,
                      prep_tokens1,
-                     prep_pos1,
+                     prep_xpos1,
                      gov_token1,
                      gov_xpos1,
                      obj_token1,
@@ -39,7 +39,7 @@ class PairwiseFuncClustModel:
                      ud_dep1,
                      role1,
                      prep_tokens2,
-                     prep_pos2,
+                     prep_xpos2,
                      gov_token2,
                      gov_xpos2,
                      obj_token2,
@@ -49,23 +49,23 @@ class PairwiseFuncClustModel:
                      role2,
                      ):
             self.prep_tokens1 = prep_tokens1
-            self.prep_pos1 = prep_pos1
+            self.prep_xpos1 = prep_xpos1
             self.gov_token1 = gov_token1
             self.gov_token1 = gov_token1
             self.gov_xpos1 = gov_xpos1
             self.obj_token1 = obj_token1
             self.obj_xpos1 = obj_xpos1
-            self.govobj1_cat = govobj_config1
+            self.govobj_config1 = govobj_config1
             self.ud_dep1 = ud_dep1
             self.role1 = role1
             self.prep_tokens2 = prep_tokens2
-            self.prep_pos2 = prep_pos2
+            self.prep_xpos2 = prep_xpos2
             self.gov_token2 = gov_token2
             self.gov_token2 = gov_token2
             self.gov_xpos2 = gov_xpos2
             self.obj_token2 = obj_token2
             self.obj_xpos2 = obj_xpos2
-            self.govobj2_cat = govobj_config2
+            self.govobj_config2 = govobj_config2
             self.ud_dep2 = ud_dep2
             self.role2 = role2
 
@@ -85,15 +85,15 @@ class PairwiseFuncClustModel:
 
     class SampleY:
 
-        def __init__(self, is_same_cluster):
-            self.is_same_cluster = is_same_cluster
-            assert self.is_same_cluster in [True, False]
+        def __init__(self, is_same_cluster_prob):
+            self.is_same_cluster_prob = is_same_cluster_prob
+            self.is_same_cluster = is_same_cluster_prob > 0.5
 
         def to_dict(self):
             return self.__dict__
 
         def pprint(self):
-            print('[same_cluster:%s]' % self.is_same_cluster)
+            print('[same_cluster:%s (%2.2f)]' % (self.is_same_cluster, self.is_same_cluster_prob))
 
         @staticmethod
         def from_dict(d):
@@ -122,14 +122,12 @@ class PairwiseFuncClustModel:
             )
 
         def pprint(self):
-            print('---')
             self.x.pprint()
             self.y.pprint()
 
     class HyperParameters:
 
         def __init__(self,
-                     labels_to_predict,
                      use_prep,
                      use_ud_dep,
                      use_gov,
@@ -137,10 +135,7 @@ class PairwiseFuncClustModel:
                      use_govobj_config,
                      use_role,
                      update_prep_embd,
-                     update_gov_embd,
-                     update_obj_embd,
                      token_embd_dim,
-                     role_embd_dim,
                      internal_token_embd_dim,
                      # use_instance_embd,
                      # mlp_layers,
@@ -157,19 +152,14 @@ class PairwiseFuncClustModel:
                      dynet_random_seed
                      ):
             self.lstm_dropout_p = lstm_dropout_p
-            self.use_instance_embd = use_instance_embd
             self.internal_token_embd_dim = internal_token_embd_dim
-            self.labels_to_predict = labels_to_predict
             self.use_ud_dep = use_ud_dep
             self.use_prep = use_prep
             self.use_gov = use_gov
             self.use_obj = use_obj
             self.use_govobj_config = use_govobj_config
             self.use_role = use_role
-            self.role_embd_dim = role_embd_dim
             self.update_prep_embd = update_prep_embd
-            self.update_gov_embd = update_gov_embd
-            self.update_obj_embd = update_obj_embd
             self.token_embd_dim = token_embd_dim
             self.lstm_h_dim = lstm_h_dim
             self.num_lstm_layers = num_lstm_layers
@@ -206,6 +196,7 @@ class PairwiseFuncClustModel:
         dim = 0
         if hp.use_prep:
             dim += hp.lstm_h_dim
+            dim += self.ud_xpos_vocab.size()
         if hp.use_gov:
             dim += hp.token_embd_dim
             dim += self.ud_xpos_vocab.size()
@@ -220,7 +211,7 @@ class PairwiseFuncClustModel:
             dim += self.pss_vocab.size()
         return 2*dim
 
-    def _get_softmax_half_vec(self, preps, gov, gob_xpos, obj, obj_xpos, govobj_config, ud_dep, role):
+    def _get_softmax_half_vec(self, preps, prep_xpos, gov, gob_xpos, obj, obj_xpos, govobj_config, ud_dep, role):
         hp = self.hyperparameters
         vecs = []
         if hp.use_prep:
@@ -245,12 +236,13 @@ class PairwiseFuncClustModel:
             ]
             lstm_output = cur_lstm_state.transduce(embeddings)[-1]
             vecs.append(lstm_output)
+            vecs.append(self._build_onehot_vec(self.ud_xpos_vocab, prep_xpos))
         if hp.use_gov:
-            vecs.append(dy.lookup_param(self.params.input_lookups['gov'], self.gov_vocab.get_index(gov)))
-            vecs.append(self._build_onehot_vec(self.xpos_vocab, gob_xpos))
+            vecs.append(dy.lookup(self.params.input_lookups['gov'], self.gov_vocab.get_index(gov)))
+            vecs.append(self._build_onehot_vec(self.ud_xpos_vocab, gob_xpos))
         if hp.use_obj:
-            vecs.append(dy.lookup_param(self.params.input_lookups['obj'], self.obj_vocab.get_index(obj)))
-            vecs.append(self._build_onehot_vec(self.xpos_vocab, obj_xpos))
+            vecs.append(dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(obj)))
+            vecs.append(self._build_onehot_vec(self.ud_xpos_vocab, obj_xpos))
         if hp.use_govobj_config:
             vecs.append(self._build_onehot_vec(self.govobj_config_vocab, govobj_config))
         if hp.use_ud_dep:
@@ -262,44 +254,37 @@ class PairwiseFuncClustModel:
     def _build_network_params(self):
         pc = dy.ParameterCollection()
         hp = self.hyperparameters
-        mlp_input_dim = (self.hyperparameters.lstm_h_dim  if hp.use_prep else 0) + \
-                        (hp.token_embd_dim if hp.use_gov else 0) + \
-                        (hp.token_embd_dim if hp.use_obj else 0)
-        print('mlp input dim', mlp_input_dim)
         self.params = ModelOptimizedParams(
             input_lookups={
                 "gov": pc.add_lookup_parameters((self.gov_vocab.size(), hp.token_embd_dim)),
                 "obj": pc.add_lookup_parameters((self.obj_vocab.size(), hp.token_embd_dim)),
                 "prep": pc.add_lookup_parameters((self.prep_vocab.size(), hp.token_embd_dim)),
-                "role": pc.add_lookup_parameters((self.prep_vocab.size(), hp.role_embd_dim)),
                 "prep_internal": pc.add_lookup_parameters((self.prep_vocab.size(), hp.internal_token_embd_dim))
             },
-            W=pc.add_parameters(pc.add_parameters((2, self.get_softmax_vec_dim()))),
-            b=pc.add_parameters(pc.add_parameters((2,))),
+            W=pc.add_parameters((2, self.get_softmax_vec_dim())),
+            b=pc.add_parameters((2,)),
         )
 
-        if not self.hyperparameters.use_instance_embd:
-            input_vocabs = {
-                'gov': self.gov_vocab,
-                'obj': self.obj_vocab,
-                'prep': self.prep_vocab,
-                'role': self.pss_vocab
-            }
-            for field, lookup_param in sorted(self.params.input_lookups.items()):
-                vocab = input_vocabs.get(field)
-                if vocab:
-                    miss = 0
-                    for word in vocab.all_words():
-                        word_index = input_vocabs[field].get_index(word)
-                        vector = self.embeddings.get(word, self.embeddings.get(word.lower()))
-                        if vector is not None:
-                            lookup_param.init_row(word_index, vector)
-                        else:
-                            # if field not in self.hyperparameters.input_embeddings_to_allow_partial:
-                            #     raise Exception('Missing embedding vector for field: %s, word %s' % (field, word))
-                            lookup_param.init_row(word_index, [0] * hp.token_embd_dim)
-                            miss += 1
-                    print('%s: %d/%d embeddings missing (%2.2f%%)' % (field, miss, len(vocab.all_words()), miss / len(vocab.all_words()) * 100))
+        input_vocabs = {
+            'gov': self.gov_vocab,
+            'obj': self.obj_vocab,
+            'prep': self.prep_vocab,
+        }
+        for field, lookup_param in sorted(self.params.input_lookups.items()):
+            vocab = input_vocabs.get(field)
+            if vocab:
+                miss = 0
+                for word in vocab.all_words():
+                    word_index = input_vocabs[field].get_index(word)
+                    vector = self.embeddings.get(word, self.embeddings.get(word.lower()))
+                    if vector is not None:
+                        lookup_param.init_row(word_index, vector)
+                    else:
+                        # if field not in self.hyperparameters.input_embeddings_to_allow_partial:
+                        #     raise Exception('Missing embedding vector for field: %s, word %s' % (field, word))
+                        lookup_param.init_row(word_index, [0] * hp.token_embd_dim)
+                        miss += 1
+                print('%s: %d/%d embeddings missing (%2.2f%%)' % (field, miss, len(vocab.all_words()), miss / len(vocab.all_words()) * 100))
 
         embedded_input_dim = hp.token_embd_dim + hp.internal_token_embd_dim
         if self.hyperparameters.is_bilstm:
@@ -324,24 +309,16 @@ class PairwiseFuncClustModel:
         word_ind = vocab.get_index(word)
         vec = [0] * n_words
         vec[word_ind] = 1
-        return vec
+        return dy.inputTensor(vec)
 
     def _build_network_for_input(self, x, apply_dropout):
-        if self.hyperparameters.use_instance_embd:
-            assert all([e is not None for  e in x.prep_embds])
-            assert x.gov_embd is not None
-            assert x.obj_embd is not None
-
         if apply_dropout:
-            lstm_dropout_p = self.hyperparameters.lstm_dropout_p
-        else:
-            lstm_dropout_p = 0
+            self.lstm_builder.set_dropout(self.hyperparameters.lstm_dropout_p)
 
-        self.lstm_builder.set_dropout(lstm_dropout_p)
-        
         softmax_vec = dy.concatenate([
             self._get_softmax_half_vec(
                 x.prep_tokens1,
+                x.prep_xpos1,
                 x.gov_token1,
                 x.gov_xpos1,
                 x.obj_token1,
@@ -352,6 +329,7 @@ class PairwiseFuncClustModel:
             ),
             self._get_softmax_half_vec(
                 x.prep_tokens2,
+                x.prep_xpos2,
                 x.gov_token2,
                 x.gov_xpos2,
                 x.obj_token2,
@@ -363,18 +341,20 @@ class PairwiseFuncClustModel:
         ])
 
         out = dy.log_softmax(dy.parameter(self.params.W) * softmax_vec + dy.parameter(self.params.b))
-        return out
+        return {
+            False: out[0],
+            True: out[1]
+        }
 
     def _build_loss(self, output, y):
-        losses = []
-        for label, scores in output.items():
-            loss = -dy.pick(scores, {True: 1, False: 0}[y.is_same_cluster])
-            losses.append(loss)
-        return dy.esum(losses)
+        # print("loss-out True:", output[True], math.exp(output[True].npvalue()))
+        # print("loss-out False:", output[False], math.exp(output[False].npvalue()))
+        # print("True?:", y.is_same_cluster)
+        return -output[y.is_same_cluster]
 
     def fit(self, samples, validation_samples, show_progress=True, show_epoch_eval=True,
             evaluator=None):
-        evaluator = evaluator or SimplePSSClassifierEvaluator()
+        evaluator = evaluator or PairwiseFuncClustEvaluator()
         self.pc = self._build_network_params()
 
         self.test_set_evaluation = []
@@ -388,8 +368,8 @@ class PairwiseFuncClustModel:
         true_samples = [s for s in samples if s.y.is_same_cluster]
         false_samples = [s for s in samples if not s.y.is_same_cluster]
 
-        true_val_samples = [s for s in validation_samples if s.y.is_same_cluster]
-        false_val_samples = [s for s in validation_samples if not s.y.is_same_cluster]
+        # true_val_samples = [s for s in validation_samples if s.y.is_same_cluster]
+        # false_val_samples = [s for s in validation_samples if not s.y.is_same_cluster]
 
         try:
             trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
@@ -397,14 +377,20 @@ class PairwiseFuncClustModel:
                 if np.isinf(trainer.learning_rate):
                     break
 
-                test = true_val_samples + random.sample(false_val_samples, len(true_val_samples))
+                # test = true_val_samples + random.sample(false_val_samples, len(true_val_samples))
 
                 loss_sum = 0
 
                 BATCH_SIZE = 20
-                BATCHES_PER_EPOCH = 200
-                batches = [random.sample(true_samples, BATCH_SIZE / 2) + random.sample(false_samples, BATCH_SIZE / 2) for _ in range(BATCHES_PER_EPOCH)]
+                BATCHES_PER_EPOCH = 2000
+                EPOCH_SAMPLES_COUNT = BATCH_SIZE * BATCHES_PER_EPOCH
+                batches = [
+                    random.sample(true_samples, BATCH_SIZE // 2)
+                           +
+                    random.sample(false_samples, BATCH_SIZE // 2)
+                           for _ in range(BATCHES_PER_EPOCH)]
                 for batch_ind, batch in enumerate(batches):
+                    random.shuffle(batch)
                     dy.renew_cg(immediate_compute=True, check_validity=True)
                     losses = []
                     for sample in batch:
@@ -416,8 +402,11 @@ class PairwiseFuncClustModel:
                         batch_loss = dy.esum(losses)
                         batch_loss.forward()
                         batch_loss.backward()
-                        loss_sum += batch_loss.value()
+                        v = batch_loss.value()
+                        loss_sum += v
                         trainer.update()
+                        print('Batch loss:', v)
+
                     if show_progress:
                         if int((batch_ind + 1) / len(batches) * 100) > int(batch_ind / len(batches) * 100):
                             per = int((batch_ind + 1) / len(batches) * 100)
@@ -427,30 +416,28 @@ class PairwiseFuncClustModel:
 
                 if evaluator and show_epoch_eval:
                     print('--------------------------------------------')
-                    print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
+                    print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/EPOCH_SAMPLES_COUNT))
                     print('Validation data evaluation:')
-                    epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self)
+                    epoch_test_eval = evaluator.evaluate(validation_samples, examples_to_show=5, predictor=self)
                     self.test_set_evaluation.append(epoch_test_eval)
-                    print('Training data evaluation:')
-                    epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self)
-                    self.train_set_evaluation.append(epoch_train_eval)
+                    # print('Training data evaluation:')
+                    # epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self)
+                    # self.train_set_evaluation.append(epoch_train_eval)
                     print('--------------------------------------------')
 
-                    get_acc = lambda ev: sum([ev[label] for label in self.hyperparameters.labels_to_predict]) / len(self.hyperparameters.labels_to_predict)
+                    get_acc = lambda ev: ev['acc']
 
                     test_acc = get_acc(epoch_test_eval)
                     if best_test_acc is None or test_acc > best_test_acc:
                         print("Best epoch so far! with f1 of: %1.2f" % test_acc)
                         best_test_acc = test_acc
-                        train_acc = get_acc(epoch_train_eval)
                         best_epoch = epoch
                         self.pc.save(model_file_path)
 
-            self.train_acc = train_acc
             self.test_acc = best_test_acc
             self.best_epoch = best_epoch
             print('--------------------------------------------')
-            print('Training is complete (%d samples, %d epochs)' % (len(train), self.hyperparameters.epochs))
+            print('Training is complete (%d samples, %d epochs)' % (len(samples), self.hyperparameters.epochs))
             print('--------------------------------------------')
             self.pc.populate(model_file_path)
         finally:
@@ -461,28 +448,30 @@ class PairwiseFuncClustModel:
 
     def predict(self, sample_x):
         dy.renew_cg()
-        output = self._build_network_for_input(sample_x, apply_dropout=False)
-        prediction = {}
-        for label, scores in output.items():
-            ind = np.argmax(scores.npvalue())
-            predicted = self.pss_vocab.get_word(ind)
-            prediction[label] = predicted
-        if not any(prediction.values()):
-            print('prediction:', prediction)
-        return PairwiseFuncClustModel.SampleY(**prediction)
+        outputs = self._build_network_for_input(sample_x, apply_dropout=False)
+        output = outputs[True]
+        # print('True-Output log:', output.npvalue())
+        prob = math.exp(output.npvalue())
+        # print('True-Output prob:', prob)
+        # print('False-Output log:', outputs[False].npvalue())
+        # print('False-Output prob:', math.exp(outputs[False].npvalue()))
+        # print('Sum:', math.exp(outputs[False].npvalue()) + prob)
 
-    def predict_dist(self, x):
-        dy.renew_cg()
-        outputs = self._build_network_for_input(x, apply_dropout=False)
-        predictions = {}
-        for label, scores in output.items():
-            logprobs = list(scores.npvalue())
-            probs = [math.exp(lp) for lp in logprobs]
-            assert sum(probs) > 0.99 and sum(probs) < 1.01, 'bad probs: ' + str(sum(probs))
-            dist = {self.pss_vocab.get_word(ind): p for ind, p in enumerate(probs)}
-            predictions[label] = dist
-        return predictions
+        return PairwiseFuncClustModel.SampleY(prob)
 
+    # def predict_dist(self, x):
+    #     dy.renew_cg()
+    #     output = self._build_network_for_input(x, apply_dropout=False)
+    #     prob = math.exp(output)
+    #     predictions = {}
+    #     for label, scores in output.items():
+    #         logprobs = list(scores.npvalue())
+    #         probs = [math.exp(lp) for lp in logprobs]
+    #         assert sum(probs) > 0.99 and sum(probs) < 1.01, 'bad probs: ' + str(sum(probs))
+    #         dist = {self.pss_vocab.get_word(ind): p for ind, p in enumerate(probs)}
+    #         predictions[label] = dist
+    #     return predictions
+    #
     def save(self, base_path):
         def pythonize_embds(embds):
             return {k: [float(x) for x in list(v)] for k, v in embds.items()}
