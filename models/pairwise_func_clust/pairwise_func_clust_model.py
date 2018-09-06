@@ -405,7 +405,6 @@ class PairwiseFuncClustModel:
                         v = batch_loss.value()
                         loss_sum += v
                         trainer.update()
-                        print('Batch loss:', v)
 
                     if show_progress:
                         if int((batch_ind + 1) / len(batches) * 100) > int(batch_ind / len(batches) * 100):
