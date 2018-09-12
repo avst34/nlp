@@ -75,7 +75,7 @@ class PairwiseFuncClustModelHyperparametersTuner:
                 # 'train_acc': model.train_acc,
                 'test_acc': model.test_acc,
                 'test_true_acc': model.test_eval['true_acc'],
-                'test_fale_acc': model.test_eval['false_acc'],
+                'test_false_acc': model.test_eval['false_acc'],
                 'best_epoch': model.best_epoch
             },
             score=model.test_acc,
