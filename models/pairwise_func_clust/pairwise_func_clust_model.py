@@ -191,7 +191,7 @@ class PairwiseFuncClustModel:
         pprint(hyperparameters.__dict__)
         self.pc = self._build_network_params()
 
-    def get_softmax_vec_dim(self):
+    def get_logit_vec_dim(self):
         hp = self.hyperparameters
         dim = 0
         if hp.use_prep:
@@ -261,8 +261,8 @@ class PairwiseFuncClustModel:
                 "prep": pc.add_lookup_parameters((self.prep_vocab.size(), hp.token_embd_dim)),
                 "prep_internal": pc.add_lookup_parameters((self.prep_vocab.size(), hp.internal_token_embd_dim))
             },
-            W=pc.add_parameters((2, self.get_softmax_vec_dim())),
-            b=pc.add_parameters((2,)),
+            W=pc.add_parameters((1, self.get_logit_vec_dim())),
+            b=pc.add_parameters((1,)),
         )
 
         input_vocabs = {
@@ -315,7 +315,7 @@ class PairwiseFuncClustModel:
         if apply_dropout:
             self.lstm_builder.set_dropout(self.hyperparameters.lstm_dropout_p)
 
-        softmax_vec = dy.concatenate([
+        logit_vec = dy.concatenate([
             self._get_softmax_half_vec(
                 x.prep_tokens1,
                 x.prep_xpos1,
@@ -340,17 +340,14 @@ class PairwiseFuncClustModel:
             ),
         ])
 
-        out = dy.log_softmax(dy.parameter(self.params.W) * softmax_vec + dy.parameter(self.params.b))
-        return {
-            False: out[0],
-            True: out[1]
-        }
+        return dy.logistic(dy.parameter(self.params.W) * logit_vec + dy.parameter(self.params.b))
 
     def _build_loss(self, output, y):
         # print("loss-out True:", output[True], math.exp(output[True].npvalue()))
         # print("loss-out False:", output[False], math.exp(output[False].npvalue()))
         # print("True?:", y.is_same_cluster)
-        return -output[y.is_same_cluster]
+        # return -output[y.is_same_cluster]
+        return dy.binary_log_loss(output, dy.scalarInput(1 if y.is_same_cluster else 0))
 
     def fit(self, samples, validation_samples, show_progress=True, show_epoch_eval=True,
             evaluator=None):
@@ -447,10 +444,9 @@ class PairwiseFuncClustModel:
 
     def predict(self, sample_x):
         dy.renew_cg()
-        outputs = self._build_network_for_input(sample_x, apply_dropout=False)
-        output = outputs[True]
+        output = self._build_network_for_input(sample_x, apply_dropout=False)
         # print('True-Output log:', output.npvalue())
-        prob = math.exp(output.npvalue())
+        prob = output.npvalue()
         # print('True-Output prob:', prob)
         # print('False-Output log:', outputs[False].npvalue())
         # print('False-Output prob:', math.exp(outputs[False].npvalue()))
