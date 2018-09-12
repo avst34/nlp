@@ -1,5 +1,4 @@
 import json
-import math
 import os
 import random
 import zipfile
@@ -8,8 +7,10 @@ from glob import glob
 from pprint import pprint
 
 import dynet as dy
+import math
 import numpy as np
 
+from dynet_utils import get_activation_function
 from models.pairwise_func_clust import embeddings
 from models.pairwise_func_clust import vocabs
 from models.pairwise_func_clust.pairwise_func_clust_evaluator import PairwiseFuncClustEvaluator
@@ -17,7 +18,8 @@ from models.pairwise_func_clust.pairwise_func_clust_evaluator import PairwiseFun
 ModelOptimizedParams = namedtuple('ModelOptimizedParams', [
     'input_lookups',
     'W',
-    'b'
+    'b',
+    'mlps'
 ])
 
 MLPSoftmaxParam = namedtuple('MLPSoftmax', ['mlp', 'softmax'])
@@ -80,8 +82,11 @@ class PairwiseFuncClustModel:
             return PairwiseFuncClustModel.SampleX(**d)
 
         def __repr__(self):
-            return '[prep1:%s,gov:%s,obj:%s,prep2:%s,gov:%s,obj:%s]' % (
-                ' '.join(self.prep_tokens1), self.gov_token1, self.obj_token1,' '.join(self.prep_tokens2), self.gov_token2, self.obj_token2)
+            return '[prep1:%s,xpos:%s,gov:%s,gov_xpos:%s,govobj_config:%s,ud_dep:%s,obj:%s,obj_xpos:%s]' % (
+                ' '.join(self.prep_tokens1), self.prep_xpos1, self.gov_token1, self.gov_xpos1, self.govobj_config1, self.ud_dep1, self.obj_token1, self.obj_xpos1
+            ) + ' <-> [prep2:%s,xpos:%s,gov:%s,gov_xpos:%s,govobj_config:%s,ud_dep:%s,obj:%s,obj_xpos:%s]' % (
+                ' '.join(self.prep_tokens2), self.prep_xpos2, self.gov_token2, self.gov_xpos2, self.govobj_config2, self.ud_dep2, self.obj_token2, self.obj_xpos2
+            )
 
     class SampleY:
 
@@ -138,9 +143,9 @@ class PairwiseFuncClustModel:
                      token_embd_dim,
                      internal_token_embd_dim,
                      # use_instance_embd,
-                     # mlp_layers,
-                     # mlp_layer_dim,
-                     # mlp_activation,
+                     num_mlp_layers,
+                     mlp_layer_dim,
+                     mlp_activation,
                      lstm_h_dim,
                      num_lstm_layers,
                      is_bilstm,
@@ -151,6 +156,7 @@ class PairwiseFuncClustModel:
                      learning_rate_decay,
                      dynet_random_seed
                      ):
+            self.mlp_activation = mlp_activation
             self.lstm_dropout_p = lstm_dropout_p
             self.internal_token_embd_dim = internal_token_embd_dim
             self.use_ud_dep = use_ud_dep
@@ -164,6 +170,8 @@ class PairwiseFuncClustModel:
             self.lstm_h_dim = lstm_h_dim
             self.num_lstm_layers = num_lstm_layers
             self.is_bilstm = is_bilstm
+            self.mlp_layer_dim = mlp_layer_dim
+            self.num_mlp_layers = num_mlp_layers
             self.epochs = epochs
             self.learning_rate = learning_rate
             self.learning_rate_decay = learning_rate_decay
@@ -191,7 +199,7 @@ class PairwiseFuncClustModel:
         pprint(hyperparameters.__dict__)
         self.pc = self._build_network_params()
 
-    def get_logit_vec_dim(self):
+    def get_softmax_vec_dim(self):
         hp = self.hyperparameters
         dim = 0
         if hp.use_prep:
@@ -209,6 +217,11 @@ class PairwiseFuncClustModel:
             dim += self.ud_dep_vocab.size()
         if hp.use_role:
             dim += self.pss_vocab.size()
+
+        # ## DEBUG-START
+        # dim += self.pss_vocab.size()
+        # ## DEBUG-END
+
         return 2*dim
 
     def _get_softmax_half_vec(self, preps, prep_xpos, gov, gob_xpos, obj, obj_xpos, govobj_config, ud_dep, role):
@@ -261,8 +274,12 @@ class PairwiseFuncClustModel:
                 "prep": pc.add_lookup_parameters((self.prep_vocab.size(), hp.token_embd_dim)),
                 "prep_internal": pc.add_lookup_parameters((self.prep_vocab.size(), hp.internal_token_embd_dim))
             },
-            W=pc.add_parameters((1, self.get_logit_vec_dim())),
-            b=pc.add_parameters((1,)),
+            W=pc.add_parameters((2, self.get_softmax_vec_dim() if hp.num_mlp_layers == 0 else hp.mlp_layer_dim)),
+            b=pc.add_parameters((2,)),
+            mlps=[MLPLayerParams(
+                pc.add_parameters((hp.mlp_layer_dim, self.get_softmax_vec_dim() if i == 0 else hp.mlp_layer_dim)),
+                pc.add_parameters((hp.mlp_layer_dim,))
+            ) for i in range(hp.num_mlp_layers)]
         )
 
         input_vocabs = {
@@ -315,7 +332,7 @@ class PairwiseFuncClustModel:
         if apply_dropout:
             self.lstm_builder.set_dropout(self.hyperparameters.lstm_dropout_p)
 
-        logit_vec = dy.concatenate([
+        softmax_vec = dy.concatenate([
             self._get_softmax_half_vec(
                 x.prep_tokens1,
                 x.prep_xpos1,
@@ -325,7 +342,7 @@ class PairwiseFuncClustModel:
                 x.obj_xpos1,
                 x.govobj_config1,
                 x.ud_dep1,
-                x.role1
+                x.role1,
             ),
             self._get_softmax_half_vec(
                 x.prep_tokens2,
@@ -336,18 +353,25 @@ class PairwiseFuncClustModel:
                 x.obj_xpos2,
                 x.govobj_config2,
                 x.ud_dep2,
-                x.role2
-            ),
-        ])
+                x.role2,
+            )])
 
-        return dy.logistic(dy.parameter(self.params.W) * logit_vec + dy.parameter(self.params.b))
+        mlp_vec = softmax_vec
+        mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
+        for mlp in self.params.mlps:
+            mlp_vec = mlp_activation(dy.parameter(mlp.W) * mlp_vec + dy.parameter(mlp.b))
+
+        out = dy.log_softmax(dy.parameter(self.params.W) * mlp_vec + dy.parameter(self.params.b))
+        return {
+            False: out[0],
+            True: out[1]
+        }
 
     def _build_loss(self, output, y):
         # print("loss-out True:", output[True], math.exp(output[True].npvalue()))
         # print("loss-out False:", output[False], math.exp(output[False].npvalue()))
         # print("True?:", y.is_same_cluster)
-        # return -output[y.is_same_cluster]
-        return dy.binary_log_loss(output, dy.scalarInput(1 if y.is_same_cluster else 0))
+        return -output[y.is_same_cluster]
 
     def fit(self, samples, validation_samples, show_progress=True, show_epoch_eval=True,
             evaluator=None):
@@ -381,11 +405,13 @@ class PairwiseFuncClustModel:
                 BATCH_SIZE = 20
                 BATCHES_PER_EPOCH = 2000
                 EPOCH_SAMPLES_COUNT = BATCH_SIZE * BATCHES_PER_EPOCH
+
                 batches = [
                     random.sample(true_samples, BATCH_SIZE // 2)
                            +
                     random.sample(false_samples, BATCH_SIZE // 2)
-                           for _ in range(BATCHES_PER_EPOCH)]
+                for _ in range(BATCHES_PER_EPOCH)]
+
                 for batch_ind, batch in enumerate(batches):
                     random.shuffle(batch)
                     dy.renew_cg(immediate_compute=True, check_validity=True)
@@ -398,10 +424,12 @@ class PairwiseFuncClustModel:
                     if len(losses):
                         batch_loss = dy.esum(losses)
                         batch_loss.forward()
+                        # print('Loss before update:', batch_loss.value())
                         batch_loss.backward()
                         v = batch_loss.value()
                         loss_sum += v
                         trainer.update()
+                        # print('Loss after update:', batch_loss.value(recalculate=True))
 
                     if show_progress:
                         if int((batch_ind + 1) / len(batches) * 100) > int(batch_ind / len(batches) * 100):
@@ -427,10 +455,12 @@ class PairwiseFuncClustModel:
                     if best_test_acc is None or test_acc > best_test_acc:
                         print("Best epoch so far! with f1 of: %1.2f" % test_acc)
                         best_test_acc = test_acc
+                        best_test_eval = epoch_test_eval
                         best_epoch = epoch
                         self.pc.save(model_file_path)
 
             self.test_acc = best_test_acc
+            self.test_eval = best_test_eval
             self.best_epoch = best_epoch
             print('--------------------------------------------')
             print('Training is complete (%d samples, %d epochs)' % (len(samples), self.hyperparameters.epochs))
@@ -444,9 +474,10 @@ class PairwiseFuncClustModel:
 
     def predict(self, sample_x):
         dy.renew_cg()
-        output = self._build_network_for_input(sample_x, apply_dropout=False)
+        outputs = self._build_network_for_input(sample_x, apply_dropout=False)
+        output = outputs[True]
         # print('True-Output log:', output.npvalue())
-        prob = output.npvalue()
+        prob = math.exp(output.npvalue())
         # print('True-Output prob:', prob)
         # print('False-Output log:', outputs[False].npvalue())
         # print('False-Output prob:', math.exp(outputs[False].npvalue()))

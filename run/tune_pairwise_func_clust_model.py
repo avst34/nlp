@@ -22,5 +22,6 @@ model = PairwiseFuncClustModelHyperparametersTuner(train_samples, validation_sam
                                                    tuner_domains=TUNER_DOMAINS,
                                                    task_name='pairwise_func_clust')
 model.tune(1)
+# model.sample_execution(json.loads("""{"use_ud_dep": true, "learning_rate": 0.1,"num_mlp_layers":2, "mlp_layer_dim": 100, "mlp_activation": "tanh", "lstm_h_dim": 80, "num_lstm_layers": 2, "dynet_random_seed": null, "use_obj": true, "internal_token_embd_dim": 300, "learning_rate_decay": 0.03162277660168379, "lstm_dropout_p": 0.15, "use_role": true, "update_prep_embd": false, "epochs": 100, "use_govobj_config": true, "is_bilstm": true, "token_embd_dim": 300, "use_prep": true, "use_gov": true}"""))
 print("Done tuning")
 
