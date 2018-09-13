@@ -20,7 +20,7 @@ TUNER_DOMAINS = [
     PS(name='lstm_h_dim', values=[20, 40, 80, 100]),
     PS(name='num_lstm_layers', values=[2]),
     PS(name='is_bilstm', values=[True]),
-    PS(name='num_mlp_layers', values=[2]),
+    PS(name='num_mlp_layers', values=[2, 0]),
     PS(name='mlp_layer_dim', values=[100]),
     # PS(name='mlp_activation', values=['tanh', 'cube', 'relu']),
     PS(name='mlp_activation', values=['tanh']),
