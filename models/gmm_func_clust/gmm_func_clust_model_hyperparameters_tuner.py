@@ -17,9 +17,12 @@ class GmmFuncClustModelHyperparametersTuner:
         result_data = result.result_data
         rows_tuples = [
             # [("Train Acc", result_data['train_acc'])] + \
-            [("P", result_data['test_p'])] + \
-            [("R", result_data['test_r'])] + \
-            [("F1", result_data['test_f1'])] + \
+            [("Train P", result_data['train_p'])] + \
+            [("Train R", result_data['train_r'])] + \
+            [("Train F1", result_data['train_f1'])] + \
+            [("Test P", result_data['test_p'])] + \
+            [("Test R", result_data['test_r'])] + \
+            [("Test F1", result_data['test_f1'])] + \
             [(k, str(v)) for k, v in sorted(params.items())] + \
             [("Hyperparams Json", json.dumps(params))]
         ]
@@ -73,8 +76,11 @@ class GmmFuncClustModelHyperparametersTuner:
                 'test_p': model.test_eval['p'],
                 'test_r': model.test_eval['r'],
                 'test_f1': model.test_eval['f1'],
+                'train_p': model.train_eval['p'],
+                'train_r': model.train_eval['r'],
+                'train_f1': model.train_eval['f1'],
             },
-            score=model.test_f1,
+            score=model.test_eval['f1'],
             predictor=model
         )
 

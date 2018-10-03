@@ -234,7 +234,6 @@ class GmmFuncClustModel:
 
     def fit(self, samples, validation_samples,
             evaluator=None):
-        samples = samples[:500]
         X_train = np.array([self._vectorize(s.x) for s in samples])
 
         means_init = None
@@ -252,15 +251,17 @@ class GmmFuncClustModel:
                                      init_params=self.hyperparameters.gmm_means_init if self.hyperparameters.gmm_means_init != 'by_role' else 'kmeans',
                                      means_init=means_init,
                                      covariance_type=self.hyperparameters.cov_type,
-                                     max_iter=self.hyperparameters.gmm_max_iter)
+                                     max_iter=self.hyperparameters.gmm_max_iter,
+                                     verbose=2,
+                                     verbose_interval=1)
 
 
         print('fit: fitting GMM...')
         self.model.fit(X_train)
-        print('fit: done, evaluating on train..')
+        print('fit: done, evaluating on train.. (%d samples)' % len(samples))
         evaluator = evaluator or GmmFuncClustEvaluator()
         self.train_eval = evaluator.evaluate(samples, predictor=self)
-        print('fit: done, evaluating on test..')
+        print('fit: done, evaluating on test.. (%d samples)' % len(validation_samples))
         self.test_eval = evaluator.evaluate(validation_samples, predictor=self)
         print('fit: done')
         return self
