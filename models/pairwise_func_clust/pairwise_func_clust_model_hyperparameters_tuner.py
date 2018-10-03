@@ -21,6 +21,10 @@ class PairwiseFuncClustModelHyperparametersTuner:
             [("Test Acc", result_data['test_acc'])] + \
             [("Test Acc (True)", result_data['test_true_acc'])] + \
             [("Test Acc (False)", result_data['test_false_acc'])] + \
+            [("Test Acc (Avg)", (result_data['test_false_acc'] + result_data['test_true_acc']) / 2)] + \
+            [("P", result_data['test_p'])] + \
+            [("R", result_data['test_r'])] + \
+            [("F1", result_data['test_f1'])] + \
             [(k, str(v)) for k, v in sorted(params.items())] + \
             [("Hyperparams Json", json.dumps(params))]
         ]
@@ -76,6 +80,9 @@ class PairwiseFuncClustModelHyperparametersTuner:
                 'test_acc': model.test_acc,
                 'test_true_acc': model.test_eval['true_acc'],
                 'test_false_acc': model.test_eval['false_acc'],
+                'test_p': model.test_eval['p'],
+                'test_r': model.test_eval['r'],
+                'test_f1': model.test_eval['f1'],
                 'best_epoch': model.best_epoch
             },
             score=model.test_acc,

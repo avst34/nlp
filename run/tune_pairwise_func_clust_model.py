@@ -18,10 +18,12 @@ train_samples = streusle_records_to_pairwise_func_clust_model_samples(train_recs
 dev_samples = streusle_records_to_pairwise_func_clust_model_samples(dev_recs)
 print("... done")
 
-model = PairwiseFuncClustModelHyperparametersTuner(train_samples, validation_samples=dev_samples, results_csv_path=sys.argv[-1],
+print("Dev: %d%% TRUE, %d%% FALSE" % (len([x for x in dev_samples if x.y.is_same_cluster])/len(dev_samples)*100, len([x for x in dev_samples if not x.y.is_same_cluster])/len(dev_samples)*100))
+
+model = PairwiseFuncClustModelHyperparametersTuner(train_samples, validation_samples=dev_samples, results_csv_path="/cs/usr/aviramstern/lab/results_pairwise.csv" or sys.argv[-1],
                                                    tuner_domains=TUNER_DOMAINS,
                                                    task_name='pairwise_func_clust')
 model.tune(1)
-# model.sample_execution(json.loads("""{"use_ud_dep": true, "learning_rate": 0.1,"num_mlp_layers":2, "mlp_layer_dim": 100, "mlp_activation": "tanh", "lstm_h_dim": 80, "num_lstm_layers": 2, "dynet_random_seed": null, "use_obj": true, "internal_token_embd_dim": 300, "learning_rate_decay": 0.03162277660168379, "lstm_dropout_p": 0.15, "use_role": true, "update_prep_embd": false, "epochs": 100, "use_govobj_config": true, "is_bilstm": true, "token_embd_dim": 300, "use_prep": true, "use_gov": true}"""))
+# model.sample_execution(json.loads("""{"lstm_dropout_p": 0.04, "use_obj": false, "learning_rate": 0.015848931924611134, "learning_rate_decay": 0.0001, "token_embd_dim": 300, "mlp_activation": "tanh", "epochs": 150, "use_prep": true, "internal_token_embd_dim": 10, "update_prep_embd": true, "lstm_h_dim": 80, "num_lstm_layers": 2, "mlp_layer_dim": 100, "use_govobj_config": true, "use_ud_dep": false, "use_role": false, "is_bilstm": true, "num_mlp_layers": 2, "dynet_random_seed": null, "use_gov": false}"""))
 print("Done tuning")
 
