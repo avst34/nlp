@@ -381,8 +381,8 @@ class PairwiseFuncClustModel:
         self.test_set_evaluation = []
         self.train_set_evaluation = []
 
-        best_test_acc = None
-        train_acc = None
+        best_test_f1 = None
+        train_f1 = None
         best_epoch = None
         model_file_path = '/tmp/_m_' + str(random.randrange(10000))
 
@@ -449,17 +449,17 @@ class PairwiseFuncClustModel:
                     # self.train_set_evaluation.append(epoch_train_eval)
                     print('--------------------------------------------')
 
-                    get_acc = lambda ev: ev['acc']
+                    get_f1 = lambda ev: ev['f1']
 
-                    test_acc = get_acc(epoch_test_eval)
-                    if best_test_acc is None or test_acc > best_test_acc:
-                        print("Best epoch so far! with f1 of: %1.2f" % test_acc)
-                        best_test_acc = test_acc
+                    test_f1 = get_f1(epoch_test_eval)
+                    if best_test_f1 is None or test_f1 > best_test_f1:
+                        print("Best epoch so far! with f1 of: %1.2f" % test_f1)
+                        best_test_f1 = test_f1
                         best_test_eval = epoch_test_eval
                         best_epoch = epoch
                         self.pc.save(model_file_path)
 
-            self.test_acc = best_test_acc
+            self.test_f1 = best_test_f1
             self.test_eval = best_test_eval
             self.best_epoch = best_epoch
             print('--------------------------------------------')
