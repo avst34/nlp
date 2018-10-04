@@ -85,7 +85,7 @@ class PairwiseFuncClustModelHyperparametersTuner:
                 'test_f1': model.test_eval['f1'],
                 'best_epoch': model.best_epoch
             },
-            score=model.test_acc,
+            score=model.test_eval['f1'],
             predictor=model
         )
 
