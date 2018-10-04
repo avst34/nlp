@@ -237,7 +237,7 @@ class GmmFuncClustModel:
         X_train = np.array([self._vectorize(s.x) for s in samples])
 
         means_init = None
-        if self.hyperparameters.use_role and self.hyperparameters.gmm_means_init == 'by_role':
+        if self.hyperparameters.gmm_means_init == 'by_role':
             all_classes = list(set([s.x.role for s in samples]))
             means_init = np.array([
                 X_train[[ind for ind, s in enumerate(samples) if s.x.role == label]].mean(axis=0)
@@ -248,7 +248,7 @@ class GmmFuncClustModel:
 
         n_classes = len(all_classes)
         self.model = GaussianMixture(n_components=n_classes,
-                                     init_params=self.hyperparameters.gmm_means_init if self.hyperparameters.gmm_means_init != 'by_role' else 'kmeans',
+                                     init_params=self.hyperparameters.gmm_means_init if self.hyperparameters.gmm_means_init != 'by_role' else None,
                                      means_init=means_init,
                                      covariance_type=self.hyperparameters.cov_type,
                                      max_iter=self.hyperparameters.gmm_max_iter,
