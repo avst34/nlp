@@ -248,7 +248,7 @@ class GmmFuncClustModel:
 
         n_classes = len(all_classes)
         self.model = GaussianMixture(n_components=n_classes,
-                                     init_params=self.hyperparameters.gmm_means_init if self.hyperparameters.gmm_means_init != 'by_role' else None,
+                                     init_params=self.hyperparameters.gmm_means_init if self.hyperparameters.gmm_means_init != 'by_role' else 'kmeans',
                                      means_init=means_init,
                                      covariance_type=self.hyperparameters.cov_type,
                                      max_iter=self.hyperparameters.gmm_max_iter,
