@@ -77,7 +77,7 @@ class PairwiseFuncClustModelHyperparametersTuner:
         return HyperparametersTuner.ExecutionResult(
             result_data={
                 # 'train_acc': model.train_acc,
-                'test_acc': model.test_acc,
+                'test_acc': model.test_eval['acc'],
                 'test_true_acc': model.test_eval['true_acc'],
                 'test_false_acc': model.test_eval['false_acc'],
                 'test_p': model.test_eval['p'],
