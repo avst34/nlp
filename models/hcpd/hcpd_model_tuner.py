@@ -1,7 +1,7 @@
-from evaluators.ppatt_evaluator import PPAttEvaluator
-from hyperparameters_tuner import HyperparametersTuner
 import json
 
+from evaluators.ppatt_evaluator import PPAttEvaluator
+from hyperparameters_tuner import HyperparametersTuner
 from models.hcpd.hcpd_model import HCPDModel
 from .tuner_domains import TUNER_DOMAINS
 
@@ -9,7 +9,7 @@ from .tuner_domains import TUNER_DOMAINS
 def extract_classifier_evaluator_results(evaluation):
     return evaluation
 
-class HCPDModelTuner:
+class   HCPDModelTuner:
 
     def build_csv_rows(self, params, result):
         assert isinstance(result, HyperparametersTuner.ExecutionResult)

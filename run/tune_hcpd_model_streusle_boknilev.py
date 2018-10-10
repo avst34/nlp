@@ -1,15 +1,14 @@
-import sys
-import math
 import json
-
+import math
 import random
+import sys
 
 from datasets.pp_attachement.boknilev.load_boknilev import load_boknilev
 from datasets.pp_attachement.streusle.load_streusle import load_streusle
 from evaluators.ppatt_evaluator import PPAttEvaluator
 from hyperparameters_tuner import HyperparametersTuner
-from models.hcpd.hcpd_model import HCPDModel
 from models.hcpd.boknilev_integration import boknilev_record_to_hcpd_samples
+from models.hcpd.hcpd_model import HCPDModel
 from models.hcpd.hcpd_model_tuner import HCPDModelTuner
 
 print("Loading dataset")
@@ -48,14 +47,14 @@ print("Tuning..")
 class Tuner(HCPDModelTuner):
 
     def build_csv_rows(self, params, result):
-            assert isinstance(result, HyperparametersTuner.ExecutionResult)
+        assert isinstance(result, HyperparametersTuner.ExecutionResult)
         result_data = result.result_data
         rows_tuples = [[]]
         row_tuples = rows_tuples[0]
         row_tuples.append(("mode", result_data['mode']))
         row_tuples.append(("Best Epoch", result_data['scopes']['train']['best_epoch']))
         row_tuples += [(k, str(v)) for k, v in sorted(params.items())]
-        for scope, scope_data in result_data['scopes'].items():
+        for scope, scope_data in sorted(result_data['scopes'].items()):
             row_tuples.append((scope + "_Acc", scope_data['acc']))
         row_tuples.append(("Hyperparams Json", json.dumps(params)))
 
@@ -86,10 +85,10 @@ class Tuner(HCPDModelTuner):
             result_data={
                 'mode': mode,
                 'scopes': {
-                    'train': self.tuner_results_getter(model.train_set_evaluation),
+                    'train': PPAttEvaluator(model).evaluate(mixed_train_samples, examples_to_show=0),
                     'dev_boknilev':  PPAttEvaluator(model).evaluate(dev_samples_boknilev, examples_to_show=0),
                     'test_boknilev':  PPAttEvaluator(model).evaluate(test_samples_boknilev, examples_to_show=0),
-                    'dev_streusle':  self.tuner_results_getter(model.test_set_evaluation),
+                    'dev_streusle':  PPAttEvaluator(model).evaluate(dev_samples_streusle, examples_to_show=0),
                     'test_streusle':  PPAttEvaluator(model).evaluate(test_samples_streusle, examples_to_show=0),
                 }
             },
