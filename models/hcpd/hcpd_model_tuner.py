@@ -56,7 +56,7 @@ class   HCPDModelTuner:
                                           params_settings=tuner_domains, executor=self._execute,
                                           csv_row_builder=self.build_csv_rows, shared_csv=True,
                                           lock_file_path=results_csv_path + '.lock',
-                                          dump_result=dump_result)
+                                          dump_result=None)
 
         self.fit_kwargs = {
             'samples': samples,
