@@ -85,10 +85,10 @@ class Tuner(HCPDModelTuner):
             result_data={
                 'mode': mode,
                 'scopes': {
-                    'train': PPAttEvaluator(model).evaluate(mixed_train_samples, examples_to_show=0),
+                    'train': self.tuner_results_getter(model.train_set_evaluation),
                     'dev_boknilev':  PPAttEvaluator(model).evaluate(dev_samples_boknilev, examples_to_show=0),
                     'test_boknilev':  PPAttEvaluator(model).evaluate(test_samples_boknilev, examples_to_show=0),
-                    'dev_streusle':  PPAttEvaluator(model).evaluate(dev_samples_streusle, examples_to_show=0),
+                    'dev_streusle':  self.tuner_results_getter(model.test_set_evaluation),
                     'test_streusle':  PPAttEvaluator(model).evaluate(test_samples_streusle, examples_to_show=0),
                 }
             },
