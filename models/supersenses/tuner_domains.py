@@ -1,6 +1,8 @@
-from hyperparameters_tuner import HyperparametersTuner
-import numpy as np
 import os
+
+import numpy as np
+
+from hyperparameters_tuner import HyperparametersTuner
 
 PS = HyperparametersTuner.ParamSettings
 
@@ -11,6 +13,7 @@ TUNER_DOMAINS_TUNING = [
         # ('supersense_role',),
         # ('supersense_func',)
     ]),
+    PS(name='use_role', values=[False]),
     PS(name='use_token', values=[True]),
     PS(name='use_instance_embd', values=[True, False]),
     PS(name='update_lemmas_embd', values=[True, False]),
@@ -26,6 +29,7 @@ TUNER_DOMAINS_TUNING = [
     PS(name='ud_xpos_embd_dim', values=[5, 10, 25]),
     PS(name='ud_deps_embd_dim', values=[5, 10, 25]),
     PS(name='ner_embd_dim', values=[5, 10]),
+    PS(name='pss_embd_dim', values=[5, 10]),
     PS(name='govobj_config_embd_dim', values=[3]),
     PS(name='lexcat_embd_dim', values=[3]),
     PS(name='update_token_embd', values=[True, False]),
@@ -50,6 +54,7 @@ TUNER_DOMAINS_TUNING = [
 # For testing - all features
 TUNER_DOMAINS_TESTING = [
     PS(name='use_token', values=[True]),
+    PS(name='use_role', values=[False]),
     PS(name='use_ud_xpos', values=[True]),
     PS(name='use_ud_dep', values=[True]),
     PS(name='use_prep_onehot', values=[True]),

@@ -1,9 +1,9 @@
+import json
+
 from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
 from evaluators.streusle_evaluator import StreusleEvaluator
 from hyperparameters_tuner import HyperparametersTuner
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
-import json
-
 from models.supersenses.tuner_domains import TUNER_DOMAINS
 
 
@@ -17,7 +17,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
         assert isinstance(result, HyperparametersTuner.ExecutionResult)
         result_data = result.result_data
         rows_tuples = []
-        best_epoch = max([(evaluation['f1'] or 0, epoch) for epoch, evaluation in enumerate(result_data['test'])])[1]
+        best_epoch = max([(evaluation['f1'] or 0, epoch) for epoch, evaluation in enumerate(result_data['dev'])])[1]
         for scope, scope_data in result_data.items():
             for epoch, epoch_data in enumerate(scope_data):
                 class_scores = epoch_data['class_scores']
@@ -57,6 +57,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
                  results_csv_path,
                  tuner_domains=TUNER_DOMAINS,
                  validation_samples=None,
+                 test_samples=None,
                  show_progress=True,
                  show_epoch_eval=True,
                  report_epoch_scores=False,
@@ -94,6 +95,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
         self.fit_kwargs = {
             'samples': samples,
             'validation_samples': validation_samples,
+            'test_samples': test_samples,
             'show_progress': show_progress,
             'show_epoch_eval': show_epoch_eval,
             'evaluator': evaluator
@@ -105,6 +107,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
         return HyperparametersTuner.ExecutionResult(
             result_data={
                 'train': self.tuner_results_getter(lstm_mlp_model.train_set_evaluation),
+                'dev': self.tuner_results_getter(lstm_mlp_model.dev_set_evaluation),
                 'test':  self.tuner_results_getter(lstm_mlp_model.test_set_evaluation),
             },
             score=self.tuner_score_getter(lstm_mlp_model.test_set_evaluation),

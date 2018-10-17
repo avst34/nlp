@@ -3,14 +3,13 @@ import random
 
 from datasets.streusle_v4 import StreusleLoader
 from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
-from models.supersenses.settings import GOLD_ID_GOLD_PREP, GOLD_ID_AUTO_PREP, AUTO_ID_AUTO_PREP, AUTO_ID_GOLD_PREP, \
-    ELMO_TASK_SETTINGS, PS
+from hyperparameters_tuner import override_settings
 from models.supersenses.features.features_test import test_features
-from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
+from models.supersenses.settings import ELMO_TASK_SETTINGS
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
-from hyperparameters_tuner import union_settings, override_settings
+
 evaluator = PSSClasifierEvaluator()
 
 def print_samples_statistics(name, samples):
@@ -31,9 +30,9 @@ def print_samples_statistics(name, samples):
 
 def run():
 
-    tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
+    # tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
+    tasks = ['goldid.goldsyn', 'goldid.goldsyn.goldrole']
     task = random.choice(tasks)
-    task = 'goldid.goldsyn'
     for task in [task]:
         loader = StreusleLoader(load_elmo=True)
         train_records = loader.load_train()
@@ -52,9 +51,10 @@ def run():
 
         tuner = LstmMlpSupersensesModelHyperparametersTuner(
             task_name=task,
-            results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/results_elmo.csv',
+            results_csv_path=os.environ.get('RESULTS_PATH') or '/tmp/results.csv',
             samples=train_samples, # use all after testing
             validation_samples=dev_samples,
+            test_samples=test_samples,
             show_progress=True,
             show_epoch_eval=True,
             tuner_domains=override_settings([

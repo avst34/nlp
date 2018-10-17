@@ -14,6 +14,7 @@ def build_features(hyperparameters, override=None):
         Feature('token.ud_xpos',     FeatureType.ENUM, vocabs.UD_XPOS,     embeddings.AUTO,  dim=hp.ud_xpos_embd_dim,  update=True,        extractor=lambda tok, sent: tok.ud_xpos, mount_point=MLP,  enable=hp.use_ud_xpos),
         Feature('token.dep',     FeatureType.ENUM, vocabs.UD_DEPS,    embeddings.AUTO,   dim=hp.ud_deps_embd_dim,  update=True,    extractor=lambda tok, sent: tok.ud_dep,    mount_point=MLP,  enable=hp.use_ud_dep),
         Feature('token.ner',  FeatureType.ENUM, vocabs.NERS,  embeddings.AUTO,  dim=hp.ner_embd_dim,  update=True, extractor=lambda tok, sent: tok.ner, mount_point=MLP,  enable=hp.use_ner),
+        Feature('role',  FeatureType.ENUM, vocabs.PSS,  embeddings.AUTO,  dim=hp.pss_embd_dim,  update=True, extractor=lambda tok, sent: tok.role, mount_point=MLP,  enable=hp.use_role),
         Feature('token.govobj-config',  FeatureType.ENUM, vocabs.GOVOBJ_CONFIGS,  embeddings.AUTO,  dim=hp.govobj_config_embd_dim,  update=True, extractor=lambda tok, sent: tok.govobj_config, mount_point=MLP,  enable=hp.use_govobj),
         Feature('token.lexcat',  FeatureType.ENUM, vocabs.LEXCAT,  embeddings.AUTO,  dim=hp.lexcat_embd_dim,  update=True, extractor=lambda tok, sent: tok.lexcat, mount_point=MLP,  enable=hp.use_lexcat, masked_only=False),
 

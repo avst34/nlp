@@ -110,6 +110,7 @@ class LstmMlpMulticlassModel(object):
         # self.hyperparameters = LstmMlpMulticlassModel.HyperParameters(**update_dict(hyperparameters.__dict__, {'input_embedding_dims': input_embeddings_dims}))
         self.hyperparameters = hyperparameters
         self.test_set_evaluation = None
+        self.dev_set_evaluation = None
         self.train_set_evaluation = None
         self.pc = self._build_network_params()
 
@@ -325,23 +326,21 @@ class LstmMlpMulticlassModel(object):
     #         vocab.add_words([y for s in samples for y in s.ys])
     #         self.output_vocabulary = vocab
     #
-    def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
+    def fit(self, samples, validation_samples=None, test_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
         evaluator = evaluator or PSSClasifierEvaluator()
         self.pc = self._build_network_params()
         # self._build_vocabularies(samples + validation_samples or [])
 
-        if validation_samples:
-            test = validation_samples
-            train = samples
-        else:
-            test = samples[:int(len(samples) * self.hyperparameters.validation_split)]
-            train = samples[int(len(samples) * self.hyperparameters.validation_split):]
+        test = test_samples
+        dev = validation_samples
+        train = samples
 
         self.test_set_evaluation = []
+        self.dev_set_evaluation = []
         self.train_set_evaluation = []
 
-        best_test_acc = None
+        best_dev_acc = None
         train_acc = None
         best_epoch = None
         model_file_path = '/tmp/_m_' + str(random.randrange(10000))
@@ -382,17 +381,20 @@ class LstmMlpMulticlassModel(object):
                     print('--------------------------------------------')
                     print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
                     print('Validation data evaluation:')
-                    epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self)
-                    self.test_set_evaluation.append(epoch_test_eval)
+                    epoch_dev_eval = evaluator.evaluate(dev, examples_to_show=5, predictor=self)
+                    self.dev_set_evaluation.append(epoch_dev_eval)
                     print('Training data evaluation:')
                     epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self)
                     self.train_set_evaluation.append(epoch_train_eval)
+                    print('Testing data evaluation:')
+                    epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self)
+                    self.test_set_evaluation.append(epoch_test_eval)
                     print('--------------------------------------------')
 
-                    test_acc = epoch_test_eval['f1']
-                    if best_test_acc is None or test_acc > best_test_acc:
-                        print("Best epoch so far! with f1 of: %1.2f" % test_acc)
-                        best_test_acc = test_acc
+                    dev_acc = epoch_dev_eval['f1']
+                    if best_dev_acc is None or dev_acc > best_dev_acc:
+                        print("Best epoch so far! with f1 of: %1.2f" % dev_acc)
+                        best_dev_acc = dev_acc
                         train_acc = epoch_train_eval['f1']
                         best_epoch = epoch
                         self.pc.save(model_file_path)

@@ -19,11 +19,18 @@ AUTO_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
 ]])
 
 
+GOLD_ID_GOLD_PREP_GOLD_ROLE = override_settings([TUNER_DOMAINS, [
+    PS(name='allow_empty_prediction', values=[False]),
+    PS(name='labels_to_predict', values=[('supersense_func',)]),
+    PS(name='use_role', values=[True])
+]])
+
 TASK_SETTINGS = {
     'goldid.goldsyn': GOLD_ID_GOLD_PREP,
     'goldid.autosyn': GOLD_ID_AUTO_PREP,
     'autoid.goldsyn': AUTO_ID_GOLD_PREP,
     'autoid.autosyn': AUTO_ID_AUTO_PREP,
+    'goldid.goldsyn.goldrole': GOLD_ID_GOLD_PREP_GOLD_ROLE,
 }
 
 ELMO_TASK_SETTINGS = {

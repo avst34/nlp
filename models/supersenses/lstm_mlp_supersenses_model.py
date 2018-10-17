@@ -25,6 +25,7 @@ class LstmMlpSupersensesModel:
                      gov_ind, obj_ind, govobj_config,
                      identified_for_pss,
                      lexcat,
+                     role,
                      lemma_embd=None,
                      token_embd=None):
             self.token_embd = token_embd
@@ -43,6 +44,7 @@ class LstmMlpSupersensesModel:
             self.ud_dep = ud_dep
             self.ud_head_ind = ud_head_ind
             self.identified_for_pss = identified_for_pss
+            self.role = role
 
         def to_dict(self):
             return self.__dict__
@@ -106,6 +108,8 @@ class LstmMlpSupersensesModel:
                      use_ud_xpos,
                      use_ud_dep,
                      use_ner,
+                     use_role,
+                     pss_embd_dim,
                      use_prep_onehot,
                      use_govobj,
                      use_token_internal,
@@ -134,6 +138,8 @@ class LstmMlpSupersensesModel:
                      allow_empty_prediction,
                      dynet_random_seed
                      ):
+            self.pss_embd_dim = pss_embd_dim
+            self.use_role = use_role
             self.use_instance_embd = use_instance_embd
             self.lexcat_embd_dim = lexcat_embd_dim
             self.use_lexcat = use_lexcat
@@ -204,7 +210,7 @@ class LstmMlpSupersensesModel:
              },
              del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_ud_dep', 'use_ner', 'use_lexcat', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
                        'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim', 'lexcat_embd_dim',
-                       'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd']))
+                       'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd', 'use_role', 'pss_embd_dim']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):
@@ -281,7 +287,7 @@ class LstmMlpSupersensesModel:
             n_y_labels += len([y for i, y in enumerate(s.ys) if any([y.supersense_func, y.supersense_role]) and mask[i]])
         print("[%s]: %d sentences, %d labels" % (name, n_sentences, n_y_labels))
 
-    def fit(self, samples, validation_samples=None, show_progress=True, show_epoch_eval=True,
+    def fit(self, samples, validation_samples=None, test_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
         ll_samples = [self.sample_to_lowlevel(s) for s in samples]
         ll_samples = [x for x in ll_samples if any(x.mask)]
@@ -289,13 +295,18 @@ class LstmMlpSupersensesModel:
         ll_validation_samples = [self.sample_to_lowlevel(s) for s in validation_samples] if validation_samples else None
         ll_validation_samples = [x for x in ll_validation_samples if any(x.mask)] if ll_validation_samples else None
 
+        ll_test_samples = [self.sample_to_lowlevel(s) for s in test_samples] if test_samples else None
+        ll_test_samples = [x for x in ll_test_samples if any(x.mask)] if ll_test_samples else None
+
         self.report_masking(samples, 'Training')
         if validation_samples:
             self.report_masking(validation_samples, 'Validation')
+        if test_samples:
+            self.report_masking(validation_samples, 'Test')
 
         self.model.fit(ll_samples, show_progress=show_progress,
                        show_epoch_eval=show_epoch_eval, evaluator=evaluator,
-                       validation_samples=ll_validation_samples)
+                       validation_samples=ll_validation_samples, test_samples=ll_test_samples)
         return self
 
     def predict(self, sample_xs, mask=None):
@@ -325,6 +336,10 @@ class LstmMlpSupersensesModel:
     @property
     def test_set_evaluation(self):
         return self.model.test_set_evaluation
+
+    @property
+    def dev_set_evaluation(self):
+        return self.model.dev_set_evaluation
 
     @property
     def train_set_evaluation(self):

@@ -36,13 +36,16 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     dynet_random_seed=0,
     use_lexcat=True,
     lexcat_embd_dim=10,
-    use_instance_embd=False
+    use_instance_embd=False,
+    use_role=False,
+    pss_embd_dim=5
 )
 
 test_sample = LstmMlpSupersensesModel.Sample.from_dict({
   "xs": [
     {
       "ud_head_ind": 3,
+      "role": "LOCUS",
       "is_part_of_mwe": True,
       "token": "If",
       "lemma": "if",
@@ -59,6 +62,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 3,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "you",
       "lemma": "you",
@@ -75,6 +79,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 3,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "are",
       "lemma": "be",
@@ -91,6 +96,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 15,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "serious",
       "lemma": "serious",
@@ -107,6 +113,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 5,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "about",
       "lemma": "about",
@@ -123,6 +130,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 3,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "working",
       "lemma": "work",
@@ -139,6 +147,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 5,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "out",
       "lemma": "out",
@@ -155,6 +164,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 11,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "in",
       "lemma": "in",
@@ -171,6 +181,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 11,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "a",
       "lemma": "a",
@@ -187,6 +198,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 10,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "non-commercial",
       "lemma": "non-commercial",
@@ -203,6 +215,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 11,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "like",
       "lemma": "like",
@@ -219,6 +232,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 5,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "atmosphere",
       "lemma": "atmosphere",
@@ -235,6 +249,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 15,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "then",
       "lemma": "then",
@@ -251,6 +266,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 15,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "you",
       "lemma": "you",
@@ -267,6 +283,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 15,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "have",
       "lemma": "have",
@@ -283,6 +300,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 15,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "chosen",
       "lemma": "choose",
@@ -299,6 +317,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 18,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "The",
       "lemma": "the",
@@ -315,6 +334,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 18,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "best",
       "lemma": "best",
@@ -331,6 +351,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 15,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "place",
       "lemma": "place",
@@ -347,6 +368,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 20,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "to",
       "lemma": "to",
@@ -363,6 +385,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 18,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": "be",
       "lemma": "be",
@@ -379,6 +402,7 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     },
     {
       "ud_head_ind": 15,
+      "role": "LOCUS",
       "is_part_of_mwe": False,
       "token": ".",
       "lemma": ".",
