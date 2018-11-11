@@ -15,7 +15,7 @@ TUNER_DOMAINS_TUNING = [
     ]),
     PS(name='use_role', values=[False]),
     PS(name='use_token', values=[True]),
-    PS(name='use_instance_embd', values=[True, False]),
+    PS(name='use_instance_embd', values=[False]),
     PS(name='update_lemmas_embd', values=[True, False]),
     PS(name='use_token_internal', values=[True]),
     PS(name='use_ud_xpos', values=[True]),

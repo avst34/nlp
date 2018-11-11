@@ -175,7 +175,7 @@ class LstmMlpSupersensesModel:
             self.epochs = epochs
             self.mask_mwes = mask_mwes
 
-            assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])])
+            assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])]), labels_to_predict
 
         def clone(self, override=None):
             override = override or {}

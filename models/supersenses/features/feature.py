@@ -73,7 +73,7 @@ class Feature(object):
 
     def extract_embedding(self, tok):
         embd = self.embedding_extractor(tok) if self.embedding_extractor else self.embeddings.get(tok)
-        assert len(embd) == self.dim
+        assert len(embd) == self.dim, "%d != %d" % (len(embd), self.dim)
 
 
 class Features(object):
