@@ -1,7 +1,6 @@
 from collections import OrderedDict
 
 from utils import f1_score
-import random
 
 to_precentage = lambda s: int(s * 10000) / 100 if s is not None else None
 
@@ -67,7 +66,7 @@ class PSSClasifierEvaluator:
                     counts[klass]['p_value_a_value_neq'] += c
         return
 
-    def evaluate(self, samples, examples_to_show=3, predictor=None):
+    def evaluate(self, samples, examples_to_show=3, predictor=None, inds_to_predict=None):
         ALL_CLASSES = PSSClasifierEvaluator.ALL_CLASSES
         ALL_CLASSES_STRICT = PSSClasifierEvaluator.ALL_CLASSES_STRICT
         predictor = predictor or self.predictor
@@ -96,17 +95,19 @@ class PSSClasifierEvaluator:
             predicted_ys = predictor.predict(sample.xs, sample.mask)
             if sample_ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
+            inds_to_predict = inds_to_predict or list(range(len(predicted_ys)))
             for p, a in zip(predicted_ys, sample.ys):
                 if not p:
-                    p = tuple([None] * len(a))
-                self.update_counts(counts, a, p, a)
-                self.update_counts(counts, ALL_CLASSES, p, a, strict=False)
-                self.update_counts(counts, ALL_CLASSES_STRICT, p, a)
-                if a is not None and len(a) > 1:
-                    for ind, klass in enumerate(a):
-                        cklass = tuple([a[i] if i == ind else '*' for i in range(len(a))])
+                    p = tuple([None] * len(inds_to_predict))
+                alabels = tuple([l for ind, l in enumerate(a) if ind in inds_to_predict])
+                self.update_counts(counts, alabels, p, alabels)
+                self.update_counts(counts, ALL_CLASSES, p, alabels, strict=False)
+                self.update_counts(counts, ALL_CLASSES_STRICT, p, alabels)
+                if a is not None and len(inds_to_predict) > 1:
+                    for ind, klass in enumerate(alabels):
+                        cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
                         self.update_counts(counts, cklass, p[ind], klass)
-                        cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(a))])
+                        cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
                         self.update_counts(counts, cklass, p[ind], klass)
 
         for klass, class_counts in counts.items():

@@ -13,6 +13,11 @@ TUNER_DOMAINS_TUNING = [
         # ('supersense_role',),
         # ('supersense_func',)
     ]),
+    PS(name='labels_to_learn', values=[
+        ('supersense_role', 'supersense_func'),
+        # ('supersense_role',),
+        # ('supersense_func',)
+    ]),
     PS(name='use_role', values=[False]),
     PS(name='use_token', values=[True]),
     PS(name='use_instance_embd', values=[False]),

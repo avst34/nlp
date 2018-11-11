@@ -136,8 +136,10 @@ class LstmMlpSupersensesModel:
                      learning_rate_decay,
                      mask_mwes,
                      allow_empty_prediction,
-                     dynet_random_seed
+                     dynet_random_seed,
+                     labels_to_learn=None,
                      ):
+            self.labels_to_learn = labels_to_learn
             self.pss_embd_dim = pss_embd_dim
             self.use_role = use_role
             self.use_instance_embd = use_instance_embd
@@ -175,6 +177,8 @@ class LstmMlpSupersensesModel:
             self.epochs = epochs
             self.mask_mwes = mask_mwes
 
+            self.labels_to_learn = self.labels_to_learn or self.labels_to_predict
+            assert all([l in self.labels_to_learn for l in self.labels_to_predict])
             assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])]), labels_to_predict
 
         def clone(self, override=None):
@@ -206,11 +210,15 @@ class LstmMlpSupersensesModel:
                     'input_embeddings_to_update': {name: True for name in names(self.features.list_updatable_features())},
                     'input_embeddings_default_dim': None,
                     'input_embedding_dims': {f.name: f.dim for f in self.features.list_features_with_embedding()},
-                    'n_labels_to_predict': len(self.hyperparameters.labels_to_predict)
+                    'n_labels_to_learn': len(self.hyperparameters.labels_to_learn),
+                    'label_inds_to_predict': [ind for ind, label in enumerate(self.hyperparameters.labels_to_learn) if label in self.hyperparameters.labels_to_predict],
              },
-             del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_ud_dep', 'use_ner', 'use_lexcat', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
-                       'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim', 'lexcat_embd_dim',
-                       'update_token_embd', 'use_prep_onehot', 'use_token_internal', 'labels_to_predict', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd', 'use_role', 'pss_embd_dim']))
+             del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_ud_dep',
+                       'use_ner', 'use_lexcat', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
+                       'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim',
+                       'lexcat_embd_dim', 'update_token_embd', 'use_prep_onehot', 'use_token_internal',
+                       'labels_to_predict', 'labels_to_learn', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd',
+                       'use_role', 'pss_embd_dim']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):
@@ -239,12 +247,12 @@ class LstmMlpSupersensesModel:
         )
 
     def sample_y_to_lowlevel(self, sample_y):
-        labels = self.hyperparameters.labels_to_predict
+        labels = self.hyperparameters.labels_to_learn
         ll_y = tuple([getattr(sample_y, label) for label in labels])
         return ll_y
 
     def lowlevel_to_sample_y(self, ll_sample_y):
-        labels = self.hyperparameters.labels_to_predict
+        labels = self.hyperparameters.labels_to_learn
         return LstmMlpSupersensesModel.SampleY(**{label: ll_sample_y[ind] for ind, label in enumerate(labels)})
 
     def apply_mask(self, sample_x):

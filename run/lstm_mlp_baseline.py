@@ -50,7 +50,7 @@ def run():
         test_features()
 
         tuner = LstmMlpSupersensesModelHyperparametersTuner(
-            task_name=task,
+            task_name='withrole.'  + task,
             results_csv_path=os.environ.get('RESULTS_PATH') or '/tmp/results.csv',
             samples=train_samples, # use all after testing
             validation_samples=dev_samples,
@@ -60,6 +60,7 @@ def run():
             tuner_domains=override_settings([
                 TASK_SETTINGS[task],
                 [PS(name='labels_to_predict', values=[('supersense_func',)])],
+                [PS(name='labels_to_learn', values=[('supersense_func','supersense_role',)])],
                 # [PS(name='epochs', values=[1])]
             ]),
             dump_models=False

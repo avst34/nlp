@@ -67,13 +67,15 @@ class LstmMlpMulticlassModel(object):
                      epochs,
                      learning_rate,
                      learning_rate_decay,
-                     n_labels_to_predict,
+                     n_labels_to_learn,
+                     label_inds_to_predict,
                      dynet_random_seed):
+            self.label_inds_to_predict = label_inds_to_predict
             self.dynet_random_seed = dynet_random_seed
             self.input_embeddings_to_allow_partial = input_embeddings_to_allow_partial
             self.lstm_dropout_p = lstm_dropout_p
             self.token_neighbour_types = token_neighbour_types
-            self.n_labels_to_predict = n_labels_to_predict
+            self.n_labels_to_learn = n_labels_to_learn
             self.mlp_input_fields = mlp_input_fields
             self.learning_rate_decay = learning_rate_decay
             self.learning_rate = learning_rate
@@ -166,14 +168,14 @@ class LstmMlpMulticlassModel(object):
                     )
                     for i in range(self.hyperparameters.mlp_layers)
                 ]
-                for _ in range(self.hyperparameters.n_labels_to_predict)
+                for _ in range(self.hyperparameters.n_labels_to_learn)
             ],
             softmaxes=[
                 MLPLayerParams(
                         W=pc.add_parameters((self.output_vocabulary.size(), self.hyperparameters.mlp_layer_dim)),
                         b=pc.add_parameters((self.output_vocabulary.size(),))
                 )
-                for _ in range(self.hyperparameters.n_labels_to_predict)
+                for _ in range(self.hyperparameters.n_labels_to_learn)
             ]
         )
 
@@ -297,7 +299,7 @@ class LstmMlpMulticlassModel(object):
         for out, y in zip(outputs, ys):
             if out is not None:
                 if y is None:
-                    y = [None] * self.hyperparameters.n_labels_to_predict
+                    y = [None] * self.hyperparameters.n_labels_to_learn
                 assert len([label_y is None for label_y in y]) in [0, len(y)], "Got a sample with partial None labels"
                 for label_out, label_y in zip(out, y):
                     if self.output_vocabulary.has_word(label_y):
@@ -328,7 +330,7 @@ class LstmMlpMulticlassModel(object):
     #
     def fit(self, samples, validation_samples=None, test_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
-        evaluator = evaluator or PSSClasifierEvaluator()
+        evaluator = evaluator or PSSClasifierEvaluator(inds_to_predict=self.hyperparameters.label_inds_to_predict)
         self.pc = self._build_network_params()
         # self._build_vocabularies(samples + validation_samples or [])
 
@@ -381,13 +383,13 @@ class LstmMlpMulticlassModel(object):
                     print('--------------------------------------------')
                     print('Epoch %d complete, avg loss: %1.4f' % (epoch, loss_sum/len(train)))
                     print('Validation data evaluation:')
-                    epoch_dev_eval = evaluator.evaluate(dev, examples_to_show=5, predictor=self)
+                    epoch_dev_eval = evaluator.evaluate(dev, examples_to_show=5, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
                     self.dev_set_evaluation.append(epoch_dev_eval)
                     print('Training data evaluation:')
-                    epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self)
+                    epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
                     self.train_set_evaluation.append(epoch_train_eval)
                     print('Testing data evaluation:')
-                    epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self)
+                    epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
                     self.test_set_evaluation.append(epoch_test_eval)
                     print('--------------------------------------------')
 
@@ -417,16 +419,17 @@ class LstmMlpMulticlassModel(object):
         ys = []
         for token_ind, out in enumerate(outputs):
             if not mask[token_ind] or out is None:
-                predictions = [None] * self.hyperparameters.n_labels_to_predict
+                predictions = [None] * len(self.hyperparameters.label_inds_to_predict)
             else:
                 predictions = []
-                for klass_out in out:
-                    ind = np.argmax(klass_out.npvalue())
-                    predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
-                    predictions.append(predicted)
+                for label_ind, klass_out in enumerate(out):
+                    if label_ind in self.hyperparameters.label_inds_to_predict:
+                        ind = np.argmax(klass_out.npvalue())
+                        predicted = self.output_vocabulary.get_word(ind) if mask[token_ind] else None
+                        predictions.append(predicted)
             predictions = tuple(predictions)
             ys.append(predictions)
-        assert all([y is None or type(y) is tuple and len(y) == self.hyperparameters.n_labels_to_predict for y in ys])
+        assert all([y is None or type(y) is tuple and len(y) == len(self.hyperparameters.label_inds_to_predict) for y in ys])
         return ys
 
     def predict_dist(self, sample_xs, mask=None):
@@ -437,7 +440,7 @@ class LstmMlpMulticlassModel(object):
         ys = []
         for token_ind, out in enumerate(outputs):
             if not mask[token_ind] or out is None:
-                predictions = tuple([None] * self.hyperparameters.n_labels_to_predict)
+                predictions = tuple([None] * self.hyperparameters.n_labels_to_learn)
             else:
                 predictions = []
                 for klass_out in out:
@@ -448,7 +451,7 @@ class LstmMlpMulticlassModel(object):
                     predictions.append(dist)
                 predictions = tuple(predictions)
             ys.append(predictions)
-        assert all([y is None or type(y) is tuple and len(y) == self.hyperparameters.n_labels_to_predict for y in ys])
+        assert all([y is None or type(y) is tuple and len(y) == self.hyperparameters.n_labels_to_learn for y in ys])
         return ys
 
     def save(self, base_path):
