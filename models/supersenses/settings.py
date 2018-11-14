@@ -21,12 +21,14 @@ AUTO_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
 
 GOLD_ID_GOLD_PREP_GOLD_ROLE = override_settings([TUNER_DOMAINS, [
     PS(name='allow_empty_prediction', values=[False]),
+    PS(name='labels_to_learn', values=[('supersense_func',)]),
     PS(name='labels_to_predict', values=[('supersense_func',)]),
     PS(name='use_role', values=[True])
 ]])
 
 GOLD_ID_GOLD_PREP_GOLD_FUNC = override_settings([TUNER_DOMAINS, [
     PS(name='allow_empty_prediction', values=[False]),
+    PS(name='labels_to_learn', values=[('supersense_role',)]),
     PS(name='labels_to_predict', values=[('supersense_role',)]),
     PS(name='use_func', values=[True])
 ]])
