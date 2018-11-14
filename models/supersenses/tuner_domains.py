@@ -19,6 +19,7 @@ TUNER_DOMAINS_TUNING = [
         # ('supersense_func',)
     ]),
     PS(name='use_role', values=[False]),
+    PS(name='use_func', values=[False]),
     PS(name='use_token', values=[True]),
     PS(name='use_instance_embd', values=[False]),
     PS(name='update_lemmas_embd', values=[True, False]),

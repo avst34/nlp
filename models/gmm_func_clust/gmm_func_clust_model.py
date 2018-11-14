@@ -41,6 +41,7 @@ class GmmFuncClustModel:
                      govobj_config,
                      ud_dep,
                      role,
+                     func,
                     ):
             self.prep_tokens = prep_tokens
             self.prep_xpos = prep_xpos
@@ -52,6 +53,7 @@ class GmmFuncClustModel:
             self.govobj_config = govobj_config
             self.ud_dep = ud_dep
             self.role = role
+            self.func = func
 
         def to_dict(self):
             return self.__dict__

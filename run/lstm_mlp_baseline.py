@@ -7,7 +7,7 @@ from hyperparameters_tuner import override_settings
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
-from models.supersenses.settings import TASK_SETTINGS, PS
+from models.supersenses.settings import TASK_SETTINGS
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 
 evaluator = PSSClasifierEvaluator()
@@ -31,7 +31,7 @@ def print_samples_statistics(name, samples):
 def run():
 
     # tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
-    tasks = ['goldid.goldsyn', 'goldid.goldsyn.goldrole']
+    tasks = ['goldid.goldsyn.goldfunc']
     task = random.choice(tasks)
     for task in [task]:
         loader = StreusleLoader(load_elmo=False)
@@ -50,7 +50,7 @@ def run():
         test_features()
 
         tuner = LstmMlpSupersensesModelHyperparametersTuner(
-            task_name='withrole.'  + task,
+            task_name=task,
             results_csv_path=os.environ.get('RESULTS_PATH') or '/tmp/results.csv',
             samples=train_samples, # use all after testing
             validation_samples=dev_samples,
@@ -59,9 +59,9 @@ def run():
             show_epoch_eval=True,
             tuner_domains=override_settings([
                 TASK_SETTINGS[task],
-                [PS(name='labels_to_predict', values=[('supersense_func',)])],
-                [PS(name='labels_to_learn', values=[('supersense_func','supersense_role',)])],
-                # [PS(name='epochs', values=[1])]
+                [
+                    # PS(name='epochs', values=[1])
+                ]
             ]),
             dump_models=False
         )

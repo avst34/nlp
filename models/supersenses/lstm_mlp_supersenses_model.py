@@ -26,6 +26,7 @@ class LstmMlpSupersensesModel:
                      identified_for_pss,
                      lexcat,
                      role,
+                     func,
                      lemma_embd=None,
                      token_embd=None):
             self.token_embd = token_embd
@@ -45,6 +46,7 @@ class LstmMlpSupersensesModel:
             self.ud_head_ind = ud_head_ind
             self.identified_for_pss = identified_for_pss
             self.role = role
+            self.func = func
 
         def to_dict(self):
             return self.__dict__
@@ -109,6 +111,7 @@ class LstmMlpSupersensesModel:
                      use_ud_dep,
                      use_ner,
                      use_role,
+                     use_func,
                      pss_embd_dim,
                      use_prep_onehot,
                      use_govobj,
@@ -142,6 +145,7 @@ class LstmMlpSupersensesModel:
             self.labels_to_learn = labels_to_learn
             self.pss_embd_dim = pss_embd_dim
             self.use_role = use_role
+            self.use_func = use_func
             self.use_instance_embd = use_instance_embd
             self.lexcat_embd_dim = lexcat_embd_dim
             self.use_lexcat = use_lexcat
@@ -218,7 +222,7 @@ class LstmMlpSupersensesModel:
                        'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim',
                        'lexcat_embd_dim', 'update_token_embd', 'use_prep_onehot', 'use_token_internal',
                        'labels_to_predict', 'labels_to_learn', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd',
-                       'use_role', 'pss_embd_dim']))
+                       'use_role', 'use_func', 'pss_embd_dim']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):
