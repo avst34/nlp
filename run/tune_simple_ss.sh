@@ -6,7 +6,7 @@
 
 source /cs/usr/aviramstern/lab/venvs/$1/bin/activate
 
-SRC_BASE=/cs/usr/aviramstern/lab/nlp
+SRC_BASE=/cs/usr/aviramstern/lab/nlp_prod
 
 # DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export PYTHONPATH=$SRC_BASE
