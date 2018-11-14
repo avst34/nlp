@@ -1,4 +1,4 @@
-from collections import namedtuple, Counter
+from collections import namedtuple, Counter, defaultdict
 from pprint import pprint
 
 import matplotlib.pyplot as plt
@@ -134,6 +134,24 @@ def eval_mf_baseline_per_prep(tags):
     return prep_acc
 
 
+def mf_func_per_role_prep(train_tags, dev_tags):
+    d = defaultdict(lambda: defaultdict(lambda :0))
+    for t in train_tags:
+        d[(t.prep, t.ss_role)][t.ss_func] += 1
+    m = {k: max([(c, f) for f, c in d[k].items()])[1] for k in d}
+
+    acc = len([t for t in dev_tags if m.get((t.prep, t.ss_role)) == t.ss_func]) / len(dev_tags)
+    return acc
+
+def mf_role_per_func_prep(train_tags, dev_tags):
+    d = defaultdict(lambda: defaultdict(lambda :0))
+    for t in train_tags:
+        d[(t.prep, t.ss_func)][t.ss_role] += 1
+    m = {k: max([(c, f) for f, c in d[k].items()])[1] for k in d}
+
+    acc = len([t for t in dev_tags if m.get((t.prep, t.ss_func)) == t.ss_role]) / len(dev_tags)
+    return acc
+
 def plot(points, x_label, y_label, x_tick_labels=None, y_tick_labels=None, title=None, show=True, color=None, label=None, lin_reg=False):
     def numerize(values):
         try:
@@ -178,12 +196,12 @@ def generate_reports():
     # prep frequency
     prep_freq = prep_frequency(tags)
     pprint(list(enumerate(sorted(prep_freq.items(), key=lambda x: -x[1]))))
-    plot([(x[0], x[1][1]) for x in list(enumerate(sorted(prep_freq.items(), key=lambda x: x[1])))],
-         x_label='prep',
-         y_label='freq',
-         x_tick_labels=[x[0] for x in sorted(prep_freq.items(), key=lambda x: x[1])],
-         title='Prepositions Frequency'
-     )
+    # plot([(x[0], x[1][1]) for x in list(enumerate(sorted(prep_freq.items(), key=lambda x: x[1])))],
+    #      x_label='prep',
+    #      y_label='freq',
+    #      x_tick_labels=[x[0] for x in sorted(prep_freq.items(), key=lambda x: x[1])],
+    #      title='Prepositions Frequency'
+    #  )
 
     # dist tail ends at ~ 181
 
@@ -245,25 +263,25 @@ def generate_reports():
     func_label_dist = label_distribution(tags, 'ss_func', bottom_k=181, normalize=True)
     # preps = [p for p in func_label_dist if p not in role_label_dist] + sorted(role_label_dist.keys(), key=lambda prep: role_label_dist[prep])
 
-    plot([(preps.index(prep), role_label_dist.get(prep, 0)/role_label_dist_full.get(prep) if role_label_dist_full.get(prep) else -1) for prep in preps],
-         x_label='role',
-         y_label='freq',
-         x_tick_labels=preps,
-         title='Role/Func Frequency (bottom 181)',
-         color='blue',
-         label='role',
-         show=False
-         )
-
-    # func label dist
-    plot([(preps.index(prep), func_label_dist.get(prep, 0)/func_label_dist_full.get(prep) if func_label_dist_full.get(prep) else -1) for prep in preps],
-         x_label='PSS',
-         y_label='freq',
-         x_tick_labels=preps,
-         title='Role/Function Frequency (bottom 181)',
-         color='red',
-         label='function',
-         )
+    # plot([(preps.index(prep), role_label_dist.get(prep, 0)/role_label_dist_full.get(prep) if role_label_dist_full.get(prep) else -1) for prep in preps],
+    #      x_label='role',
+    #      y_label='freq',
+    #      x_tick_labels=preps,
+    #      title='Role/Func Frequency (bottom 181)',
+    #      color='blue',
+    #      label='role',
+    #      show=False
+    #      )
+    #
+    # # func label dist
+    # plot([(preps.index(prep), func_label_dist.get(prep, 0)/func_label_dist_full.get(prep) if func_label_dist_full.get(prep) else -1) for prep in preps],
+    #      x_label='PSS',
+    #      y_label='freq',
+    #      x_tick_labels=preps,
+    #      title='Role/Function Frequency (bottom 181)',
+    #      color='red',
+    #      label='function',
+    #      )
 
     # # role label dist (bottom 181)
     # role_label_dist = label_distribution(tags, 'ss_role', bottom_k=181)
@@ -340,9 +358,15 @@ def generate_reports():
     train_tags = collect_train_tags()
     dev_tags = collect_dev_tags()
 
-    mf_role_acc = eval_mf_baseline(dev_tags, from_pss='ss_role', to_pss='ss_role', train_tags=train_tags)['acc']
-    mf_func_acc = eval_mf_baseline(dev_tags, from_pss='ss_func', to_pss='ss_func', train_tags=train_tags)['acc']
-    print('MF role: %2.2f, MF func: %2.2f' % (mf_role_acc, mf_func_acc))
+    # mf_role_acc = eval_mf_baseline(dev_tags, from_pss='ss_role', to_pss='ss_role', train_tags=train_tags)['acc']
+    # mf_func_acc = eval_mf_baseline(dev_tags, from_pss='ss_func', to_pss='ss_func', train_tags=train_tags)['acc']
+    # print('MF role: %2.2f, MF func: %2.2f' % (mf_role_acc, mf_func_acc))
+
+    func_acc_per_prep_role = mf_func_per_role_prep(train_tags, dev_tags)
+    print('MF func by (prep, role)', func_acc_per_prep_role )
+
+    role_acc_per_prep_func = mf_role_per_func_prep(train_tags, dev_tags)
+    print('MF role by (prep, func)', role_acc_per_prep_func )
 
 if __name__ == '__main__':
     print(generate_reports())

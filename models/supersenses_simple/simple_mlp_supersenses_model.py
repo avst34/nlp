@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import random
 import zipfile
@@ -7,7 +8,6 @@ from glob import glob
 from pprint import pprint
 
 import dynet as dy
-import math
 import numpy as np
 
 from dynet_utils import get_activation_function
@@ -32,10 +32,14 @@ class SimpleMlpSupersensesModel:
                      prep_tokens,
                      gov_token,
                      obj_token,
+                     role,
+                     func,
                      prep_embds=None,
                      gov_embd=None,
                      obj_embd=None
                      ):
+            self.func = func
+            self.role = role
             self.prep_tokens = prep_tokens
             self.gov_token = gov_token
             self.obj_token = obj_token
@@ -113,6 +117,9 @@ class SimpleMlpSupersensesModel:
                      use_prep,
                      use_gov,
                      use_obj,
+                     use_role,
+                     use_func,
+                     pss_embd_dim,
                      update_prep_embd,
                      update_gov_embd,
                      update_obj_embd,
@@ -132,6 +139,9 @@ class SimpleMlpSupersensesModel:
                      learning_rate_decay,
                      dynet_random_seed
                      ):
+            self.pss_embd_dim = pss_embd_dim
+            self.use_func = use_func
+            self.use_role = use_role
             self.use_instance_embd = use_instance_embd
             self.internal_token_embd_dim = internal_token_embd_dim
             self.labels_to_predict = labels_to_predict
@@ -179,14 +189,18 @@ class SimpleMlpSupersensesModel:
         hp = self.hyperparameters
         mlp_input_dim = (self.hyperparameters.lstm_h_dim  if hp.use_prep else 0) + \
                         (hp.token_embd_dim if hp.use_gov else 0) + \
-                        (hp.token_embd_dim if hp.use_obj else 0)
+                        (hp.token_embd_dim if hp.use_obj else 0) + \
+                        (hp.pss_embd_dim if hp.use_role else 0) + \
+                        (hp.pss_embd_dim if hp.use_func else 0)
         print('mlp input dim', mlp_input_dim)
         self.params = ModelOptimizedParams(
             input_lookups={
                 "gov": pc.add_lookup_parameters((self.gov_vocab.size(), hp.token_embd_dim)),
                 "obj": pc.add_lookup_parameters((self.obj_vocab.size(), hp.token_embd_dim)),
                 "prep": pc.add_lookup_parameters((self.prep_vocab.size(), hp.token_embd_dim)),
-                "prep_internal": pc.add_lookup_parameters((self.prep_vocab.size(), hp.internal_token_embd_dim))
+                "prep_internal": pc.add_lookup_parameters((self.prep_vocab.size(), hp.internal_token_embd_dim)),
+                "role": pc.add_lookup_parameters((self.pss_vocab.size(), hp.pss_embd_dim)),
+                "func": pc.add_lookup_parameters((self.pss_vocab.size(), hp.pss_embd_dim))
             },
             mlp_softmaxes={
               pss_type: MLPSoftmaxParam(
@@ -277,7 +291,10 @@ class SimpleMlpSupersensesModel:
                 ])
                 for tok, embd in zip(x.prep_tokens, x.prep_embds or [None] * len(x.prep_tokens))
             ]
-            lstm_output = cur_lstm_state.transduce(embeddings)[-1]
+            try:
+                lstm_output = cur_lstm_state.transduce(embeddings)[-1]
+            except Exception as e:
+                raise
             vecs = [lstm_output]
         else:
             vecs = []
@@ -290,6 +307,14 @@ class SimpleMlpSupersensesModel:
             vecs.append(
                 dy.inputTensor(x.obj_embd) if self.hyperparameters.use_instance_embd else \
                     dy.lookup(self.params.input_lookups['obj'], self.obj_vocab.get_index(x.obj_token))
+            )
+        if self.hyperparameters.use_role:
+            vecs.append(
+                dy.lookup(self.params.input_lookups['role'], self.pss_vocab.get_index(x.role))
+            )
+        if self.hyperparameters.use_func:
+            vecs.append(
+                dy.lookup(self.params.input_lookups['func'], self.pss_vocab.get_index(x.func))
             )
         cur_out = dy.concatenate(vecs)
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)

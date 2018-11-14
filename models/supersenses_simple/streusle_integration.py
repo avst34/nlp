@@ -18,7 +18,9 @@ def streusle_record_to_simple_lstm_model_samples(rec):
                     gov_token=gov[0],
                     gov_embd=gov[1],
                     obj_token=obj[0],
-                    obj_embd=obj[1]
+                    obj_embd=obj[1],
+                    role=ttok.supersense_role,
+                    func=ttok.supersense_func
                 ),
                 y=SimpleMlpSupersensesModel.SampleY(supersense_role=ttok.supersense_role, supersense_func=ttok.supersense_func)
             ))
