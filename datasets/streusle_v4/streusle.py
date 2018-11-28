@@ -1,11 +1,11 @@
 import copy
 import json
 import os
+import sys
 from collections import namedtuple, defaultdict
+from itertools import chain
 
 import h5py
-import sys
-from itertools import chain
 
 import supersense_repo
 from vocabulary import VocabularyBuilder
@@ -208,8 +208,8 @@ class StreusleRecord:
         tok_ss = defaultdict(lambda: (None, None))
         for we in wes:
             pair = extract_supersense_pair(we.get('ss'), we.get('ss2'))
-            cur = tok_ss[we['toknums'][0]]
-            tok_ss[we['toknums'][0]] = (cur[0] or pair[0], cur[1] or pair[1])
+            cur = tok_ss[str(we['toknums'][0])]
+            tok_ss[str(we['toknums'][0])] = (cur[0] or pair[0], cur[1] or pair[1])
 
         first_wes_ids = [we['toknums'][0] for we in wes]
 
@@ -227,8 +227,8 @@ class StreusleRecord:
                 ud_head_ind=id_to_ind.get(tok_data['head']),
                 ud_dep=tok_data['deprel'],
                 ner=tok_data.get('ner'),
-                supersense_role=tok_ss[tok_data['#']][0],
-                supersense_func=tok_ss[tok_data['#']][1],
+                supersense_role=tok_ss[str(tok_data['#'])][0],
+                supersense_func=tok_ss[str(tok_data['#'])][1],
                 noun_ss=None,
                 verb_ss=None,
                 is_part_of_smwe=tok_data['#'] in smwes_toknums,
