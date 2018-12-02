@@ -1,7 +1,8 @@
+import json
 import os
 
-from datasets.streusle_v4 import StreusleLoader
 from datasets.streusle_v4.chinese.corenlp import run_corenlp
+from datasets.streusle_v4.release.govobj import findgovobj
 from supersense_repo import SUPERSENSES_SET, get_supersense_type
 from supersense_repo.constants import TYPES
 
@@ -78,7 +79,7 @@ def build_chinese_streusle_json(txt_path=os.path.dirname(__file__) + '/lpp_zho.t
                     "ss": stok["full_ss"].split("~")[0],
                     "ss2": stok["full_ss"].split("~")[1],
                     "toknums": [
-                        stok["#"]
+                        int(stok["#"])
                     ]
                 }
             for stok in s_toks if stok["full_ss"]},
@@ -86,13 +87,30 @@ def build_chinese_streusle_json(txt_path=os.path.dirname(__file__) + '/lpp_zho.t
             "wmwes": {}
         }
 
+        for swe in sent['swes'].values():
+            findgovobj(swe, sent)
+
         sents.append(sent)
     return sents
 
 json_path = os.path.dirname(__file__) + '/lp.chinese.all.json'
 # d = json.load(open(json_path, 'r'), indent=2)
-# cj = build_chinese_streusle_json()
-# json.dump(cj, open(json_path, 'w'), indent=2)
+cj = build_chinese_streusle_json()
+json.dump(cj, open(json_path, 'w'), indent=2)
 
-records = StreusleLoader().load(conllulex_path=json_path, input_format='json')
-print(len(records))
+# records = StreusleLoader().load(conllulex_path=json_path, input_format='json')
+# records = StreusleLoader().load()
+# print(len(records))
+#
+# reader = EmbeddingsHDF5Reader('/cs/usr/aviramstern/lab/muse/embeddings/vectors-en-streusle.hd5')
+# found = 0
+# tot = 0
+# with_pss = 0
+# for rec in records:
+#     for tok in rec.tagged_tokens:
+#         if reader.get(tok.token) is not None or reader.get(tok.token.lower()) is not None:
+#             found += 1
+#         if tok.supersense_role:
+#             with_pss += 1
+#         tot += 1
+# print(found, tot, with_pss, found/tot)

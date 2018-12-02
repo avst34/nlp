@@ -39,7 +39,8 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     use_instance_embd=False,
     use_role=False,
     use_func=False,
-    pss_embd_dim=5
+    pss_embd_dim=5,
+    embd_type='word2vec'
 )
 
 test_sample = LstmMlpSupersensesModel.Sample.from_dict({

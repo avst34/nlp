@@ -10,6 +10,7 @@ import dynet as dy
 import numpy as np
 
 from dynet_utils import get_activation_function
+from embeddings.embeddings_hdf5 import EmbeddingsHDF5Reader
 from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
 from vocabulary import Vocabulary
 
@@ -127,7 +128,7 @@ class LstmMlpMulticlassModel(object):
         # Make sure input embedding dimensions fit embedding vectors size (if given)
         for field in self.all_input_fields:
             if self.input_embeddings.get(field):
-                embd_vec_dim = len(list(self.input_embeddings[field].values())[0])
+                embd_vec_dim = self.input_embeddings[field].dim() if isinstance(self.input_embeddings[field], EmbeddingsHDF5Reader) else len(list(self.input_embeddings[field].values())[0])
                 given_dim = self.hyperparameters.input_embedding_dims[field]
                 if embd_vec_dim != given_dim:
                     raise Exception("Input field '%s': Mismatch between given embedding vector size (%d) and given embedding size (%d)" % (field, embd_vec_dim, given_dim))
@@ -186,6 +187,8 @@ class LstmMlpMulticlassModel(object):
                 for word in vocab.all_words():
                     word_index = self.input_vocabularies[field].get_index(word)
                     vector = embeddings.get(word)
+                    if vector is None:
+                        embeddings.get(word.lower())
                     if vector is not None:
                         lookup_param.init_row(word_index, vector)
                     else:

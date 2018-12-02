@@ -1,4 +1,5 @@
 import os
+
 from datasets.streusle_v4 import StreusleLoader, supersense_repo, Word2VecModel
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 from vocabulary import Vocabulary
@@ -33,6 +34,7 @@ def build_vocabs():
     loader = StreusleLoader()
     STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
     all_files = [STREUSLE_BASE + '/' + stype + '/streusle.ud_' + stype + '.' + task + '.json' for task in tasks for stype in stypes]
+    all_files += ['/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.chinese.all.json']
     records = sum([loader.load(f, input_format='json') for f in all_files], [])
     samples = [streusle_record_to_lstm_model_sample(r) for r in records]
 
@@ -50,10 +52,10 @@ def build_vocabs():
     ud_dep_vocab.add_words(set([x.ud_dep for s in samples for x, y in zip(s.xs, s.ys)]))
     ud_dep_vocab.add_word(None)
 
-    ud_xpos_vocab = Vocabulary('UD_XPOS')
-    ud_xpos_vocab.add_words(set([x.ud_xpos for s in samples for x, y in zip(s.xs, s.ys)]))
-    ud_xpos_vocab.add_word(None)
-
+    # ud_xpos_vocab = Vocabulary('UD_XPOS')
+    # ud_xpos_vocab.add_words(set([x.ud_xpos for s in samples for x, y in zip(s.xs, s.ys)]))
+    # ud_xpos_vocab.add_word(None)
+    #
     token_vocab = Vocabulary('TOKENS')
     token_vocab.add_words(set([x.token for s in samples for x, y in zip(s.xs, s.ys)]))
 

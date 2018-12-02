@@ -124,6 +124,7 @@ class LstmMlpSupersensesModel:
                      ud_deps_embd_dim,
                      ner_embd_dim,
                      use_instance_embd,
+                     embd_type,
                      govobj_config_embd_dim,
                      lexcat_embd_dim,
                      mlp_layers,
@@ -180,8 +181,10 @@ class LstmMlpSupersensesModel:
             self.mlp_dropout_p = mlp_dropout_p
             self.epochs = epochs
             self.mask_mwes = mask_mwes
-
+            self.embd_type = embd_type
             self.labels_to_learn = self.labels_to_learn or self.labels_to_predict
+
+            assert self.embd_type in ['word2vec', 'muse']
             assert all([l in self.labels_to_learn for l in self.labels_to_predict])
             assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])]), labels_to_predict
 
@@ -222,7 +225,7 @@ class LstmMlpSupersensesModel:
                        'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim',
                        'lexcat_embd_dim', 'update_token_embd', 'use_prep_onehot', 'use_token_internal',
                        'labels_to_predict', 'labels_to_learn', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd',
-                       'use_role', 'use_func', 'pss_embd_dim']))
+                       'use_role', 'use_func', 'pss_embd_dim', 'embd_type']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):

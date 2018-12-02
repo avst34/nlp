@@ -60,9 +60,10 @@ JSON output sample for 'my grandfather'--the added information is under "heurist
 @since: 2018-01-31
 """
 
-import sys, json
-from collections import Counter
+import json
+import sys
 from itertools import chain
+
 
 def findsubj(tok, sent):
     t = tok['#']
