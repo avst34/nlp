@@ -30,7 +30,7 @@ def get_obj(tok, sent):
 
 @raise_none
 def get_parent(tok, sent):
-    parent = sent[tok.ud_head_ind]
+    parent = get_tok(sent, tok.ud_head_ind)
     if parent != tok:
         return parent
     else:
@@ -42,7 +42,7 @@ def get_grandparent(tok, sent):
     parent = get_parent(tok, sent)
     if parent:
         return get_parent(parent, sent)
-
+    return None
 
 @raise_none
 def get_children(tok, sent):

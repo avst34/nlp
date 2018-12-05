@@ -208,16 +208,16 @@ class StreusleRecord:
         tok_ss = defaultdict(lambda: (None, None))
         for we in wes:
             pair = extract_supersense_pair(we.get('ss'), we.get('ss2'))
-            cur = tok_ss[str(we['toknums'][0])]
-            tok_ss[str(we['toknums'][0])] = (cur[0] or pair[0], cur[1] or pair[1])
+            cur = tok_ss[int(we['toknums'][0])]
+            tok_ss[int(we['toknums'][0])] = (cur[0] or pair[0], cur[1] or pair[1])
 
         first_wes_ids = [we['toknums'][0] for we in wes]
 
-        id_to_ind = {tok['#']: ind for ind, tok in enumerate(self.data['toks'])}
+        id_to_ind = {int(tok['#']): ind for ind, tok in enumerate(self.data['toks'])}
 
         self.tagged_tokens = [
             TaggedToken(
-                ud_id=tok_data['#'],
+                ud_id=int(tok_data['#']),
                 token=tok_data['word'],
                 ind=i,
                 token_word2vec=W2V.get(tok_data['word']),
@@ -227,20 +227,20 @@ class StreusleRecord:
                 ud_head_ind=id_to_ind.get(tok_data['head']),
                 ud_dep=tok_data['deprel'],
                 ner=tok_data.get('ner'),
-                supersense_role=tok_ss[str(tok_data['#'])][0],
-                supersense_func=tok_ss[str(tok_data['#'])][1],
+                supersense_role=tok_ss[int(tok_data['#'])][0],
+                supersense_func=tok_ss[int(tok_data['#'])][1],
                 noun_ss=None,
                 verb_ss=None,
-                is_part_of_smwe=tok_data['#'] in smwes_toknums,
-                is_part_of_wmwe=tok_data['#'] in wmwes_toknums,
-                we_toknums=we_toknums.get(tok_data['#']),
-                is_first_mwe_token=tok_data['#'] in first_wes_ids,
-                gov_ind=id_to_ind.get(tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('gov')),
-                obj_ind=id_to_ind.get(tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('obj')),
-                govobj_config=tok_we.get(tok_data['#'], {}).get('heuristic_relation', {}).get('config'),
-                lexcat=tok_we.get(tok_data['#'], {}).get('lexcat'),
-                _raw_ss_ss2=''.join([tok_we.get(tok_data['#'], {}).get(ss) or '' for ss in ['ss', 'ss2']]),
-                prep_toks=[self.data['toks'][id_to_ind[tokid]]['word'] for tokid in we_toknums.get(tok_data['#'], [])],
+                is_part_of_smwe=int(tok_data['#']) in smwes_toknums,
+                is_part_of_wmwe=int(tok_data['#']) in wmwes_toknums,
+                we_toknums=we_toknums.get(int(tok_data['#'])),
+                is_first_mwe_token=int(tok_data['#']) in first_wes_ids,
+                gov_ind=id_to_ind.get(tok_we.get(int(tok_data['#']), {}).get('heuristic_relation', {}).get('gov')),
+                obj_ind=id_to_ind.get(tok_we.get(int(tok_data['#']), {}).get('heuristic_relation', {}).get('obj')),
+                govobj_config=tok_we.get(int(tok_data['#']), {}).get('heuristic_relation', {}).get('config'),
+                lexcat=tok_we.get(int(tok_data['#']), {}).get('lexcat'),
+                _raw_ss_ss2=''.join([tok_we.get(int(tok_data['#']), {}).get(ss) or '' for ss in ['ss', 'ss2']]),
+                prep_toks=[self.data['toks'][id_to_ind[tokid]]['word'] for tokid in we_toknums.get(int(tok_data['#']), [])],
                 elmo=elmo_h5py[:, i, :][()].flatten() if elmo_h5py else None
             ) for i, tok_data in enumerate(self.data['toks'])
         ]

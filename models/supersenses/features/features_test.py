@@ -40,7 +40,9 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     use_role=False,
     use_func=False,
     pss_embd_dim=5,
-    embd_type='word2vec'
+    embd_type='word2vec',
+    use_parent=True,
+    use_grandparent=True
 )
 
 test_sample = LstmMlpSupersensesModel.Sample.from_dict({
@@ -538,7 +540,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
 get_token = lambda ind: test_sample.xs[ind] if ind is not None else None
 tokens = lambda inds: [get_token(ind) for ind in inds]
 
-test_sample_parents = tokens([3, 3, 3, 15, 5, 3, 5, 11, 11, 10, 11, 5, 15, 15, 15, None, 18, 18, 15, 20, 18, 15]),
+test_sample_parents = tokens([3, 3, 3, 15, 5, 3, 5, 11, 11, 10, 11, 5, 15, 15, 15, None, 18, 18, 15, 20, 18, 15])
+test_sample_grandparents = tokens([15, 15, 15, None, 3, 15, 3, 5, 5, 11, 5, 3, None, None, None, None, 15, 15, None, 18, 15, None])
 test_sample_govs = tokens([15, 15, 15, None, 3, 15, 3, 5, 5, 11, 5, 3, None, None, None, None, 15, 15, None, 18, 15, None])
 test_sample_spacy_pobj_child = tokens([None, None, None, None, None, None, None, 11, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
 # test_sample_has_children = {
@@ -610,16 +613,49 @@ def test_gov(feature):
             assert feature.extract(x, test_sample.xs) == x.gov_ind
 
 def test_gov_ud_xpos(feature):
-        for ind, x in enumerate(test_sample.xs):
-          assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), gettok(test_sample.xs, x.gov_ind), 'ud_upos')
+      for ind, x in enumerate(test_sample.xs):
+        assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), gettok(test_sample.xs, x.gov_ind), 'ud_upos')
 
 def test_gov_dep(feature):
-        for ind, x in enumerate(test_sample.xs):
-            assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), gettok(test_sample.xs, x.gov_ind), 'ud_dep')
+      for ind, x in enumerate(test_sample.xs):
+          assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), gettok(test_sample.xs, x.gov_ind), 'ud_dep')
 
 def test_gov_ner(feature):
-        for ind, x in enumerate(test_sample.xs):
-            assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), gettok(test_sample.xs, x.gov_ind), 'ner')
+      for ind, x in enumerate(test_sample.xs):
+          assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), gettok(test_sample.xs, x.gov_ind), 'ner')
+
+def test_parent(feature):
+  for ind, x in enumerate(test_sample.xs):
+    assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_parents[ind], 'ind')
+
+def test_parent_ud_xpos(feature):
+  for ind, x in enumerate(test_sample.xs):
+    assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_parents[ind], 'ud_xpos')
+
+def test_parent_dep(feature):
+  for ind, x in enumerate(test_sample.xs):
+    assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_parents[ind], 'ud_dep')
+
+def test_parent_ner(feature):
+  for ind, x in enumerate(test_sample.xs):
+    assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_parents[ind], 'ner')
+
+def test_grandparent(feature):
+  for ind, x in enumerate(test_sample.xs):
+    assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_grandparents[ind], 'ind')
+
+def test_grandparent_ud_xpos(feature):
+  for ind, x in enumerate(test_sample.xs):
+    assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_grandparents[ind], 'ud_xpos')
+
+def test_grandparent_dep(feature):
+  for ind, x in enumerate(test_sample.xs):
+    assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_grandparents[ind], 'ud_dep')
+
+def test_grandparent_ner(feature):
+  for ind, x in enumerate(test_sample.xs):
+    assert both_none_or_attr_eq(feature.extract(x, test_sample.xs), test_sample_grandparents[ind], 'ner')
+
 
 def test_spacy_pobj_child(feature):
   for ind, x in enumerate(test_sample.xs):
@@ -668,6 +704,16 @@ tests = {
     'token-gov.ud_xpos': test_gov_ud_xpos,
     'token-gov.dep': test_gov_dep,
     'token-gov.ner': test_gov_ner,
+
+    'token-parent': test_parent,
+    'token-parent.ud_xpos': test_parent_ud_xpos,
+    'token-parent.dep': test_parent_dep,
+    'token-parent.ner': test_parent_ner,
+
+    'token-grandparent': test_grandparent,
+    'token-grandparent.ud_xpos': test_grandparent_ud_xpos,
+    'token-grandparent.dep': test_grandparent_dep,
+    'token-grandparent.ner': test_grandparent_ner,
 
     # 'token-spacy-pobj-child': test_spacy_pobj_child,
     # 'token-spacy-pobj-child.ud_xpos': test_spacy_pobj_child_ud_xpos,

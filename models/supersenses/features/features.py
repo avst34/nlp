@@ -1,6 +1,6 @@
 from models.supersenses import vocabs, embeddings
 from models.supersenses.features.feature import Feature, FeatureType, MountPoint, Features
-from models.supersenses.features.features_utils import is_capitalized, get_gov, get_obj
+from models.supersenses.features.features_utils import is_capitalized, get_gov, get_obj, get_parent, get_grandparent
 
 [LSTM, MLP] = [MountPoint.LSTM, MountPoint.MLP]
 
@@ -31,6 +31,16 @@ def build_features(hyperparameters, override=None):
         Feature('token-obj.ud_xpos',       FeatureType.ENUM, vocabs.UD_XPOS,       embeddings.AUTO,   dim=hp.ud_xpos_embd_dim,  update=True,       extractor=lambda tok, sent: get_obj(tok, sent).ud_xpos, mount_point=MLP, enable=hp.use_govobj and hp.use_ud_xpos),
         Feature('token-obj.dep',    FeatureType.ENUM, vocabs.UD_DEPS,   embeddings.AUTO,  dim=hp.ud_deps_embd_dim,  update=True,   extractor=lambda tok, sent: get_obj(tok, sent).ud_dep, mount_point=MLP, enable=hp.use_govobj and hp.use_ud_dep),
         Feature('token-obj.ner', FeatureType.ENUM, vocabs.NERS, embeddings.AUTO, dim=hp.ner_embd_dim,  update=True, extractor=lambda tok, sent: get_obj(tok, sent).ner, mount_point=MLP, enable=hp.use_govobj and hp.use_ner),
+
+        Feature('token-parent',           FeatureType.REF,  None,             None,                        extractor=lambda tok, sent: get_parent(tok, sent).ind, mount_point=MLP, enable=hp.use_parent),
+        Feature('token-parent.ud_xpos',       FeatureType.ENUM, vocabs.UD_XPOS,       embeddings.AUTO,    dim=hp.ud_xpos_embd_dim,  update=True,       extractor=lambda tok, sent: get_parent(tok, sent).ud_xpos, mount_point=MLP, enable=hp.use_parent and hp.use_ud_xpos),
+        Feature('token-parent.dep',    FeatureType.ENUM, vocabs.UD_DEPS,   embeddings.AUTO,   dim=hp.ud_deps_embd_dim,  update=True,   extractor=lambda tok, sent: get_parent(tok, sent).ud_dep, mount_point=MLP, enable=hp.use_parent and hp.use_ud_dep),
+        Feature('token-parent.ner', FeatureType.ENUM, vocabs.NERS, embeddings.AUTO, dim=hp.ner_embd_dim,  update=True, extractor=lambda tok, sent: get_parent(tok, sent).ner, mount_point=MLP, enable=hp.use_parent and hp.use_ner),
+
+        Feature('token-grandparent',           FeatureType.REF,  None,             None,                        extractor=lambda tok, sent: get_grandparent(tok, sent).ind, mount_point=MLP, enable=hp.use_grandparent),
+        Feature('token-grandparent.ud_xpos',       FeatureType.ENUM, vocabs.UD_XPOS,       embeddings.AUTO,   dim=hp.ud_xpos_embd_dim,  update=True,       extractor=lambda tok, sent: get_grandparent(tok, sent).ud_xpos, mount_point=MLP, enable=hp.use_grandparent and hp.use_ud_xpos),
+        Feature('token-grandparent.dep',    FeatureType.ENUM, vocabs.UD_DEPS,   embeddings.AUTO,  dim=hp.ud_deps_embd_dim,  update=True,   extractor=lambda tok, sent: get_grandparent(tok, sent).ud_dep, mount_point=MLP, enable=hp.use_grandparent and hp.use_ud_dep),
+        Feature('token-grandparent.ner', FeatureType.ENUM, vocabs.NERS, embeddings.AUTO, dim=hp.ner_embd_dim,  update=True, extractor=lambda tok, sent: get_grandparent(tok, sent).ner, mount_point=MLP, enable=hp.use_grandparent and hp.use_ner),
 
         # Feature('token-spacy-pobj-child',           FeatureType.REF,  None,              None,                         extractor=lambda tok, sent: get_child_of_type(tok, sent, 'pobj').ind, mount_point=MLP, enable=hp.use_ud_dep and hp.deps_from == 'spacy'),
         # Feature('token-spacy-pobj-child.ud_xpos',       FeatureType.ENUM, vocabs.UD_XPOS,        embeddings.AUTO,    dim=hp.ud_xpos_embd_dim,  update=True,        extractor=lambda tok, sent: get_child_of_type(tok, sent, 'pobj').ud_xpos, mount_point=MLP, enable=hp.use_ud_dep and hp.deps_from == 'spacy' and hp.use_ud_xpos),

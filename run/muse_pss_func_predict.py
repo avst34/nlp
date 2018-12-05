@@ -7,7 +7,7 @@ from hyperparameters_tuner import override_settings
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
-from models.supersenses.settings import MUSE_TASK_SETTINGS
+from models.supersenses.settings import MUSE_TASK_SETTINGS, PS
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 
 evaluator = PSSClasifierEvaluator()
@@ -31,18 +31,19 @@ def print_samples_statistics(name, samples):
 def run():
 
     # tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
-    tasks = list(MUSE_TASK_SETTINGS.keys())
+    # tasks = list(MUSE_TASK_SETTINGS.keys())
+    tasks = ['goldid.goldsyn', 'goldid.goldsyn.goldrole', 'goldid.goldsyn.goldfunc']
     task = random.choice(tasks)
-    task = 'goldid.goldsyn'
+    # task = 'goldid.goldsyn'
     for task in [task]:
-        # loader = StreusleLoader(load_elmo=False)
-        # train_records = loader.load_train()
-        # dev_records = loader.load_dev()
-        # test_records = loader.load_test()
-        records = StreusleLoader().load(conllulex_path='/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.chinese.all.json', input_format='json')
-        train_records = records[0::3]
-        dev_records = records[1::3]
-        test_records = records[2::3]
+        loader = StreusleLoader(load_elmo=False)
+        train_records = loader.load_train()
+        dev_records = loader.load_dev()
+        test_records = loader.load_test()
+        # records = StreusleLoader().load(conllulex_path='/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.chinese.all.json', input_format='json')
+        # train_records = records[0::3]
+        # dev_records = records[1::3]
+        # test_records = records[2::3]
 
         print_samples_statistics('train', train_records)
         print_samples_statistics('dev', dev_records)
@@ -65,7 +66,7 @@ def run():
             tuner_domains=override_settings([
                 MUSE_TASK_SETTINGS[task],
                 [
-                    # PS(name='epochs', values=[1])
+                    PS(name='epochs', values=[1])
                 ]
             ]),
             dump_models=False

@@ -115,6 +115,8 @@ class LstmMlpSupersensesModel:
                      pss_embd_dim,
                      use_prep_onehot,
                      use_govobj,
+                     use_parent,
+                     use_grandparent,
                      use_token_internal,
                      use_lexcat,
                      update_lemmas_embd,
@@ -143,6 +145,8 @@ class LstmMlpSupersensesModel:
                      dynet_random_seed,
                      labels_to_learn=None,
                      ):
+            self.use_grandparent = use_grandparent
+            self.use_parent = use_parent
             self.labels_to_learn = labels_to_learn
             self.pss_embd_dim = pss_embd_dim
             self.use_role = use_role
@@ -220,7 +224,7 @@ class LstmMlpSupersensesModel:
                     'n_labels_to_learn': len(self.hyperparameters.labels_to_learn),
                     'label_inds_to_predict': [ind for ind, label in enumerate(self.hyperparameters.labels_to_learn) if label in self.hyperparameters.labels_to_predict],
              },
-             del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_ud_dep',
+             del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_parent', 'use_grandparent', 'use_ud_dep',
                        'use_ner', 'use_lexcat', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
                        'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim',
                        'lexcat_embd_dim', 'update_token_embd', 'use_prep_onehot', 'use_token_internal',

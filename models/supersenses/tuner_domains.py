@@ -29,6 +29,8 @@ TUNER_DOMAINS_TUNING = [
     PS(name='use_ud_dep', values=[True]),
     PS(name='use_ner', values=[True]),
     PS(name='use_govobj', values=[True]),
+    PS(name='use_parent', values=[False]),
+    PS(name='use_grandparent', values=[False]),
     PS(name='use_prep_onehot', values=[False]),
     PS(name='use_lexcat', values=[True]),
     PS(name='token_embd_dim', values=[300]),

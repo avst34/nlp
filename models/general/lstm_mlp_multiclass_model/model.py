@@ -185,16 +185,17 @@ class LstmMlpMulticlassModel(object):
             if embeddings:
                 vocab = self.input_vocabularies[field]
                 for word in vocab.all_words():
-                    word_index = self.input_vocabularies[field].get_index(word)
-                    vector = embeddings.get(word)
-                    if vector is None:
-                        embeddings.get(word.lower())
-                    if vector is not None:
-                        lookup_param.init_row(word_index, vector)
-                    else:
-                        if field not in self.hyperparameters.input_embeddings_to_allow_partial:
-                            raise Exception('Missing embedding vector for field: %s, word %s' % (field, word))
-                        lookup_param.init_row(word_index, [0] * self.get_embd_dim(field))
+                    if word is not None:
+                        word_index = self.input_vocabularies[field].get_index(word)
+                        vector = embeddings.get(word)
+                        if vector is None:
+                            vector = embeddings.get(word.lower())
+                        if vector is not None:
+                            lookup_param.init_row(word_index, vector)
+                        else:
+                            if field not in self.hyperparameters.input_embeddings_to_allow_partial:
+                                raise Exception('Missing embedding vector for field: %s, word %s' % (field, word))
+                            lookup_param.init_row(word_index, [0] * self.get_embd_dim(field))
 
         if self.hyperparameters.is_bilstm:
             self.lstm_builder = dy.BiRNNBuilder(self.hyperparameters.num_lstm_layers, embedded_input_dim, self.hyperparameters.lstm_h_dim, pc, dy.LSTMBuilder)
@@ -224,21 +225,36 @@ class LstmMlpMulticlassModel(object):
                         raise Exception("X without a dep:" + neighbor_type)
 
     def get_embd(self, token_data, field):
-        embd = token_data.embeddings_override.get('field')
+        embd = token_data.embeddings_override.get(field)
         if embd:
             assert len(embd) == self.get_embd_dim(field)
             return dy.inputTensor(embd)
         else:
+            v = None
             if self.input_vocabularies[field].has_word(token_data[field]):
-                return dy.lookup(
+                v = dy.lookup(
                     self.params.input_lookups[field],
                     self.input_vocabularies[field].get_index(token_data[field]),
                     update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field)
                 )
-            else:
+
+            if not any(list(v.npvalue())):
+                v = None
+
+            if v is None:
                 if field not in self.hyperparameters.input_embeddings_to_allow_partial:
                     raise Exception('Missing embedding vector for field: %s, word %s' % (field, token_data[field]))
-                return dy.inputTensor([0] * self.get_embd_dim(field))
+                if self.input_vocabularies[field].has_word(None):
+                    v = dy.lookup(
+                        self.params.input_lookups[field],
+                        self.input_vocabularies[field].get_index(None),
+                        update=True
+                    )
+                else:
+                    v = dy.inputTensor([0] * self.get_embd_dim(field))
+
+            assert v is not None
+            return v
 
 
     def _build_network_for_input(self, xs, mask, apply_dropout):
@@ -397,7 +413,7 @@ class LstmMlpMulticlassModel(object):
                     print('--------------------------------------------')
 
                     dev_acc = epoch_dev_eval['f1']
-                    if best_dev_acc is None or dev_acc > best_dev_acc:
+                    if dev_acc is not None and (best_dev_acc is None or dev_acc > best_dev_acc):
                         print("Best epoch so far! with f1 of: %1.2f" % dev_acc)
                         best_dev_acc = dev_acc
                         train_acc = epoch_train_eval['f1']

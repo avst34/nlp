@@ -62,7 +62,11 @@ class Feature(object):
         if self.type == FeatureType.ENUM:
             if not self.vocab.has_word(val):
                 if not self.fall_to_none:
-                    raise Exception("Error in feature '%s': extracted value '%s' is not in the associated vocabulary (%s)" % (self.name, val, self.vocab.name))
+                    # hack for UD
+                    if ":" in val:
+                        val = val.split(':')[0]
+                    if not self.vocab.has_word(val):
+                        raise Exception("Error in feature '%s': extracted value '%s' is not in the associated vocabulary (%s)" % (self.name, val, self.vocab.name))
                 val = None
         elif self.type == FeatureType.REF:
             if val is not None and (type(val) != int or not (0 <= val < len(sent))):

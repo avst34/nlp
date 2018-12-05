@@ -1,6 +1,6 @@
 import os
 
-from datasets.streusle_v4 import StreusleLoader, supersense_repo, Word2VecModel
+from datasets.streusle_v4 import StreusleLoader, Word2VecModel
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 from vocabulary import Vocabulary
 
@@ -32,7 +32,7 @@ def build_vocabs():
     stypes = ['train', 'dev', 'test']
 
     loader = StreusleLoader()
-    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/nlp/datasets/streusle_v4/release'
+    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/release'
     all_files = [STREUSLE_BASE + '/' + stype + '/streusle.ud_' + stype + '.' + task + '.json' for task in tasks for stype in stypes]
     all_files += ['/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.chinese.all.json']
     records = sum([loader.load(f, input_format='json') for f in all_files], [])
@@ -40,6 +40,7 @@ def build_vocabs():
 
     pp_vocab = Vocabulary('PREPS')
     pp_vocab.add_words(set([x.token for s in samples for x, y in zip(s.xs, s.ys) if any([y.supersense_role, y.supersense_func])]))
+    pp_vocab.add_words([None])
 
     ner_vocab = Vocabulary('NERS')
     ner_vocab.add_words(set([x.ner for s in samples for x, y in zip(s.xs, s.ys)]))
@@ -47,6 +48,7 @@ def build_vocabs():
 
     lemmas_vocab = Vocabulary('LEMMAS')
     lemmas_vocab.add_words(set([x.lemma for s in samples for x, y in zip(s.xs, s.ys)]))
+    lemmas_vocab.add_words([None])
 
     ud_dep_vocab = Vocabulary('UD_DEPS')
     ud_dep_vocab.add_words(set([x.ud_dep for s in samples for x, y in zip(s.xs, s.ys)]))
@@ -58,20 +60,25 @@ def build_vocabs():
     #
     token_vocab = Vocabulary('TOKENS')
     token_vocab.add_words(set([x.token for s in samples for x, y in zip(s.xs, s.ys)]))
+    token_vocab.add_words([None])
 
-    govobj_config_vocab = Vocabulary('GOVOBJ_CONFIGS')
-    govobj_config_vocab.add_words(set([x.govobj_config for s in samples for x, y in zip(s.xs, s.ys)]))
+    # govobj_config_vocab = Vocabulary('GOVOBJ_CONFIGS')
+    # govobj_config_vocab.add_words(set([x.govobj_config for s in samples for x, y in zip(s.xs, s.ys)]))
 
-    pss_vocab = Vocabulary('PSS')
-    pss_vocab.add_words(supersense_repo.PREPOSITION_SUPERSENSES_SET)
-    pss_vocab.add_word(None)
-
-    pss_vocab = Vocabulary('LEXCAT')
-    pss_vocab.add_words(set([x.lexcat for s in samples for x, y in zip(s.xs, s.ys)]))
-
-    return [pp_vocab, ner_vocab, lemmas_vocab, ud_dep_vocab, ud_xpos_vocab, token_vocab, pss_vocab, govobj_config_vocab]
+    # pss_vocab = Vocabulary('PSS')
+    # pss_vocab.add_words(supersense_repo.PREPOSITION_SUPERSENSES_SET)
+    # pss_vocab.add_word(None)
+    #
+    # pss_vocab = Vocabulary('LEXCAT')
+    # pss_vocab.add_words(set([x.lexcat for s in samples for x, y in zip(s.xs, s.ys)]))
+    #
+    return [pp_vocab, ner_vocab, lemmas_vocab, ud_dep_vocab,
+            # ud_xpos_vocab,
+            token_vocab,
+            # pss_vocab, govobj_config_vocab
+            ]
 
 if __name__ == '__main__':
     vocabs = build_vocabs()
     dump_vocabs(vocabs)
-    dump_w2v(vocabs)
+    # dump_w2v(vocabs)

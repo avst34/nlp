@@ -2,7 +2,6 @@ import json
 import os
 
 from datasets.streusle_v4.chinese.corenlp import run_corenlp
-from datasets.streusle_v4.release.govobj import findgovobj
 from supersense_repo import SUPERSENSES_SET, get_supersense_type
 from supersense_repo.constants import TYPES
 
@@ -86,9 +85,9 @@ def build_chinese_streusle_json(txt_path=os.path.dirname(__file__) + '/lpp_zho.t
             "smwes": {},
             "wmwes": {}
         }
-
-        for swe in sent['swes'].values():
-            findgovobj(swe, sent)
+        #
+        # for swe in sent['swes'].values():
+        #     findgovobj(swe, sent)
 
         sents.append(sent)
     return sents

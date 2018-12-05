@@ -64,7 +64,11 @@ MUSE_TASK_SETTINGS = {
         settings,
         [
             PS(name='embd_type', values=['muse']),
-            PS(name='use_ud_xpos', values=[False])
+            PS(name='use_ud_xpos', values=[False]),
+            PS(name='use_govobj', values=[False]),
+            PS(name='use_parent', values=[True]),
+            PS(name='use_grandparent', values=[True]),
+            PS(name='use_token_internal', values=[False]),
         ]
     ])
     for task, settings in TASK_SETTINGS.items()
