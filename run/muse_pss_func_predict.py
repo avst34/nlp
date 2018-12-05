@@ -7,7 +7,7 @@ from hyperparameters_tuner import override_settings
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
-from models.supersenses.settings import MUSE_TASK_SETTINGS, PS
+from models.supersenses.settings import MUSE_TASK_SETTINGS
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 
 evaluator = PSSClasifierEvaluator()
@@ -66,7 +66,7 @@ def run():
             tuner_domains=override_settings([
                 MUSE_TASK_SETTINGS[task],
                 [
-                    PS(name='epochs', values=[1])
+                    # PS(name='epochs', values=[1])
                 ]
             ]),
             dump_models=False
