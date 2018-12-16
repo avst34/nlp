@@ -1,4 +1,5 @@
-from models.supersenses.embeddings import MUSE_EN, MUSE_ZH
+from .muse_en import MUSE_EN
+from .muse_zh import MUSE_ZH
 
 
 class Embeddings(object):
