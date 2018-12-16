@@ -21,14 +21,18 @@ class LstmMlpSupersensesModel:
                      ner,
                      ud_dep,
                      ud_head_ind,
+                     ud_grandparent_ind_override,
                      lemma,
                      gov_ind, obj_ind, govobj_config,
                      identified_for_pss,
                      lexcat,
                      role,
                      func,
+                     hidden,
                      lemma_embd=None,
                      token_embd=None):
+            self.ud_grandparent_ind_override = ud_grandparent_ind_override
+            self.hidden = hidden
             self.token_embd = token_embd
             self.lemma_embd = lemma_embd
             self.lexcat = lexcat
@@ -106,6 +110,8 @@ class LstmMlpSupersensesModel:
         def __init__(self,
                      labels_to_predict,
                      use_token,
+                     use_prep,
+                     prep_dropout_p,
                      update_token_embd,
                      use_ud_xpos,
                      use_ud_dep,
@@ -145,6 +151,8 @@ class LstmMlpSupersensesModel:
                      dynet_random_seed,
                      labels_to_learn=None,
                      ):
+            self.prep_dropout_p = prep_dropout_p
+            self.use_prep = use_prep
             self.use_grandparent = use_grandparent
             self.use_parent = use_parent
             self.labels_to_learn = labels_to_learn
@@ -188,7 +196,7 @@ class LstmMlpSupersensesModel:
             self.embd_type = embd_type
             self.labels_to_learn = self.labels_to_learn or self.labels_to_predict
 
-            assert self.embd_type in ['word2vec', 'muse']
+            assert self.embd_type in ['word2vec', 'muse', 'muse_dict']
             assert all([l in self.labels_to_learn for l in self.labels_to_predict])
             assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])]), labels_to_predict
 
@@ -223,13 +231,15 @@ class LstmMlpSupersensesModel:
                     'input_embedding_dims': {f.name: f.dim for f in self.features.list_features_with_embedding()},
                     'n_labels_to_learn': len(self.hyperparameters.labels_to_learn),
                     'label_inds_to_predict': [ind for ind, label in enumerate(self.hyperparameters.labels_to_learn) if label in self.hyperparameters.labels_to_predict],
+                    'use_local': hp.use_prep,
+                    'local_dropout_p': hp.prep_dropout_p
              },
              del_keys=['use_token', 'lemmas_from', 'update_lemmas_embd', 'use_ud_xpos', 'use_govobj', 'use_parent', 'use_grandparent', 'use_ud_dep',
                        'use_ner', 'use_lexcat', 'token_embd_dim', 'ner_embd_dim', 'token_internal_embd_dim',
                        'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim',
                        'lexcat_embd_dim', 'update_token_embd', 'use_prep_onehot', 'use_token_internal',
                        'labels_to_predict', 'labels_to_learn', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd',
-                       'use_role', 'use_func', 'pss_embd_dim', 'embd_type']))
+                       'use_role', 'use_func', 'pss_embd_dim', 'embd_type', 'use_prep', 'prep_dropout_p']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):
@@ -254,7 +264,8 @@ class LstmMlpSupersensesModel:
             },
             embeddings_override={
                 f.name: f.extract_embedding(sample_x) for f in self.features.list_features_with_embedding_extractor()
-            }
+            },
+            hidden=sample_x.hidden
         )
 
     def sample_y_to_lowlevel(self, sample_y):

@@ -12,6 +12,7 @@ def streusle_record_to_lstm_model_sample(record):
             lemma=tagged_token.lemma,
             ud_dep=tagged_token.ud_dep,
             ud_head_ind=tagged_token.ud_head_ind,
+            ud_grandparent_ind_override=tagged_token.ud_grandparent_ind_override,
             is_part_of_mwe=tagged_token.is_part_of_mwe,
             gov_ind=tagged_token.gov_ind,
             obj_ind=tagged_token.obj_ind,
@@ -21,7 +22,8 @@ def streusle_record_to_lstm_model_sample(record):
             token_embd=tagged_token.elmo,
             lemma_embd=tagged_token.elmo,
             role=tagged_token.supersense_role,
-            func=tagged_token.supersense_func
+            func=tagged_token.supersense_func,
+            hidden=tagged_token.hidden
         ) for ind, tagged_token in enumerate(record.tagged_tokens)
         ],
         ys=[LstmMlpSupersensesModel.SampleY(

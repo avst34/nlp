@@ -101,7 +101,9 @@ class TaggedToken:
                  supersense_func,
                  noun_ss,
                  verb_ss,
-                 ud_head_ind, ud_dep,
+                 ud_head_ind,
+                 ud_grandparent_ind_override,
+                 ud_dep,
                  is_part_of_wmwe,
                  is_part_of_smwe,
                  is_first_mwe_token,
@@ -111,7 +113,9 @@ class TaggedToken:
                  lemma,
                  ud_id,
                  prep_toks,
-                 gov_ind, obj_ind, govobj_config, lexcat, _raw_ss_ss2, elmo=None):
+                 gov_ind, obj_ind, govobj_config, lexcat, _raw_ss_ss2, elmo=None, hidden=False):
+        self.ud_grandparent_ind_override = ud_grandparent_ind_override
+        self.hidden = hidden
         self.elmo = elmo
         self.verb_ss = verb_ss
         self.noun_ss = noun_ss
@@ -225,6 +229,7 @@ class StreusleRecord:
                 ud_xpos=tok_data['xpos'],
                 lemma=tok_data['lemma'],
                 ud_head_ind=id_to_ind.get(tok_data['head']),
+                ud_grandparent_ind_override=id_to_ind.get(tok_data.get('grandparent_override')),
                 ud_dep=tok_data['deprel'],
                 ner=tok_data.get('ner'),
                 supersense_role=tok_ss[int(tok_data['#'])][0],
@@ -241,7 +246,8 @@ class StreusleRecord:
                 lexcat=tok_we.get(int(tok_data['#']), {}).get('lexcat'),
                 _raw_ss_ss2=''.join([tok_we.get(int(tok_data['#']), {}).get(ss) or '' for ss in ['ss', 'ss2']]),
                 prep_toks=[self.data['toks'][id_to_ind[tokid]]['word'] for tokid in we_toknums.get(int(tok_data['#']), [])],
-                elmo=elmo_h5py[:, i, :][()].flatten() if elmo_h5py else None
+                elmo=elmo_h5py[:, i, :][()].flatten() if elmo_h5py else None,
+                hidden=tok_data.get('hidden')
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
         self.pss_tokens = [x for x in self.tagged_tokens if x.supersense_func in supersense_repo.PREPOSITION_SUPERSENSES_SET or x.supersense_role in supersense_repo.PREPOSITION_SUPERSENSES_SET]

@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 import requests
 
 
-def run_corenlp(tokens, format='conllu', use_server=True):
+def run_corenlp(tokens, format='conllu', use_server=True, port=9000):
     assert format in ['conllu', 'conll', 'json']
     sentence = ' '.join(tokens)
     if use_server:
@@ -18,7 +18,7 @@ def run_corenlp(tokens, format='conllu', use_server=True):
             },
             'data': sentence
         }
-        r = requests.post('http://127.0.0.1:9000/', params=req['params'], data=req['data'].encode('utf-8'))
+        r = requests.post('http://127.0.0.1:%d/' % port, params=req['params'], data=req['data'].encode('utf-8'))
         out = r.text.replace('\r\n', '\n')
     else:
         input_file = NamedTemporaryFile(delete=False)

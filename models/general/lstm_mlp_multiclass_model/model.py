@@ -10,7 +10,6 @@ import dynet as dy
 import numpy as np
 
 from dynet_utils import get_activation_function
-from embeddings.embeddings_hdf5 import EmbeddingsHDF5Reader
 from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
 from vocabulary import Vocabulary
 
@@ -19,7 +18,8 @@ from vocabulary import Vocabulary
 ModelOptimizedParams = namedtuple('ModelOptimizedParams', [
     'input_lookups',
     'mlps',
-    'softmaxes'
+    'softmaxes',
+    'unknown_local'
 ])
 
 MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
@@ -29,7 +29,8 @@ class LstmMlpMulticlassModel(object):
     Sample = namedtuple('Sample', ['xs', 'ys', 'mask'])
 
     class SampleX:
-        def __init__(self, fields, neighbors=None, embeddings_override=None):
+        def __init__(self, fields, hidden, neighbors=None, embeddings_override=None):
+            self.hidden = hidden
             self.fields = fields
             self.neighbors = neighbors or {}
             self.embeddings_override = embeddings_override or {}
@@ -70,7 +71,11 @@ class LstmMlpMulticlassModel(object):
                      learning_rate_decay,
                      n_labels_to_learn,
                      label_inds_to_predict,
-                     dynet_random_seed):
+                     dynet_random_seed,
+                     use_local,
+                     local_dropout_p):
+            self.local_dropout_p = local_dropout_p
+            self.use_local = use_local
             self.label_inds_to_predict = label_inds_to_predict
             self.dynet_random_seed = dynet_random_seed
             self.input_embeddings_to_allow_partial = input_embeddings_to_allow_partial
@@ -115,10 +120,20 @@ class LstmMlpMulticlassModel(object):
         self.test_set_evaluation = None
         self.dev_set_evaluation = None
         self.train_set_evaluation = None
+        self.embds_to_randomize = []
+        self.missing_embd_count = 0
+        self.existing_embd_count = 0
+        self.reset_embd_counts()
         self.pc = self._build_network_params()
 
         self.validate_params()
 
+    def reset_embd_counts(self):
+        self.missing_embd_count = 0
+        self.existing_embd_count = 0
+
+    def report_embd_counts(self):
+        print("Missing embeddings: %d, existing embeddings: %d, missing percentage: %d" % (self.missing_embd_count, self.existing_embd_count, self.missing_embd_count/(self.missing_embd_count + self.existing_embd_count)*100))
 
     @property
     def all_input_fields(self):
@@ -128,7 +143,7 @@ class LstmMlpMulticlassModel(object):
         # Make sure input embedding dimensions fit embedding vectors size (if given)
         for field in self.all_input_fields:
             if self.input_embeddings.get(field):
-                embd_vec_dim = self.input_embeddings[field].dim() if isinstance(self.input_embeddings[field], EmbeddingsHDF5Reader) else len(list(self.input_embeddings[field].values())[0])
+                embd_vec_dim = self.input_embeddings[field].dim() if "dim" in dir(self.input_embeddings[field]) else len(list(self.input_embeddings[field].values())[0])
                 given_dim = self.hyperparameters.input_embedding_dims[field]
                 if embd_vec_dim != given_dim:
                     raise Exception("Input field '%s': Mismatch between given embedding vector size (%d) and given embedding size (%d)" % (field, embd_vec_dim, given_dim))
@@ -177,7 +192,8 @@ class LstmMlpMulticlassModel(object):
                         b=pc.add_parameters((self.output_vocabulary.size(),))
                 )
                 for _ in range(self.hyperparameters.n_labels_to_learn)
-            ]
+            ],
+            unknown_local=pc.add_parameters((self.hyperparameters.lstm_h_dim,))
         )
 
         for field, lookup_param in sorted(self.params.input_lookups.items()):
@@ -225,36 +241,48 @@ class LstmMlpMulticlassModel(object):
                         raise Exception("X without a dep:" + neighbor_type)
 
     def get_embd(self, token_data, field):
-        embd = token_data.embeddings_override.get(field)
-        if embd:
-            assert len(embd) == self.get_embd_dim(field)
-            return dy.inputTensor(embd)
+        if field in self.embds_to_randomize and token_data[field]:
+            tmp_lp = self.pc.add_lookup_parameters(
+                (1, self.get_embd_dim(field))
+            )
+            self.existing_embd_count += 1
+            return dy.inputTensor(dy.lookup(tmp_lp, 0).npvalue())
+
+        embd = None
+        _embd = token_data.embeddings_override.get(field)
+        if _embd:
+            assert len(_embd) == self.get_embd_dim(field)
+            embd = dy.inputTensor(_embd)
         else:
-            v = None
             if self.input_vocabularies[field].has_word(token_data[field]):
-                v = dy.lookup(
+                embd = dy.lookup(
                     self.params.input_lookups[field],
                     self.input_vocabularies[field].get_index(token_data[field]),
                     update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field)
                 )
 
-            if not any(list(v.npvalue())):
-                v = None
+            if not any(list(embd.npvalue())):
+                embd = None
 
-            if v is None:
+            if embd is None:
                 if field not in self.hyperparameters.input_embeddings_to_allow_partial:
                     raise Exception('Missing embedding vector for field: %s, word %s' % (field, token_data[field]))
                 if self.input_vocabularies[field].has_word(None):
-                    v = dy.lookup(
+                    self.missing_embd_count += 1
+                    self.existing_embd_count -= 1
+                    embd = dy.lookup(
                         self.params.input_lookups[field],
                         self.input_vocabularies[field].get_index(None),
                         update=True
                     )
-                else:
-                    v = dy.inputTensor([0] * self.get_embd_dim(field))
 
-            assert v is not None
-            return v
+        if embd is None:
+            self.missing_embd_count += 1
+            embd = dy.inputTensor([0] * self.get_embd_dim(field))
+        else:
+            self.existing_embd_count += 1
+
+        return embd
 
 
     def _build_network_for_input(self, xs, mask, apply_dropout):
@@ -279,8 +307,9 @@ class LstmMlpMulticlassModel(object):
                 self.get_embd(token_data, field)
                 for field in self.hyperparameters.lstm_input_fields
             ])
-            for token_data in xs
+            for token_data in xs if not token_data.hidden
         ]
+        assert max([ind for ind, x in enumerate(xs) if not x.hidden]) < min([ind for ind, x in enumerate(xs) if x.hidden] + [len(xs)])
         lstm_outputs = cur_lstm_state.transduce(embeddings)
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         outputs = []
@@ -288,20 +317,27 @@ class LstmMlpMulticlassModel(object):
             if mask and not mask[ind]:
                 output = None
             else:
-                cur_out = lstm_out
+                vecs = []
+                if self.hyperparameters.use_local:
+                    v = lstm_out if lstm_out is not None else dy.parameter(self.params.unknown_local)
+                    if apply_dropout and self.hyperparameters.local_dropout_p is not None:
+                        if random.random() < self.hyperparameters.local_dropout_p:
+                            v = dy.parameter(self.params.unknown_local)
+                    vecs.append(v)
                 inp_token = xs[ind]
                 for neighbour_type in self.hyperparameters.token_neighbour_types:
                     neighbour_ind = xs[ind].neighbors.get(neighbour_type)
                     if neighbour_ind is None:
-                        cur_out = dy.concatenate([cur_out, dy.inputTensor([-1]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)])
+                        vecs.append(dy.concatenate([dy.inputTensor([-1]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)]))
                     else:
-                        cur_out = dy.concatenate([cur_out, dy.inputTensor([1]), lstm_outputs[neighbour_ind]])
-                cur_out = dy.concatenate([cur_out] +
-                                         [dy.lookup(
-                                             self.params.input_lookups[field],
-                                             self.input_vocabularies[field].get_index(inp_token[field]),
-                                             update=self.hyperparameters.input_embeddings_to_update.get(field) or False
-                                         ) for field in self.hyperparameters.mlp_input_fields])
+                        vecs.append(dy.concatenate([dy.inputTensor([1]), lstm_outputs[neighbour_ind]]))
+
+                vecs.extend([dy.lookup(
+                                 self.params.input_lookups[field],
+                                 self.input_vocabularies[field].get_index(inp_token[field]),
+                                 update=self.hyperparameters.input_embeddings_to_update.get(field) or False
+                             ) for field in self.hyperparameters.mlp_input_fields])
+                cur_out = dy.concatenate(vecs)
                 output = []
                 for mlp_params, softmax_params in zip(self.params.mlps, self.params.softmaxes):
                     mlp_cur_out = cur_out
@@ -405,18 +441,21 @@ class LstmMlpMulticlassModel(object):
                     epoch_dev_eval = evaluator.evaluate(dev, examples_to_show=5, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
                     self.dev_set_evaluation.append(epoch_dev_eval)
                     print('Training data evaluation:')
-                    epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
-                    self.train_set_evaluation.append(epoch_train_eval)
+                    # epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
+                    self.train_set_evaluation.append(epoch_dev_eval)
                     print('Testing data evaluation:')
+                    self.embds_to_randomize = ['token-embd', 'token.lemma-embd']
+                    # self.embds_to_randomize = []
                     epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
                     self.test_set_evaluation.append(epoch_test_eval)
+                    self.embds_to_randomize = []
                     print('--------------------------------------------')
 
                     dev_acc = epoch_dev_eval['f1']
                     if dev_acc is not None and (best_dev_acc is None or dev_acc > best_dev_acc):
                         print("Best epoch so far! with f1 of: %1.2f" % dev_acc)
                         best_dev_acc = dev_acc
-                        train_acc = epoch_train_eval['f1']
+                        # train_acc = epoch_train_eval['f1']
                         best_epoch = epoch
                         self.pc.save(model_file_path)
 
@@ -528,3 +567,17 @@ class LstmMlpMulticlassModel(object):
                     os.remove(fname)
 
 
+    def randomize_embeddings(self, fields, include_none=False):
+        for field in fields:
+            tmp_lp = self.pc.add_lookup_parameters(
+                self.input_vocabularies[field].size(),
+                self.get_embd_dim(field)
+            )
+            lookup = self.params.input_lookups[field]
+            vocab = self.input_vocabularies[field]
+            for w in vocab:
+                if w is None and not include_none:
+                    continue
+                w_ind = vocab.get_index(w)
+                lookup.init_row(w_ind,
+                                dy.lookup(tmp_lp, w_ind).npvalue())

@@ -1,4 +1,3 @@
-from embeddings.embeddings_hdf5 import EmbeddingsHDF5Reader
 from models.supersenses import embeddings
 
 
@@ -49,7 +48,7 @@ class Feature(object):
                     self.update = True
                 assert self.update, "AUTO embeddings must be updatable (feature: '%s')" % self.name
             else:
-                embd_dim = self.embeddings.dim() if isinstance(self.embeddings, EmbeddingsHDF5Reader) else len(list(self.embeddings.values())[0])
+                embd_dim = self.embeddings.dim() if "dim" in dir(self.embeddings) else len(list(self.embeddings.values())[0])
                 assert self.dim is None or self.dim == embd_dim, '%s, %d, %d' % (self.name, self.dim, embd_dim)
                 self.dim = embd_dim
 

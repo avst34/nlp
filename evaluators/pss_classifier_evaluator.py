@@ -70,6 +70,7 @@ class PSSClasifierEvaluator:
         ALL_CLASSES = PSSClasifierEvaluator.ALL_CLASSES
         ALL_CLASSES_STRICT = PSSClasifierEvaluator.ALL_CLASSES_STRICT
         predictor = predictor or self.predictor
+        predictor.reset_embd_counts()
         counts = {
             ALL_CLASSES: {
                 'p_none_a_none': 0,
@@ -144,7 +145,7 @@ class PSSClasifierEvaluator:
               )
         report(ALL_CLASSES, 'All Classes')
         report(ALL_CLASSES_STRICT, 'All Classes (strict)')
-
+        predictor.report_embd_counts()
         return {
             'precision': total_precision,
             'recall': total_recall,

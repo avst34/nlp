@@ -36,9 +36,11 @@ def get_parent(tok, sent):
     else:
         return None
 
-
 @raise_none
 def get_grandparent(tok, sent):
+    if tok.ud_grandparent_ind_override is not None:
+        print("using grandparent override!")
+        return get_tok(sent, tok.ud_grandparent_ind_override)
     parent = get_parent(tok, sent)
     if parent:
         return get_parent(parent, sent)

@@ -19,6 +19,8 @@ TUNER_DOMAINS_TUNING = [
         # ('supersense_func',)
     ]),
     PS(name='embd_type', values=['muse', 'word2vec']),
+    PS(name='use_prep', values=[True]),
+    PS(name='prep_dropout_p', values=[0, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5]),
     PS(name='use_role', values=[False]),
     PS(name='use_func', values=[False]),
     PS(name='use_token', values=[True]),

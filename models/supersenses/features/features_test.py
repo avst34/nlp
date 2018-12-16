@@ -42,7 +42,9 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     pss_embd_dim=5,
     embd_type='word2vec',
     use_parent=True,
-    use_grandparent=True
+    use_grandparent=True,
+    use_prep=True,
+    prep_dropout_p=None
 )
 
 test_sample = LstmMlpSupersensesModel.Sample.from_dict({
@@ -50,6 +52,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 3,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": True,
       "token": "If",
@@ -68,6 +72,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 3,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "you",
@@ -86,6 +92,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 3,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "are",
@@ -104,6 +112,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 15,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "serious",
@@ -122,6 +132,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 5,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "about",
@@ -140,6 +152,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 3,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "working",
@@ -158,6 +172,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 5,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "out",
@@ -176,6 +192,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 11,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "in",
@@ -194,6 +212,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 11,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "a",
@@ -212,6 +232,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 10,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "non-commercial",
@@ -230,6 +252,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 11,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "like",
@@ -248,6 +272,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 5,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "atmosphere",
@@ -266,6 +292,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 15,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "then",
@@ -284,6 +312,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 15,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "you",
@@ -302,6 +332,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 15,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "have",
@@ -320,6 +352,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 15,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "chosen",
@@ -338,6 +372,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 18,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "The",
@@ -356,6 +392,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 18,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "best",
@@ -374,6 +412,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 15,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "place",
@@ -392,6 +432,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 20,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "to",
@@ -410,6 +452,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 18,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": 2,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": "be",
@@ -428,6 +472,8 @@ test_sample = LstmMlpSupersensesModel.Sample.from_dict({
     {
       "ud_head_ind": 15,
       "role": "LOCUS",
+      "hidden": False,
+      "ud_grandparent_ind_override": None,
       "func": "LOCUS",
       "is_part_of_mwe": False,
       "token": ".",
@@ -541,7 +587,7 @@ get_token = lambda ind: test_sample.xs[ind] if ind is not None else None
 tokens = lambda inds: [get_token(ind) for ind in inds]
 
 test_sample_parents = tokens([3, 3, 3, 15, 5, 3, 5, 11, 11, 10, 11, 5, 15, 15, 15, None, 18, 18, 15, 20, 18, 15])
-test_sample_grandparents = tokens([15, 15, 15, None, 3, 15, 3, 5, 5, 11, 5, 3, None, None, None, None, 15, 15, None, 18, 15, None])
+test_sample_grandparents = tokens([15, 15, 15, None, 3, 15, 3, 5, 5, 11, 5, 3, None, None, None, None, 15, 15, None, 18, 2, None])
 test_sample_govs = tokens([15, 15, 15, None, 3, 15, 3, 5, 5, 11, 5, 3, None, None, None, None, 15, 15, None, 18, 15, None])
 test_sample_spacy_pobj_child = tokens([None, None, None, None, None, None, None, 11, None, None, None, None, None, None, None, None, None, None, None, None, None, None])
 # test_sample_has_children = {
