@@ -1,4 +1,5 @@
 from .boolean import BOOLEAN
+from .fasttext_en import FASTTEXT_EN
 from .lemmas_word2vec import LEMMAS_WORD2VEC
 from .muse_en import MUSE_EN
 from .muse_streusle import MUSE_STREUSLE

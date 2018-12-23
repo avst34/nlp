@@ -10,7 +10,6 @@ import dynet as dy
 import numpy as np
 
 from dynet_utils import get_activation_function
-from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
 from vocabulary import Vocabulary
 
 # There are more hidden parameters coming from the LSTMs
@@ -259,10 +258,10 @@ class LstmMlpMulticlassModel(object):
                     self.input_vocabularies[field].get_index(token_data[field]),
                     update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field)
                 )
-            else:
+            elif self.input_embeddings.get(field, {}).get(token_data[field]):
                 embd = dy.inputTensor(self.input_embeddings.get(field, {}).get(token_data[field]))
 
-            if not any(list(embd.npvalue())):
+            if embd is not None and not any(list(embd.npvalue())):
                 embd = None
 
             if embd is None:
@@ -281,7 +280,7 @@ class LstmMlpMulticlassModel(object):
             self.missing_embd_count += 1
             embd = dy.inputTensor([0] * self.get_embd_dim(field))
         else:
-            assert len(embd) == self.get_embd_dim(field)
+            assert len(embd.npvalue()) == self.get_embd_dim(field)
             self.existing_embd_count += 1
 
         return embd
@@ -387,7 +386,6 @@ class LstmMlpMulticlassModel(object):
     #
     def fit(self, samples, validation_samples=None, test_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
-        evaluator = evaluator or PSSClasifierEvaluator(inds_to_predict=self.hyperparameters.label_inds_to_predict)
         self.pc = self._build_network_params()
         # self._build_vocabularies(samples + validation_samples or [])
 
@@ -446,7 +444,7 @@ class LstmMlpMulticlassModel(object):
                     # epoch_train_eval = evaluator.evaluate(train, examples_to_show=5, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
                     self.train_set_evaluation.append(epoch_dev_eval)
                     print('Testing data evaluation:')
-                    self.embds_to_randomize = ['token-embd', 'token.lemma-embd']
+                    self.embds_to_randomize = []
                     # self.embds_to_randomize = []
                     epoch_test_eval = evaluator.evaluate(test, examples_to_show=5, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
                     self.test_set_evaluation.append(epoch_test_eval)

@@ -136,7 +136,7 @@ def findgovobj(pexpr, sent):
         'config': config
     }
 
-    return pexpr['heuristic_relation']
+    # return pexpr['heuristic_relation']
     #print(sent['mwe'], (gtok['word'], plemma, otok['word']), config)
 
 if __name__ == '__main__':

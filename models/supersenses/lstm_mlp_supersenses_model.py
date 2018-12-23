@@ -2,7 +2,7 @@ import json
 from itertools import chain
 from pprint import pprint
 
-from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel
+from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel, PSSClasifierEvaluator
 from models.supersenses import vocabs
 from models.supersenses.features.features import build_features
 from utils import update_dict
@@ -196,7 +196,7 @@ class LstmMlpSupersensesModel:
             self.embd_type = embd_type
             self.labels_to_learn = self.labels_to_learn or self.labels_to_predict
 
-            assert self.embd_type in ['word2vec', 'muse', 'muse_dict']
+            assert self.embd_type in ['word2vec', 'muse', 'muse_dict', 'fasttext_en']
             assert all([l in self.labels_to_learn for l in self.labels_to_predict])
             assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])]), labels_to_predict
 
@@ -322,6 +322,8 @@ class LstmMlpSupersensesModel:
 
     def fit(self, samples, validation_samples=None, test_samples=None, show_progress=True, show_epoch_eval=True,
             evaluator=None):
+        evaluator = evaluator or PSSClasifierEvaluator()
+
         ll_samples = [self.sample_to_lowlevel(s) for s in samples]
         ll_samples = [x for x in ll_samples if any(x.mask)]
 

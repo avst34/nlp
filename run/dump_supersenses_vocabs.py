@@ -34,7 +34,7 @@ def build_vocabs():
     loader = StreusleLoader()
     STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/release'
     all_files = [STREUSLE_BASE + '/' + stype + '/streusle.ud_' + stype + '.' + task + '.json' for task in tasks for stype in stypes]
-    all_files += ['/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.chinese.all.json']
+    all_files += ['/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json']
     records = sum([loader.load(f, input_format='json') for f in all_files], [])
     samples = [streusle_record_to_lstm_model_sample(r) for r in records]
 
@@ -81,4 +81,4 @@ def build_vocabs():
 if __name__ == '__main__':
     vocabs = build_vocabs()
     dump_vocabs(vocabs)
-    # dump_w2v(vocabs)
+    dump_w2v(vocabs)
