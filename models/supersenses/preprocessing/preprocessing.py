@@ -8,9 +8,9 @@ from word2vec import Word2VecModel
 
 
 
-w2v = Word2VecModel.load_google_model()
+# w2v = Word2VecModel.load_google_model()
 
-def preprocess_sentence(tokens):
+def preprocess_sentence(tokens, identify=False):
     corenlp_out = json.loads(run_corenlp(tokens, format='json'))
     sent = corenlp_out['sentences'][0]
     parsed_tokens = sent['tokens']
@@ -23,8 +23,8 @@ def preprocess_sentence(tokens):
         'ud_xpos': [tok['pos'] for tok in parsed_tokens],
         'ner': [tok['ner'] for tok in parsed_tokens],
         'lemma': [tok['lemma'] for tok in parsed_tokens],
-        'lemma_w2v': [w2v.get(tok['lemma']) if False and not vocabs.LEMMAS.has_word(tok['lemma']) else None for tok in parsed_tokens],
-        'token_w2v': [w2v.get(tok) if False and not vocabs.TOKENS.has_word(tok) else None for tok in tokens],
+        # 'lemma_w2v': [w2v.get(tok['lemma']) if False and not vocabs.LEMMAS.has_word(tok['lemma']) else None for tok in parsed_tokens],
+        # 'token_w2v': [w2v.get(tok) if False and not vocabs.TOKENS.has_word(tok) else None for tok in tokens],
         'ud_dep': [dep['dep'] for dep in parsed_deps],
         'ud_head_ind': [dep['governor'] - 1 if dep['governor'] else None for dep in parsed_deps],
         'govobj': [findgovobj({
@@ -40,5 +40,22 @@ def preprocess_sentence(tokens):
             } for t, d in zip(parsed_tokens, parsed_deps)]
         }) for tok in parsed_tokens]
     }
+
+    if identify:
+        conllu = run_corenlp(tokens, format='conllu')
+        tempf = NamedTemporaryFile(delete=False)
+        try:
+            tempf.write(conllu)
+            tempf.close()
+            enrich_autoid(tempf.name, tempf.name)
+            with open(tempf.name) as f:
+                enriched_conllu = f.read()
+
+        finally:
+            try:
+                os.unlink(tempf.name)
+            finally:
+                print("WARNING: unable to delete tempfile:", tempf.name)
+
 
     return s

@@ -206,6 +206,9 @@ class LstmMlpSupersensesModel:
             params.update(override)
             return LstmMlpSupersensesModel.HyperParameters(**params)
 
+    def get_embeddings(self):
+        return {feat.name: feat.embeddings for feat in self.features.list_features_with_embedding(include_auto=False, include_instance=False)}
+
     def __init__(self, hyperparameters):
         hp = hyperparameters
         self.hyperparameters = hp
@@ -219,7 +222,7 @@ class LstmMlpSupersensesModel:
 
         self.model = LstmMlpMulticlassModel(
             input_vocabularies={feat.name: feat.vocab for feat in chain(self.features.list_enum_features(), self.features.list_string_features())},
-            input_embeddings={feat.name: feat.embeddings for feat in self.features.list_features_with_embedding(include_auto=False, include_instance=False)},
+            input_embeddings=self.get_embeddings(),
             output_vocabulary=vocabs.PSS if self.hyperparameters.allow_empty_prediction else vocabs.PSS_WITHOUT_NONE,
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
                     'lstm_input_fields': names(self.features.list_lstm_features()),
@@ -384,5 +387,5 @@ class LstmMlpSupersensesModel:
     def load(base_path):
         with open(base_path + '.hp', 'r') as f:
             model = LstmMlpSupersensesModel(hyperparameters=LstmMlpSupersensesModel.HyperParameters(**json.load(f)))
-            model.model = LstmMlpMulticlassModel.load(base_path + '.ll')
+            model.model = LstmMlpMulticlassModel.load(base_path + '.ll', model.get_embeddings())
             return model

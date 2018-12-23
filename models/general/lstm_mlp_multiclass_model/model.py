@@ -251,7 +251,6 @@ class LstmMlpMulticlassModel(object):
         embd = None
         _embd = token_data.embeddings_override.get(field)
         if _embd:
-            assert len(_embd) == self.get_embd_dim(field)
             embd = dy.inputTensor(_embd)
         else:
             if self.input_vocabularies[field].has_word(token_data[field]):
@@ -260,6 +259,8 @@ class LstmMlpMulticlassModel(object):
                     self.input_vocabularies[field].get_index(token_data[field]),
                     update=not self.input_embeddings.get(field) or self.hyperparameters.input_embeddings_to_update.get(field)
                 )
+            else:
+                embd = dy.inputTensor(self.input_embeddings.get(field, {}).get(token_data[field]))
 
             if not any(list(embd.npvalue())):
                 embd = None
@@ -280,6 +281,7 @@ class LstmMlpMulticlassModel(object):
             self.missing_embd_count += 1
             embd = dy.inputTensor([0] * self.get_embd_dim(field))
         else:
+            assert len(embd) == self.get_embd_dim(field)
             self.existing_embd_count += 1
 
         return embd
@@ -527,8 +529,8 @@ class LstmMlpMulticlassModel(object):
         output_vocabulary = self.output_vocabulary.pack()
         with open(base_path + '.out_vocab', 'w') as f:
             json.dump(output_vocabulary, f)
-        with open(base_path + '.embds', 'w') as f:
-            json.dump({name: pythonize_embds(embds) for name, embds in self.input_embeddings.items()}, f)
+        # with open(base_path + '.embds', 'w') as f:
+        #     json.dump({name: pythonize_embds(embds) for name, embds in self.input_embeddings.items()}, f)
 
         zip_path = base_path + '.zip'
         if os.path.exists(zip_path):
@@ -543,22 +545,22 @@ class LstmMlpMulticlassModel(object):
             os.remove(fname)
 
     @staticmethod
-    def load(base_path):
+    def load(base_path, embds):
         with zipfile.ZipFile(base_path + ".zip", "r") as zh:
             zh.extractall(os.path.dirname(base_path))
         try:
             with open(base_path + '.hp', 'r') as hp_f:
                 with open(base_path + '.in_vocabs', 'r') as in_vocabs_f:
                     with open(base_path + '.out_vocab', 'r') as out_vocabs_f:
-                        with open(base_path + '.embds', 'r') as embds_f:
-                            model = LstmMlpMulticlassModel(
-                                input_vocabularies={name: Vocabulary.unpack(packed) for name, packed in json.load(in_vocabs_f).items()},
-                                output_vocabulary=Vocabulary.unpack(json.load(out_vocabs_f)),
-                                input_embeddings=json.load(embds_f),
-                                hyperparameters=LstmMlpMulticlassModel.HyperParameters(**json.load(hp_f))
-                            )
-                            model.pc.populate(base_path)
-                            return model
+                        # with open(base_path + '.embds', 'r') as embds_f:
+                        model = LstmMlpMulticlassModel(
+                            input_vocabularies={name: Vocabulary.unpack(packed) for name, packed in json.load(in_vocabs_f).items()},
+                            output_vocabulary=Vocabulary.unpack(json.load(out_vocabs_f)),
+                            input_embeddings=embds,
+                            hyperparameters=LstmMlpMulticlassModel.HyperParameters(**json.load(hp_f))
+                        )
+                        model.pc.populate(base_path)
+                        return model
         finally:
             files = glob(base_path + ".*") + [base_path]
             for fname in files:
