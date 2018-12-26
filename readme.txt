@@ -1,6 +1,6 @@
 Usage:
 ------
-main.py [-h] --file INPUT_FILE --model_path MODEL_PATH --out_file OUTPUT_FILE
+python main.py [-h] --file INPUT_FILE --model_path MODEL_PATH --out_file OUTPUT_FILE
 
 - Input file should contain a list of sentences, one line per sentence
 - The output file will have the tokenized sentences with PSS annotations

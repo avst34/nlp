@@ -104,12 +104,12 @@ class PSSClasifierEvaluator:
                 self.update_counts(counts, alabels, p, alabels)
                 self.update_counts(counts, ALL_CLASSES, p, alabels, strict=False)
                 self.update_counts(counts, ALL_CLASSES_STRICT, p, alabels)
-                if a is not None and len(inds_to_predict) > 1:
-                    for ind, klass in enumerate(alabels):
-                        cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
-                        self.update_counts(counts, cklass, p[ind], klass)
-                        cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
-                        self.update_counts(counts, cklass, p[ind], klass)
+                # if a is not None and len(inds_to_predict) > 1:
+                #     for ind, klass in enumerate(alabels):
+                #         cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
+                #         self.update_counts(counts, cklass, p[ind], klass)
+                #         cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                #         self.update_counts(counts, cklass, p[ind], klass)
 
         for klass, class_counts in counts.items():
             if class_counts['total'] != 0:
