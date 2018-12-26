@@ -1,7 +1,9 @@
+import os
+
 from embeddings.embeddings_txt import EmbeddingsTxtReader
 
 # FASTTEXT_EN = EmbeddingsTxtReader('/cs/usr/aviramstern/lab/muse/MUSE/data/wiki.en.chunked')
-FASTTEXT_EN = EmbeddingsTxtReader('/tmp/wiki.en.chunked')
+FASTTEXT_EN = EmbeddingsTxtReader(os.path.dirname(__file__) + '/wiki.en.chunked')
 
 if __name__ == '__main__':
     print(FASTTEXT_EN.dim())

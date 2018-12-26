@@ -2,7 +2,8 @@ import json
 from itertools import chain
 from pprint import pprint
 
-from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel, PSSClasifierEvaluator
+from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
+from models.general.lstm_mlp_multiclass_model import LstmMlpMulticlassModel
 from models.supersenses import vocabs
 from models.supersenses.features.features import build_features
 from utils import update_dict
@@ -16,6 +17,7 @@ class LstmMlpSupersensesModel:
                      token,
                      ind,
                      is_part_of_mwe,
+                     mwe_start_ind,
                      ud_upos,
                      ud_xpos,
                      ner,
@@ -31,6 +33,7 @@ class LstmMlpSupersensesModel:
                      hidden,
                      lemma_embd=None,
                      token_embd=None):
+            self.mwe_start_ind = mwe_start_ind
             self.ud_grandparent_ind_override = ud_grandparent_ind_override
             self.hidden = hidden
             self.token_embd = token_embd

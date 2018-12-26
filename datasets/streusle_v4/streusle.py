@@ -106,6 +106,7 @@ class TaggedToken:
                  ud_dep,
                  is_part_of_wmwe,
                  is_part_of_smwe,
+                 first_we_token_id,
                  is_first_mwe_token,
                  we_toknums,
                  ner,
@@ -114,6 +115,7 @@ class TaggedToken:
                  ud_id,
                  prep_toks,
                  gov_ind, obj_ind, govobj_config, lexcat, _raw_ss_ss2, elmo=None, hidden=False):
+        self.first_we_token_id = first_we_token_id
         self.ud_grandparent_ind_override = ud_grandparent_ind_override
         self.hidden = hidden
         self.elmo = elmo
@@ -162,6 +164,8 @@ class TaggedToken:
         self.identified_for_pss = lexcat in ['P', 'PP', 'INF.P', 'POSS', 'PRON.POSS'] and not any([s in _raw_ss_ss2 for s in ['??', '`$']])
 
         assert not self.is_part_of_mwe or not(not self.is_first_mwe_token and self.supersense_combined)
+        assert not self.is_first_mwe_token or self.first_we_token_id == self.ud_id
+        assert not self.is_part_of_mwe or self.first_we_token_id is not None
 
 ignored_supersenses = []
 
@@ -216,7 +220,7 @@ class StreusleRecord:
             tok_ss[int(we['toknums'][0])] = (cur[0] or pair[0], cur[1] or pair[1])
 
         first_wes_ids = [we['toknums'][0] for we in wes]
-
+        first_tok_ids = {int(toknum): int(we['toknums'][0]) for we in wes for toknum in we['toknums']}
         id_to_ind = {int(tok['#']): ind for ind, tok in enumerate(self.data['toks'])}
 
         self.tagged_tokens = [
@@ -238,6 +242,7 @@ class StreusleRecord:
                 verb_ss=None,
                 is_part_of_smwe=int(tok_data['#']) in smwes_toknums,
                 is_part_of_wmwe=int(tok_data['#']) in wmwes_toknums,
+                first_we_token_id=first_tok_ids[int(tok_data['#'])] if int(tok_data['#']) in first_tok_ids else None,
                 we_toknums=we_toknums.get(int(tok_data['#'])),
                 is_first_mwe_token=int(tok_data['#']) in first_wes_ids,
                 gov_ind=id_to_ind.get(tok_we.get(int(tok_data['#']), {}).get('heuristic_relation', {}).get('gov')),

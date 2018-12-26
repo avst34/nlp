@@ -20,7 +20,6 @@ def create_embeddings_txt(orig_txt_path, target_txt_path, max_line=3072):
                 lb = l.encode('utf8')
                 lb += b"\x00" * (max_line - len(lb))
                 assert len(lb) == max_line
-                print(ind)
                 out_f.write(lb)
     with open(target_txt_path+'.inds', 'w') as out_f:
         json.dump(d, out_f)

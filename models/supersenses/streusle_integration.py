@@ -14,6 +14,7 @@ def streusle_record_to_lstm_model_sample(record):
             ud_head_ind=tagged_token.ud_head_ind,
             ud_grandparent_ind_override=tagged_token.ud_grandparent_ind_override,
             is_part_of_mwe=tagged_token.is_part_of_mwe,
+            mwe_start_ind=[t.ud_id for t in record.tagged_tokens].index(tagged_token.first_we_token_id) if tagged_token.first_we_token_id is not None else None,
             gov_ind=tagged_token.gov_ind,
             obj_ind=tagged_token.obj_ind,
             govobj_config=tagged_token.govobj_config,
