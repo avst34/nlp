@@ -45,7 +45,7 @@ def run():
     dev_records = loader.load_dev()
     test_records = loader.load_test()
 
-    chinese_test_records = StreusleLoader().load(conllulex_path=os.path.dirname(__file__) + '../datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json', input_format='json')
+    chinese_test_records = StreusleLoader().load(conllulex_path=os.path.dirname(__file__) + '/../datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json', input_format='json')
 
     tasks = list(best_params_per_task.items())
     random.shuffle(tasks)
