@@ -65,7 +65,7 @@ def run():
             results_csv_path=os.environ.get('RESULTS_PATH') or '/cs/labs/oabend/aviramstern/muse_chiense_results.csv',
             samples=train_samples, # use all after testing
             validation_samples=dev_samples,
-            test_samples=test_samples,
+            test_samples=chinese_test_samples,
             show_progress=True,
             show_epoch_eval=True,
             tuner_domains=override_settings([
