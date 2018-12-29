@@ -9,6 +9,7 @@ from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import 
     LstmMlpSupersensesModelHyperparametersTuner
 from models.supersenses.settings import MUSE_TASK_SETTINGS
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
+import random
 
 evaluator = PSSClasifierEvaluator()
 
@@ -46,8 +47,8 @@ def run():
 
     chinese_test_records = StreusleLoader().load(conllulex_path='/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json', input_format='json')
 
-    for task, params in best_params_per_task.items():
-
+    tasks = random.shuffle(best_params_per_task.items())
+    for task, params in tasks:
         print_samples_statistics('train', train_records)
         print_samples_statistics('dev', dev_records)
         print_samples_statistics('test', test_records)
