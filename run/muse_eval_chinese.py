@@ -47,7 +47,8 @@ def run():
 
     chinese_test_records = StreusleLoader().load(conllulex_path='/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json', input_format='json')
 
-    tasks = random.shuffle(list(best_params_per_task.items()))
+    tasks = list(best_params_per_task.items())
+    random.shuffle(tasks)
     for task, params in tasks:
         print_samples_statistics('train', train_records)
         print_samples_statistics('dev', dev_records)
