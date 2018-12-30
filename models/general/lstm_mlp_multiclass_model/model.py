@@ -18,7 +18,8 @@ ModelOptimizedParams = namedtuple('ModelOptimizedParams', [
     'input_lookups',
     'mlps',
     'softmaxes',
-    'unknown_local'
+    'unknown_local',
+    'unknown_mlp_inputs'
 ])
 
 MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
@@ -72,7 +73,9 @@ class LstmMlpMulticlassModel(object):
                      label_inds_to_predict,
                      dynet_random_seed,
                      use_local,
-                     local_dropout_p):
+                     local_dropout_p,
+                     mlp_input_dropouts):
+            self.mlp_input_dropouts = mlp_input_dropouts
             self.local_dropout_p = local_dropout_p
             self.use_local = use_local
             self.label_inds_to_predict = label_inds_to_predict
@@ -147,6 +150,12 @@ class LstmMlpMulticlassModel(object):
                 if embd_vec_dim != given_dim:
                     raise Exception("Input field '%s': Mismatch between given embedding vector size (%d) and given embedding size (%d)" % (field, embd_vec_dim, given_dim))
 
+    def get_field_dim(self, field):
+        if field in self.hyperparameters.token_neighbour_types:
+            return self.hyperparameters.lstm_h_dim
+        else:
+            return self.get_embd_dim(field)
+
     def get_embd_dim(self, field):
         dim = None
         if field in self.hyperparameters.input_embedding_dims:
@@ -164,9 +173,11 @@ class LstmMlpMulticlassModel(object):
     def _build_network_params(self):
         pc = dy.ParameterCollection()
 
-        mlp_input_dim = self.hyperparameters.lstm_h_dim
+        mlp_input_dim = 0
+        if self.hyperparameters.use_local:
+            mlp_input_dim += self.hyperparameters.lstm_h_dim
         mlp_input_dim += sum([self.get_embd_dim(field) for field in self.hyperparameters.mlp_input_fields])
-        mlp_input_dim += (1 + self.hyperparameters.lstm_h_dim) * len(self.hyperparameters.token_neighbour_types)
+        mlp_input_dim += self.hyperparameters.lstm_h_dim * len(self.hyperparameters.token_neighbour_types)
 
         embedded_input_dim = sum([self.get_embd_dim(field) for field in self.hyperparameters.lstm_input_fields])
 
@@ -192,7 +203,11 @@ class LstmMlpMulticlassModel(object):
                 )
                 for _ in range(self.hyperparameters.n_labels_to_learn)
             ],
-            unknown_local=pc.add_parameters((self.hyperparameters.lstm_h_dim,))
+            unknown_local=pc.add_parameters((self.hyperparameters.lstm_h_dim,)),
+            unknown_mlp_inputs={
+                field: pc.add_parameters((self.get_field_dim(field),))
+                for field in (self.hyperparameters.mlp_input_fields + self.hyperparameters.token_neighbour_types)
+            }
         )
 
         for field, lookup_param in sorted(self.params.input_lookups.items()):
@@ -312,9 +327,19 @@ class LstmMlpMulticlassModel(object):
         ]
         assert max([ind for ind, x in enumerate(xs) if not x.hidden]) < min([ind for ind, x in enumerate(xs) if x.hidden] + [len(xs)])
         lstm_outputs = cur_lstm_state.transduce(embeddings)
+        lstm_outputs_and_hidden = []
+        oind = 0
+        for token_data in xs:
+            if token_data.hidden:
+                lstm_outputs_and_hidden.append(None)
+            else:
+                lstm_outputs_and_hidden.append(lstm_outputs[oind])
+                oind += 1
+        assert oind == len(lstm_outputs)
+
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         outputs = []
-        for ind, lstm_out in enumerate(lstm_outputs):
+        for ind, lstm_out in enumerate(lstm_outputs_and_hidden):
             if mask and not mask[ind]:
                 output = None
             else:
@@ -328,23 +353,26 @@ class LstmMlpMulticlassModel(object):
                 inp_token = xs[ind]
                 for neighbour_type in self.hyperparameters.token_neighbour_types:
                     neighbour_ind = xs[ind].neighbors.get(neighbour_type)
-                    if neighbour_ind is None:
-                        vecs.append(dy.concatenate([dy.inputTensor([-1]), dy.inputTensor([0] * self.hyperparameters.lstm_h_dim)]))
+                    if neighbour_ind is None or (apply_dropout and random.random() < self.hyperparameters.mlp_input_dropouts.get(neighbour_type, -1)):
+                        vecs.append(dy.parameter(self.params.unknown_mlp_inputs[neighbour_type]))
                     else:
-                        vecs.append(dy.concatenate([dy.inputTensor([1]), lstm_outputs[neighbour_ind]]))
+                        vecs.append(lstm_outputs_and_hidden[neighbour_ind])
 
                 vecs.extend([dy.lookup(
                                  self.params.input_lookups[field],
                                  self.input_vocabularies[field].get_index(inp_token[field]),
                                  update=self.hyperparameters.input_embeddings_to_update.get(field) or False
-                             ) for field in self.hyperparameters.mlp_input_fields])
+                             ) if inp_token[field] is not None and (not apply_dropout or random.random() > self.hyperparameters.mlp_input_dropouts.get(field, -1)) else dy.parameter(self.params.unknown_mlp_inputs[field]) for field in self.hyperparameters.mlp_input_fields])
                 cur_out = dy.concatenate(vecs)
                 output = []
                 for mlp_params, softmax_params in zip(self.params.mlps, self.params.softmaxes):
                     mlp_cur_out = cur_out
                     for mlp_layer_params in mlp_params:
                         mlp_cur_out = dy.dropout(mlp_cur_out, mlp_dropout_p)
-                        mlp_cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * mlp_cur_out + dy.parameter(mlp_layer_params.b))
+                        try:
+                            mlp_cur_out = mlp_activation(dy.parameter(mlp_layer_params.W) * mlp_cur_out + dy.parameter(mlp_layer_params.b))
+                        except:
+                            raise
                     mlp_cur_out = dy.log_softmax(dy.parameter(softmax_params.W) * mlp_cur_out + dy.parameter(softmax_params.b))
                     output.append(mlp_cur_out)
             outputs.append(output)
@@ -488,6 +516,7 @@ class LstmMlpMulticlassModel(object):
             predictions = tuple(predictions)
             ys.append(predictions)
         assert all([y is None or type(y) is tuple and len(y) == len(self.hyperparameters.label_inds_to_predict) for y in ys])
+        assert len(ys) == len(sample_xs)
         return ys
 
     def predict_dist(self, sample_xs, mask=None):

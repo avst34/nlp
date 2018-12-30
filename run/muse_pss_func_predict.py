@@ -7,7 +7,7 @@ from hyperparameters_tuner import override_settings
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
-from models.supersenses.settings import MUSE_TASK_SETTINGS
+from models.supersenses.settings import FASTTEXT_TASK_SETTINGS
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 
 evaluator = PSSClasifierEvaluator()
@@ -31,8 +31,10 @@ def print_samples_statistics(name, samples):
 def run():
 
     # tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
-    # tasks = list(MUSE_TASK_SETTINGS.keys())
-    tasks = ['goldid.goldsyn', 'goldid.goldsyn.goldrole', 'goldid.goldsyn.goldfunc']
+    # tasks = list(FASTTEXT_TASK_SETTINGS.keys())
+    tasks = [
+        'goldid.goldsyn', 'goldid.goldsyn.goldrole', 'goldid.goldsyn.goldfunc'
+    ]
     task = random.choice(tasks)
     # task = 'goldid.goldsyn'
     for task in [task]:
@@ -40,6 +42,7 @@ def run():
         train_records = loader.load_train()
         dev_records = loader.load_dev()
         test_records = loader.load_test()
+        chinese_test_records = StreusleLoader().load(conllulex_path=os.path.dirname(__file__) + '/../datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json', input_format='json')
         # records = StreusleLoader().load(conllulex_path='/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.chinese.all.json', input_format='json')
         # train_records = records[0::3]
         # dev_records = records[1::3]
@@ -51,7 +54,7 @@ def run():
 
         train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
         dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
-        test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
+        test_samples = [streusle_record_to_lstm_model_sample(r) for r in chinese_test_records]
 
         test_features()
 
@@ -64,7 +67,7 @@ def run():
             show_progress=True,
             show_epoch_eval=True,
             tuner_domains=override_settings([
-                MUSE_TASK_SETTINGS[task],
+                FASTTEXT_TASK_SETTINGS[task],
                 [
                     # PS(name='epochs', values=[1])
                 ]

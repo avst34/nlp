@@ -72,22 +72,38 @@ class PSSClasifierEvaluator:
         predictor = predictor or self.predictor
         predictor.reset_embd_counts()
         counts = {
-            ALL_CLASSES: {
-                'p_none_a_none': 0,
-                'p_none_a_value': 0,
-                'p_value_a_none': 0,
-                'p_value_a_value_eq': 0,
-                'p_value_a_value_neq': 0,
-                'total': 0
-            },
-            ALL_CLASSES_STRICT: {
-                'p_none_a_none': 0,
-                'p_none_a_value': 0,
-                'p_value_a_none': 0,
-                'p_value_a_value_eq': 0,
-                'p_value_a_value_neq': 0,
-                'total': 0
-            }
+            # ALL_CLASSES: {
+            #     'p_none_a_none': 0,
+            #     'p_none_a_value': 0,
+            #     'p_value_a_none': 0,
+            #     'p_value_a_value_eq': 0,
+            #     'p_value_a_value_neq': 0,
+            #     'total': 0
+            # },
+            # ALL_CLASSES_STRICT: {
+            #     'p_none_a_none': 0,
+            #     'p_none_a_value': 0,
+            #     'p_value_a_none': 0,
+            #     'p_value_a_value_eq': 0,
+            #     'p_value_a_value_neq': 0,
+            #     'total': 0
+            # },
+            # 'MISSING_' + ALL_CLASSES: {
+            #     'p_none_a_none': 0,
+            #     'p_none_a_value': 0,
+            #     'p_value_a_none': 0,
+            #     'p_value_a_value_eq': 0,
+            #     'p_value_a_value_neq': 0,
+            #     'total': 0
+            # },
+            # 'MATCHED_' + ALL_CLASSES_STRICT: {
+            #     'p_none_a_none': 0,
+            #     'p_none_a_value': 0,
+            #     'p_value_a_none': 0,
+            #     'p_value_a_value_eq': 0,
+            #     'p_value_a_value_neq': 0,
+            #     'total': 0
+            # }
         }
 
         class_scores = {}
@@ -97,7 +113,7 @@ class PSSClasifierEvaluator:
             if sample_ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
             inds_to_predict = inds_to_predict or list(range(len(predicted_ys)))
-            for p, a in zip(predicted_ys, sample.ys):
+            for p, a, x in zip(predicted_ys, sample.ys, sample.xs):
                 if not p:
                     p = tuple([None] * len(inds_to_predict))
                 alabels = tuple([l for ind, l in enumerate(a) if ind in inds_to_predict])
@@ -110,6 +126,25 @@ class PSSClasifierEvaluator:
                         # self.update_counts(counts, cklass, p[ind], klass)
                         cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
                         self.update_counts(counts, cklass, p[ind], klass)
+                if x['token-embd'].startswith('MISSING_'):
+                    self.update_counts(counts, 'MISSING_' + ALL_CLASSES, p, alabels, strict=False)
+                    self.update_counts(counts, 'MISSING_' + ALL_CLASSES_STRICT, p, alabels)
+                    if a is not None and len(inds_to_predict) > 1:
+                        for ind, klass in enumerate(alabels):
+                            # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
+                            # self.update_counts(counts, 'MISSING_' + cklass, p[ind], klass)
+                            cklass = tuple(['MISSING_'] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                            self.update_counts(counts, cklass, p[ind], klass)
+                else:
+                    self.update_counts(counts, 'MATCHED_' + ALL_CLASSES, p, alabels, strict=False)
+                    self.update_counts(counts, 'MATCHED_' + ALL_CLASSES_STRICT, p, alabels)
+                    if a is not None and len(inds_to_predict) > 1:
+                        for ind, klass in enumerate(alabels):
+                            # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
+                            # self.update_counts(counts, 'MATCHED_' + cklass, p[ind], klass)
+                            cklass = tuple(['MATCHED_'] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                            self.update_counts(counts, cklass, p[ind], klass)
+
 
         for klass, class_counts in counts.items():
             if class_counts['total'] != 0:

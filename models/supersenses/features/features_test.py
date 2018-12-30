@@ -44,7 +44,9 @@ hps = LstmMlpSupersensesModel.HyperParameters(
     use_parent=True,
     use_grandparent=True,
     use_prep=True,
-    prep_dropout_p=None
+    prep_dropout_p=None,
+    grandparent_dropout_p=0,
+    parent_dropout_p=0
 )
 
 test_sample = LstmMlpSupersensesModel.Sample.from_dict({

@@ -73,3 +73,22 @@ MUSE_TASK_SETTINGS = {
     ])
     for task, settings in TASK_SETTINGS.items()
 }
+
+FASTTEXT_TASK_SETTINGS = {
+    task: override_settings([
+        settings,
+        [
+            PS(name='embd_type', values=['fasttext_en']),
+            PS(name='use_ud_xpos', values=[False, True]),
+            PS(name='use_govobj', values=[False]),
+            PS(name='use_parent', values=[True]),
+            PS(name='use_grandparent', values=[True]),
+            PS(name='use_token_internal', values=[False]),
+            PS(name='use_prep', values=[False, True]),
+            PS(name='prep_dropout_p', values=[0.2, 0.3]),
+            PS(name='parent_dropout_p', values=[0.2, 0.3]),
+            PS(name='grandparent_dropout_p', values=[0.2, 0.3]),
+        ]
+    ])
+    for task, settings in TASK_SETTINGS.items()
+}

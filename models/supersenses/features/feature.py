@@ -15,7 +15,8 @@ class NoneFeatureValue(Exception):
 
 class Feature(object):
 
-    def __init__(self, name, type, vocab, embeddings, extractor, enable, mount_point, embedding_extractor=None, dim=None, update=False, masked_only=True, fall_to_none=False, default_zero_vec=False):
+    def __init__(self, name, type, vocab, embeddings, extractor, enable, mount_point, embedding_extractor=None, dim=None, update=False, masked_only=True, fall_to_none=False, default_zero_vec=False, dropout_p=None):
+        self.dropout_p = dropout_p
         self.embedding_extractor = embedding_extractor
         self.default_zero_vec = default_zero_vec
         self.name = name

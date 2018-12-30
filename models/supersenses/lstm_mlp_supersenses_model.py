@@ -125,7 +125,9 @@ class LstmMlpSupersensesModel:
                      use_prep_onehot,
                      use_govobj,
                      use_parent,
+                     parent_dropout_p,
                      use_grandparent,
+                     grandparent_dropout_p,
                      use_token_internal,
                      use_lexcat,
                      update_lemmas_embd,
@@ -154,6 +156,8 @@ class LstmMlpSupersensesModel:
                      dynet_random_seed,
                      labels_to_learn=None,
                      ):
+            self.grandparent_dropout_p = grandparent_dropout_p
+            self.parent_dropout_p = parent_dropout_p
             self.prep_dropout_p = prep_dropout_p
             self.use_prep = use_prep
             self.use_grandparent = use_grandparent
@@ -230,6 +234,7 @@ class LstmMlpSupersensesModel:
             hyperparameters=LstmMlpMulticlassModel.HyperParameters(**update_dict(hp.__dict__, {
                     'lstm_input_fields': names(self.features.list_lstm_features()),
                     'mlp_input_fields': names(self.features.list_mlp_features(include_refs=False)),
+                    'mlp_input_dropouts': {f.name: f.dropout_p for f in self.features.list_mlp_features() if f.dropout_p},
                     'token_neighbour_types': names(self.features.list_ref_features()),
                     'input_embeddings_to_allow_partial': names(self.features.list_default_zero_vec_features()),
                     'input_embeddings_to_update': {name: True for name in names(self.features.list_updatable_features())},
@@ -245,7 +250,7 @@ class LstmMlpSupersensesModel:
                        'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim',
                        'lexcat_embd_dim', 'update_token_embd', 'use_prep_onehot', 'use_token_internal',
                        'labels_to_predict', 'labels_to_learn', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd',
-                       'use_role', 'use_func', 'pss_embd_dim', 'embd_type', 'use_prep', 'prep_dropout_p']))
+                       'use_role', 'use_func', 'pss_embd_dim', 'embd_type', 'use_prep', 'prep_dropout_p', 'parent_dropout_p', 'grandparent_dropout_p']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):

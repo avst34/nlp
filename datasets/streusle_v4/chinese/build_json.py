@@ -152,13 +152,13 @@ def build_translated_chinese_streusle_json(txt_path=os.path.dirname(__file__) + 
                         str(len(corenlp_out_tuples) + 1),
                         'MISSING_PREP_' + str(t_ind) + t[t.index(':'):],
                         'MISSING_PREP_' + str(t_ind),
-                        'P',
                         None,
-                        zh_parent[str(t_ind + 1)],
+                        None,
+                        alignment.get(int(zh_parent[str(t_ind + 1)]) - 1),
                         zh_dep[str(t_ind + 1)],
                         None,
                     ))
-                    gp_override[id] = zh_grandparent[str(t_ind + 1)]
+                    gp_override[id] = alignment.get(int(zh_grandparent[str(t_ind + 1)]) - 1)
                 else:
                     print("Found prep!", corenlp_out_tuples[alignment[t_ind]][1])
 
@@ -171,7 +171,7 @@ def build_translated_chinese_streusle_json(txt_path=os.path.dirname(__file__) + 
                 "upos": None,
                 "xpos": ctok[3],
                 "feats": None,
-                "head": int(ctok[5]),
+                "head": int(ctok[5]) if ctok[5] else None,
                 "grandparent_override": gp_override.get(ctok[0]),
                 "deprel": ctok[6],
                 "edeps": None,
