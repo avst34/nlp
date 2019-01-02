@@ -3,6 +3,7 @@ import os
 
 from datasets.streusle_v4.chinese.attach_eng import align_lpp_amr, attach_eng
 from datasets.streusle_v4.chinese.corenlp import run_corenlp
+from models.supersenses.embeddings.muse_streusle_dict import zh_en
 from supersense_repo import SUPERSENSES_SET, get_supersense_type
 from supersense_repo.constants import TYPES
 
@@ -37,7 +38,7 @@ def load_alignment():
         lines = [l.strip() for l in f.readlines()]
     alignments = []
     for l in lines:
-        alignments.append({int(t.split('-')[0]):int(t.split('-')[1]) for t in l.split()})
+        alignments.append({int(t.split('-')[0]) + 1:int(t.split('-')[1]) + 1 for t in l.split()})
     return alignments
 
 
@@ -144,23 +145,27 @@ def build_translated_chinese_streusle_json(txt_path=os.path.dirname(__file__) + 
         gp_override = {}
 
         for t_ind, t in enumerate(zh_tokens_with_pss):
+            t_id = t_ind + 1
             if ":" in t:
-                if t_ind not in alignment:
+                if t_id not in alignment:
                     print("Missing prep! ", t)
-                    id = str(len(corenlp_out_tuples) + 1)
                     corenlp_out_tuples.append((
                         str(len(corenlp_out_tuples) + 1),
-                        'MISSING_PREP_' + str(t_ind) + t[t.index(':'):],
-                        'MISSING_PREP_' + str(t_ind),
+                        'MISSING_PREP_' + str(t_id) + t[t.index(':'):],
+                        'MISSING_PREP_' + str(t_id),
                         None,
                         None,
-                        alignment.get(int(zh_parent[str(t_ind + 1)]) - 1),
-                        zh_dep[str(t_ind + 1)],
+                        alignment.get(int(zh_parent[str(t_id)])),
+                        zh_dep[str(t_id)],
                         None,
+                        t
                     ))
-                    gp_override[id] = alignment.get(int(zh_grandparent[str(t_ind + 1)]) - 1)
+                    gp_override[corenlp_out_tuples[-1][0]] = alignment.get(int(zh_grandparent[str(t_id)]))
+                    tt = t[:t.index(':')] if ':' in t else t
+                    # if zh_en.get(tt):
+                    #     print(t, '->', zh_en.get(tt)[0])
                 else:
-                    print("Found prep!", corenlp_out_tuples[alignment[t_ind]][1])
+                    print("Found prep!", corenlp_out_tuples[alignment[t_id] - 1][1])
 
 
         s_toks = [
@@ -181,15 +186,16 @@ def build_translated_chinese_streusle_json(txt_path=os.path.dirname(__file__) + 
                 "lextag": None,
                 "ner": ctok[4],
                 "full_ss": fix_ss(otok[otok.index(':') + 1:]) if ":" in otok else fix_ss(ctok[1][ctok[1].index(':') + 1:]) if ":" in ctok[1] else None,
-                "hidden": ctok[1].startswith("MISSING_PREP_")
+                "hidden": ctok[1].startswith("MISSING_PREP_"),
+                'zh': None if len(ctok) < 9 else ctok[8]
             }
-            for ctok in corenlp_out_tuples for otok in ([zh_tokens_with_pss[rev_alignment[int(ctok[0]) - 1]]] if (int(ctok[0]) - 1) in rev_alignment else [""])
+            for ctok in corenlp_out_tuples for otok in ([zh_tokens_with_pss[rev_alignment[int(ctok[0])] - 1]] if int(ctok[0]) in rev_alignment else [""])
         ]
 
         sent = {
             "sent_id": "chinese-lp-%05d" % ind,
             "zh_text": ' '.join(zh_sent),
-            "en_text": ' '.join(eng_sent),
+            "text": ' '.join(eng_sent),
             "streusle_sent_id": "chinese-lp-%05d" % ind,
             "toks": s_toks,
             "swes": {

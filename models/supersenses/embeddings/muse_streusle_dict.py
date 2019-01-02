@@ -16,7 +16,7 @@ with open(os.path.dirname(__file__) + '/cedict_ts.u8', 'r') as f:
             zhs = l[:l.index('[')].strip().split()
             zhs = [z for z in zhs if zhs]
             trans = l[l.index(']') + 1:].split('/')
-            trans = [t.strip() for t in trans if t]
+            trans = [t.strip() for t in trans if t.strip()]
             for zh in zhs:
                 zh_en[zh] = trans
 
