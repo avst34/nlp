@@ -28,25 +28,26 @@ class LstmMlpSupersensesModelHyperparametersTuner:
 
                 is_last_epoch = epoch == len(scope_data) - 1
                 is_best_epoch = epoch == best_epoch
-                for klass in classes_ordered:
-                    scores = class_scores[klass]
-                    if klass == PSSClasifierEvaluator.ALL_CLASSES:
-                        klass = '-- All Classes --'
-                    elif klass == PSSClasifierEvaluator.ALL_CLASSES_STRICT:
-                        klass = '-- All Classes (strict) --'
-                    else:
-                        if not is_best_epoch and not is_last_epoch and not self.report_epoch_scores:
-                            continue
-                    row_tuples = \
-                        [("Epoch", epoch)] + \
-                        [("Last Epoch", "Yes" if is_last_epoch else "No")] + \
-                        [("Best Epoch", "Yes" if is_best_epoch else "No")] + \
-                        [("Scope", scope)] + \
-                        [("Class", klass)] + \
-                        sorted({k: scores[k] for k, v in scores.items()}.items()) + \
-                        [(k, str(v)) for k, v in sorted(params.items())] + \
-                        [("Hyperparams Json", json.dumps(params) if len(rows_tuples) == 0 else "")]
-                    rows_tuples.append(row_tuples)
+                if is_best_epoch:
+                    for klass in classes_ordered:
+                        scores = class_scores[klass]
+                        if klass == PSSClasifierEvaluator.ALL_CLASSES:
+                            klass = '-- All Classes --'
+                        elif klass == PSSClasifierEvaluator.ALL_CLASSES_STRICT:
+                            klass = '-- All Classes (strict) --'
+                        else:
+                            if not is_best_epoch and not is_last_epoch and not self.report_epoch_scores:
+                                continue
+                        row_tuples = \
+                            [("Epoch", epoch)] + \
+                            [("Last Epoch", "Yes" if is_last_epoch else "No")] + \
+                            [("Best Epoch", "Yes" if is_best_epoch else "No")] + \
+                            [("Scope", scope)] + \
+                            [("Class", klass)] + \
+                            sorted({k: scores[k] for k, v in scores.items()}.items()) + \
+                            [(k, str(v)) for k, v in sorted(params.items())] + \
+                            [("Hyperparams Json", json.dumps(params) if len(rows_tuples) == 0 else "")]
+                        rows_tuples.append(row_tuples)
 
         headers = [x[0] for x in rows_tuples[0]]
         rows = [[x[1] for x in row_tuples] for row_tuples in rows_tuples]

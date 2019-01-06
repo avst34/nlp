@@ -99,7 +99,7 @@ class Features(object):
         return [f for f in self.features if f.mount_point == MountPoint.LSTM]
 
     def list_mlp_features(self, include_refs=True):
-        return [f for f in self.features if f.mount_point == MountPoint.MLP and include_refs or f.type != FeatureType.REF]
+        return [f for f in self.features if f.mount_point == MountPoint.MLP and (include_refs or f.type != FeatureType.REF)]
 
     def list_ref_features(self):
         return [f for f in self.features if f.type == FeatureType.REF]

@@ -237,11 +237,11 @@ class LstmMlpMulticlassModel(object):
     def build_mask(self, xs, external_mask=None):
         external_mask = external_mask or [True for _ in xs]
         mask = list(external_mask)
-        for ind, x in enumerate(xs):
-            if mask[ind]:
-                for field in self.hyperparameters.mlp_input_fields:
-                    if not self.input_vocabularies[field].has_word(x[field]):
-                        mask[ind] = False
+        # for ind, x in enumerate(xs):
+        #     if mask[ind]:
+        #         for field in self.hyperparameters.mlp_input_fields:
+        #             if not self.input_vocabularies[field].has_word(x[field]):
+        #                 mask[ind] = False
         return mask
 
     def _validate_xs(self, xs, mask):
@@ -362,7 +362,7 @@ class LstmMlpMulticlassModel(object):
                                  self.params.input_lookups[field],
                                  self.input_vocabularies[field].get_index(inp_token[field]),
                                  update=self.hyperparameters.input_embeddings_to_update.get(field) or False
-                             ) if inp_token[field] is not None and (not apply_dropout or random.random() > self.hyperparameters.mlp_input_dropouts.get(field, -1)) else dy.parameter(self.params.unknown_mlp_inputs[field]) for field in self.hyperparameters.mlp_input_fields])
+                             ) if inp_token[field] is not None and self.input_vocabularies[field].has_word(inp_token[field]) and (not apply_dropout or random.random() > self.hyperparameters.mlp_input_dropouts.get(field, -1)) else dy.parameter(self.params.unknown_mlp_inputs[field]) for field in self.hyperparameters.mlp_input_fields])
                 cur_out = dy.concatenate(vecs)
                 output = []
                 for mlp_params, softmax_params in zip(self.params.mlps, self.params.softmaxes):
