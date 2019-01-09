@@ -322,15 +322,25 @@ class LstmMlpMulticlassModel(object):
             dy.concatenate([
                 self.get_embd(token_data, field)
                 for field in self.hyperparameters.lstm_input_fields
-            ])
-            for token_data in xs if not token_data.hidden
+            ]) if not token_data.hidden and
+                  not(
+                      mask and mask[ind] and (
+                          not self.hyperparameters.use_local
+                          or (
+                              apply_dropout and self.hyperparameters.local_dropout_p is not None
+                              and random.random() < self.hyperparameters.local_dropout_p
+                          )
+                      )
+                  )
+            else None
+            for ind, token_data in enumerate(xs)
         ]
         assert max([ind for ind, x in enumerate(xs) if not x.hidden]) < min([ind for ind, x in enumerate(xs) if x.hidden] + [len(xs)])
-        lstm_outputs = cur_lstm_state.transduce(embeddings)
+        lstm_outputs = cur_lstm_state.transduce([e for e in embeddings if e is not None])
         lstm_outputs_and_hidden = []
         oind = 0
-        for token_data in xs:
-            if token_data.hidden:
+        for e in embeddings:
+            if e is None:
                 lstm_outputs_and_hidden.append(None)
             else:
                 lstm_outputs_and_hidden.append(lstm_outputs[oind])
@@ -346,14 +356,11 @@ class LstmMlpMulticlassModel(object):
                 vecs = []
                 if self.hyperparameters.use_local:
                     v = lstm_out if lstm_out is not None else dy.parameter(self.params.unknown_local)
-                    if apply_dropout and self.hyperparameters.local_dropout_p is not None:
-                        if random.random() < self.hyperparameters.local_dropout_p:
-                            v = dy.parameter(self.params.unknown_local)
                     vecs.append(v)
                 inp_token = xs[ind]
                 for neighbour_type in self.hyperparameters.token_neighbour_types:
                     neighbour_ind = xs[ind].neighbors.get(neighbour_type)
-                    if neighbour_ind is None or (apply_dropout and random.random() < self.hyperparameters.mlp_input_dropouts.get(neighbour_type, -1)):
+                    if neighbour_ind is None or lstm_outputs_and_hidden[neighbour_ind] is None or (apply_dropout and random.random() < self.hyperparameters.mlp_input_dropouts.get(neighbour_type, -1)):
                         vecs.append(dy.parameter(self.params.unknown_mlp_inputs[neighbour_type]))
                     else:
                         vecs.append(lstm_outputs_and_hidden[neighbour_ind])
