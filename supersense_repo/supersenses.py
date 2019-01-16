@@ -32,3 +32,17 @@ def get_pss_hierarchy(pss):
         psses.append(pss)
         pss = PSS_PARENTS.get(pss)
     return psses
+
+def get_pss_by_depth(pss, depth):
+    assert depth > 0
+    heirarchy = get_pss_hierarchy(pss)
+    if depth > len(heirarchy):
+        return heirarchy[-1]
+    else:
+        return heirarchy[depth - 1]
+
+def pss_equal(pss1, pss2, depth):
+    return get_pss_by_depth(pss1, depth) == get_pss_by_depth(pss2, depth)
+
+
+MAX_PSS_DEPTH = max([len(get_pss_hierarchy(pss)) for pss in PREPOSITION_SUPERSENSES_SET])

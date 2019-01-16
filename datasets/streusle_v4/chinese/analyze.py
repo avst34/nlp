@@ -1,6 +1,8 @@
 import json
+import os
+from collections import Counter
 
-sents = json.load(open(r'/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json'))
+sents = json.load(open(os.path.dirname(__file__) + '/lp.eng.zh_pss.all.json'))
 
 
 def get(sent, ind):
@@ -15,6 +17,28 @@ def gp(sent, ind):
     p = sent['toks'][ind - 1]
     return get(sent, p['head'])
 
+
+matched = []
+unmatched = []
+for sent in sents:
+    for t in sent['toks']:
+        if t['full_ss']:
+            if not t['word'].startswith('MISSING'):
+                matched.append(t)
+            else:
+                unmatched.append(t)
+print('matched', len(matched), 'unmatched', len(unmatched))
+
+psses = []
+for sent in sents:
+    for t in sent['toks']:
+        if t['full_ss']:
+            if not t['word'].startswith('MISSING'):
+                psses.extend(t['full_ss'].split('~'))
+
+for t in sorted(Counter(psses).items(), key=lambda x: -x[1]):
+    print(t, len(psses))
+
 for sent in sents[:100]:
     print(sent['text'])
     print(sent['zh_text'])
@@ -26,3 +50,4 @@ for sent in sents[:100]:
                 print("V %s parent: %s, grandparent: %s     -->    %s" % (t['word'], get(sent, t['head']), gp(sent, t['head']), t['full_ss']))
     print()
     print()
+

@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from supersense_repo.supersenses import MAX_PSS_DEPTH, pss_equal
 
 from utils import f1_score
 
@@ -24,7 +25,14 @@ class PSSClasifierEvaluator:
             except UnicodeEncodeError:
                 pass
 
-    def update_counts(self, counts, klass, predicted, actual, strict=True):
+    def update_counts(self, counts, klass, predicted, actual, depth, strict=True):
+        if depth != MAX_PSS_DEPTH:
+            if type(klass) is str:
+                klass = 'DEPTH_%d_%s' % (depth, klass)
+            else:
+                assert type(klass) is tuple
+                klass = tuple(['DEPTH_%d' % depth] + list(klass))
+
         counts[klass] = counts.get(klass, {
             'p_none_a_none': 0,
             'p_none_a_value': 0,
@@ -60,7 +68,7 @@ class PSSClasifierEvaluator:
                     counts[klass]['p_none_a_value'] += c
                 elif not isNone(predicted) and isNone(actual):
                     counts[klass]['p_value_a_none'] += c
-                elif predicted == actual:
+                elif pss_equal(predicted, actual, depth):
                     counts[klass]['p_value_a_value_eq'] += c
                 else:
                     counts[klass]['p_value_a_value_neq'] += c
@@ -113,37 +121,38 @@ class PSSClasifierEvaluator:
             if sample_ind < examples_to_show:
                 self.print_prediction(sample, predicted_ys)
             inds_to_predict = inds_to_predict or list(range(len(predicted_ys)))
-            for p, a, x in zip(predicted_ys, sample.ys, sample.xs):
-                if not p:
-                    p = tuple([None] * len(inds_to_predict))
-                alabels = tuple([l for ind, l in enumerate(a) if ind in inds_to_predict])
-                # self.update_counts(counts, alabels, p, alabels)
-                self.update_counts(counts, ALL_CLASSES, p, alabels, strict=False)
-                self.update_counts(counts, ALL_CLASSES_STRICT, p, alabels)
-                if a is not None and len(inds_to_predict) > 1:
-                    for ind, klass in enumerate(alabels):
-                        # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
-                        # self.update_counts(counts, cklass, p[ind], klass)
-                        cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
-                        self.update_counts(counts, cklass, p[ind], klass)
-                if x['token-embd'].startswith('MISSING_'):
-                    self.update_counts(counts, 'MISSING_' + ALL_CLASSES, p, alabels, strict=False)
-                    self.update_counts(counts, 'MISSING_' + ALL_CLASSES_STRICT, p, alabels)
+            for depth in range(1, MAX_PSS_DEPTH + 1):
+                for p, a, x in zip(predicted_ys, sample.ys, sample.xs):
+                    if not p:
+                        p = tuple([None] * len(inds_to_predict))
+                    alabels = tuple([l for ind, l in enumerate(a) if ind in inds_to_predict])
+                    # self.update_counts(counts, alabels, p, alabels)
+                    self.update_counts(counts, ALL_CLASSES, p, alabels, depth, strict=False)
+                    self.update_counts(counts, ALL_CLASSES_STRICT, p, alabels, depth)
                     if a is not None and len(inds_to_predict) > 1:
                         for ind, klass in enumerate(alabels):
                             # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
-                            # self.update_counts(counts, 'MISSING_' + cklass, p[ind], klass)
-                            cklass = tuple(['MISSING_'] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
-                            self.update_counts(counts, cklass, p[ind], klass)
-                else:
-                    self.update_counts(counts, 'MATCHED_' + ALL_CLASSES, p, alabels, strict=False)
-                    self.update_counts(counts, 'MATCHED_' + ALL_CLASSES_STRICT, p, alabels)
-                    if a is not None and len(inds_to_predict) > 1:
-                        for ind, klass in enumerate(alabels):
-                            # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
-                            # self.update_counts(counts, 'MATCHED_' + cklass, p[ind], klass)
-                            cklass = tuple(['MATCHED_'] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
-                            self.update_counts(counts, cklass, p[ind], klass)
+                            # self.update_counts(counts, cklass, p[ind], klass)
+                            cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                            self.update_counts(counts, cklass, p[ind], klass, depth)
+                    if x['token-embd'].startswith('MISSING_'):
+                        self.update_counts(counts, 'MISSING_' + ALL_CLASSES, p, alabels, depth, strict=False)
+                        self.update_counts(counts, 'MISSING_' + ALL_CLASSES_STRICT, p, alabels, depth)
+                        if a is not None and len(inds_to_predict) > 1:
+                            for ind, klass in enumerate(alabels):
+                                # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
+                                # self.update_counts(counts, 'MISSING_' + cklass, p[ind], klass)
+                                cklass = tuple(['MISSING_'] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                                self.update_counts(counts, cklass, p[ind], klass, depth)
+                    else:
+                        self.update_counts(counts, 'MATCHED_' + ALL_CLASSES, p, alabels, depth, strict=False)
+                        self.update_counts(counts, 'MATCHED_' + ALL_CLASSES_STRICT, p, alabels, depth)
+                        if a is not None and len(inds_to_predict) > 1:
+                            for ind, klass in enumerate(alabels):
+                                # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
+                                # self.update_counts(counts, 'MATCHED_' + cklass, p[ind], klass)
+                                cklass = tuple(['MATCHED_'] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                                self.update_counts(counts, cklass, p[ind], klass, depth)
 
 
         for klass, class_counts in counts.items():
