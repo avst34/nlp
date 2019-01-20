@@ -58,6 +58,13 @@ class PSSClasifierEvaluator:
         def isNone(x):
             return x is None or not any(x)
 
+        def compare(p, a, depth):
+            if type(p) is tuple:
+                assert type(a) is tuple
+                return all([pss_equal(ppss, apss, depth) for ppss, apss in zip(p, a)])
+            else:
+                return pss_equal(p, a, depth)
+
         for predicted, actual in zip(p, a):
             c = 1 / len(p)
             if isNone(predicted) and isNone(actual):
@@ -68,7 +75,7 @@ class PSSClasifierEvaluator:
                     counts[klass]['p_none_a_value'] += c
                 elif not isNone(predicted) and isNone(actual):
                     counts[klass]['p_value_a_none'] += c
-                elif pss_equal(predicted, actual, depth):
+                elif compare(predicted, actual, depth):
                     counts[klass]['p_value_a_value_eq'] += c
                 else:
                     counts[klass]['p_value_a_value_neq'] += c

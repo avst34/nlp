@@ -8,6 +8,7 @@ from itertools import chain
 import h5py
 
 import supersense_repo
+from models.supersenses.preprocessing.elmo import run_elmo
 from vocabulary import VocabularyBuilder
 from word2vec import Word2VecModel
 
@@ -176,11 +177,12 @@ class StreusleRecord:
                  sentence,
                  data,
                  only_supersenses=None,
-                 elmo_h5py=None):
+                 load_elmo=False):
         super().__init__()
         self.id = id
         self.sentence = sentence
         self.data = data
+        self.load_elmo = load_elmo
 
         if not only_supersenses:
             only_supersenses = supersense_repo.SUPERSENSES_SET
@@ -223,6 +225,11 @@ class StreusleRecord:
         first_tok_ids = {int(toknum): int(we['toknums'][0]) for we in wes for toknum in we['toknums']}
         id_to_ind = {int(tok['#']): ind for ind, tok in enumerate(self.data['toks'])}
 
+        if self.load_elmo:
+            elmo_embeddings = run_elmo([tok_data['word']] for tok_data in self.data['toks'])
+        else:
+            elmo_embeddings = [None for _ in self.data['toks']]
+
         self.tagged_tokens = [
             TaggedToken(
                 ud_id=int(tok_data['#']),
@@ -251,7 +258,7 @@ class StreusleRecord:
                 lexcat=tok_we.get(int(tok_data['#']), {}).get('lexcat'),
                 _raw_ss_ss2=''.join([tok_we.get(int(tok_data['#']), {}).get(ss) or '' for ss in ['ss', 'ss2']]),
                 prep_toks=[self.data['toks'][id_to_ind[tokid]]['word'] for tokid in we_toknums.get(int(tok_data['#']), [])],
-                elmo=elmo_h5py[:, i, :][()].flatten() if elmo_h5py else None,
+                elmo=elmo_embeddings[i],
                 hidden=tok_data.get('hidden')
             ) for i, tok_data in enumerate(self.data['toks'])
         ]
@@ -314,10 +321,7 @@ class StreusleRecord:
 class StreusleLoader(object):
 
     def __init__(self, load_elmo=False):
-        if load_elmo:
-            self.elmo_h5py = h5py.File(ELMO_FILE, 'r')
-        else:
-            self.elmo_h5py = None
+        self.load_elmo = load_elmo
 
     def load(self, conllulex_path=STREUSLE_DIR + '/streusle.conllulex', only_with_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET, input_format='conllulex'):
         assert input_format in ['conllulex', 'json']
@@ -334,7 +338,7 @@ class StreusleLoader(object):
                                         sentence=sent['text'],
                                         data=sent,
                                         only_supersenses=only_with_supersenses,
-                                        elmo_h5py=(self.elmo_h5py or {}).get(sent_txt)
+                                        load_elmo=self.load_elmo
                                         )
                 records.append(record)
 

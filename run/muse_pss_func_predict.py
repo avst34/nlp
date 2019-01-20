@@ -38,7 +38,7 @@ def run():
     task = random.choice(tasks)
     # task = 'goldid.goldsyn'
     for task in [task]:
-        loader = StreusleLoader(load_elmo=False)
+        loader = StreusleLoader(load_elmo=True)
         train_records = loader.load_train()
         dev_records = loader.load_dev()
         test_records = loader.load_test()

@@ -138,6 +138,7 @@ class LstmMlpSupersensesModel:
                      ner_embd_dim,
                      use_instance_embd,
                      embd_type,
+                     elmo_layer,
                      govobj_config_embd_dim,
                      lexcat_embd_dim,
                      mlp_layers,
@@ -156,6 +157,7 @@ class LstmMlpSupersensesModel:
                      dynet_random_seed,
                      labels_to_learn=None,
                      ):
+            self.elmo_layer = elmo_layer
             self.grandparent_dropout_p = grandparent_dropout_p
             self.parent_dropout_p = parent_dropout_p
             self.prep_dropout_p = prep_dropout_p
@@ -203,7 +205,8 @@ class LstmMlpSupersensesModel:
             self.embd_type = embd_type
             self.labels_to_learn = self.labels_to_learn or self.labels_to_predict
 
-            assert self.embd_type in ['word2vec', 'muse', 'muse_dict', 'fasttext_en']
+            assert self.embd_type in ['word2vec', 'muse', 'muse_dict', 'fasttext_en', 'elmo']
+            assert elmo_layer in [1,2,3]
             assert all([l in self.labels_to_learn for l in self.labels_to_predict])
             assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])]), labels_to_predict
 
