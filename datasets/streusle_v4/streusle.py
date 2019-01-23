@@ -226,9 +226,11 @@ class StreusleRecord:
         id_to_ind = {int(tok['#']): ind for ind, tok in enumerate(self.data['toks'])}
 
         if self.load_elmo:
-            elmo_embeddings = run_elmo([tok_data['word']] for tok_data in self.data['toks'])
+            elmo_embeddings = run_elmo([tok_data['word'] for tok_data in self.data['toks']])
         else:
             elmo_embeddings = [None for _ in self.data['toks']]
+
+        assert len(elmo_embeddings) == len(self.data['toks'])
 
         self.tagged_tokens = [
             TaggedToken(
