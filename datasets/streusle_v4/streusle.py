@@ -334,7 +334,8 @@ class StreusleLoader(object):
                 sents = list(conllulex2json.load_sents(f))
             else:
                 sents = json.load(f)
-            for sent in sents:
+            for sent_ind, sent in enumerate(sents):
+                print("Loading %d/%d" % (sent_ind, len(sents)))
                 sent_txt = ' '.join(tok['word'] for tok in sent['toks'])
                 record = StreusleRecord(id=sent['streusle_sent_id'],
                                         sentence=sent['text'],
