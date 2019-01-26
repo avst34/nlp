@@ -93,7 +93,7 @@ FASTTEXT_TASK_SETTINGS = {
     for task, settings in TASK_SETTINGS.items()
 }
 
-ELMO__FASTTEXT_TASK_SETTINGS = {
+ELMO_FASTTEXT_TASK_SETTINGS = {
     task: override_settings([
         settings,
         [
