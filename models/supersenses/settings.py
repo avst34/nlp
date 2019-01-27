@@ -97,7 +97,7 @@ ELMO_FASTTEXT_TASK_SETTINGS = {
     task: override_settings([
         settings,
         [
-            PS(name='embd_type', values=['elmo']),
+            PS(name='embd_type', values=['fasttext_en', 'elmo']),
         ]
     ])
     for task, settings in FASTTEXT_TASK_SETTINGS.items()
