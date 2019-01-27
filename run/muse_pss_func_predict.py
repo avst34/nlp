@@ -42,7 +42,7 @@ def run():
         train_records = loader.load_train()
         dev_records = loader.load_dev()
         test_records = loader.load_test()
-        chinese_test_records = StreusleLoader().load(conllulex_path=os.path.dirname(__file__) + '/../datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json', input_format='json')
+        chinese_test_records = StreusleLoader(load_elmo=True).load(conllulex_path=os.path.dirname(__file__) + '/../datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json', input_format='json')
         # records = StreusleLoader().load(conllulex_path='/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.chinese.all.json', input_format='json')
         # train_records = records[0::3]
         # dev_records = records[1::3]

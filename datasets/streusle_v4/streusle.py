@@ -3,6 +3,7 @@ import json
 import os
 import sys
 from collections import namedtuple, defaultdict
+from functools import reduce
 from itertools import chain
 
 import h5py
@@ -226,7 +227,16 @@ class StreusleRecord:
         id_to_ind = {int(tok['#']): ind for ind, tok in enumerate(self.data['toks'])}
 
         if self.load_elmo:
-            elmo_embeddings = run_elmo([tok_data['word'] for tok_data in self.data['toks']])
+            _elmo_embeddings = run_elmo([tok_data['word'] for tok_data in self.data['toks'] if not tok_data.get('hidden')])
+            elmo_embeddings = []
+            eind = 0
+            for tok in self.data['toks']:
+                if tok.get('hidden'):
+                    elmo_embeddings.append(None)
+                else:
+                    elmo_embeddings.append(_elmo_embeddings[eind])
+                    eind += 1
+            assert eind == len(_elmo_embeddings), (eind, len(_elmo_embeddings))
         else:
             elmo_embeddings = [None for _ in self.data['toks']]
 

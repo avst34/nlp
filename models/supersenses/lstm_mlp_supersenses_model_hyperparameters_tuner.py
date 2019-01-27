@@ -1,7 +1,6 @@
 import json
 
 from evaluators.pss_classifier_evaluator import PSSClasifierEvaluator
-from evaluators.streusle_evaluator import StreusleEvaluator
 from hyperparameters_tuner import HyperparametersTuner
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.tuner_domains import TUNER_DOMAINS
@@ -83,6 +82,7 @@ class LstmMlpSupersensesModelHyperparametersTuner:
             if self.dump_models:
                 result.predictor.save(output_dir + '/model')
             if self.dump_pss_eval:
+                from evaluators.streusle_evaluator import StreusleEvaluator
                 ident = 'autoid'
                 StreusleEvaluator(result.predictor).evaluate(validation_samples, output_tsv_path=output_dir + '/psseval_out.tsv', ident=ident)
 

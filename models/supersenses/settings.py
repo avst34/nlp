@@ -100,5 +100,5 @@ ELMO_FASTTEXT_TASK_SETTINGS = {
             PS(name='embd_type', values=['elmo', 'fasttext_en']),
         ]
     ])
-    for task, settings in ELMO_TASK_SETTINGS.items()
+    for task, settings in FASTTEXT_TASK_SETTINGS.items()
 }
