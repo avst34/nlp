@@ -19,7 +19,7 @@ TUNER_DOMAINS_TUNING = [
         # ('supersense_func',)
     ]),
     PS(name='embd_type', values=['muse', 'word2vec', 'fasttext', 'elmo']),
-    PS(name='elmo_layer', values=[1,2,3]),
+    PS(name='elmo_layer', values=[0,1,2]),
     PS(name='use_prep', values=[True]),
     PS(name='prep_dropout_p', values=[0, 0.01, 0.1, 0.2, 0.3, 0.4, 0.5]),
     PS(name='use_role', values=[False]),

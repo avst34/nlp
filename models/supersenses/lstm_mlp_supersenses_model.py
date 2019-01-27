@@ -206,7 +206,7 @@ class LstmMlpSupersensesModel:
             self.labels_to_learn = self.labels_to_learn or self.labels_to_predict
 
             assert self.embd_type in ['word2vec', 'muse', 'muse_dict', 'fasttext_en', 'elmo']
-            assert elmo_layer in [1,2,3]
+            assert elmo_layer in [0,1,2]
             assert all([l in self.labels_to_learn for l in self.labels_to_predict])
             assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])]), labels_to_predict
 
