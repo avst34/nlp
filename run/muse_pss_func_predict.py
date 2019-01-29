@@ -69,7 +69,7 @@ def run():
             tuner_domains=override_settings([
                 ELMO_FASTTEXT_TASK_SETTINGS[task],
                 [
-                    # PS(name='epochs', values=[1])
+                    PS(name='epochs', values=[1])
                 ]
             ]),
             dump_models=False
