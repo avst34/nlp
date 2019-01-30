@@ -279,7 +279,8 @@ class LstmMlpSupersensesModel:
             embeddings_override={
                 f.name: f.extract_embedding(sample_x) for f in self.features.list_features_with_embedding_extractor()
             },
-            hidden=sample_x.hidden
+            hidden=sample_x.hidden,
+            attrs={'mwe': sample_x.is_part_of_mwe}
         )
 
     def sample_y_to_lowlevel(self, sample_y):

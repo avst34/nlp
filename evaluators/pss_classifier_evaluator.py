@@ -129,37 +129,34 @@ class PSSClasifierEvaluator:
                 self.print_prediction(sample, predicted_ys)
             inds_to_predict = inds_to_predict or list(range(len(predicted_ys)))
             for depth in range(1, MAX_PSS_DEPTH + 1):
-                for p, a, x in zip(predicted_ys, sample.ys, sample.xs):
-                    if not p:
-                        p = tuple([None] * len(inds_to_predict))
-                    alabels = tuple([l for ind, l in enumerate(a) if ind in inds_to_predict])
-                    # self.update_counts(counts, alabels, p, alabels)
-                    self.update_counts(counts, ALL_CLASSES, p, alabels, depth, strict=False)
-                    self.update_counts(counts, ALL_CLASSES_STRICT, p, alabels, depth)
-                    if a is not None and len(inds_to_predict) > 1:
-                        for ind, klass in enumerate(alabels):
-                            # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
-                            # self.update_counts(counts, cklass, p[ind], klass)
-                            cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
-                            self.update_counts(counts, cklass, p[ind], klass, depth)
-                    if x['token-embd'].startswith('MISSING_'):
-                        self.update_counts(counts, 'MISSING_' + ALL_CLASSES, p, alabels, depth, strict=False)
-                        self.update_counts(counts, 'MISSING_' + ALL_CLASSES_STRICT, p, alabels, depth)
-                        if a is not None and len(inds_to_predict) > 1:
-                            for ind, klass in enumerate(alabels):
-                                # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
-                                # self.update_counts(counts, 'MISSING_' + cklass, p[ind], klass)
-                                cklass = tuple(['MISSING_'] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
-                                self.update_counts(counts, cklass, p[ind], klass, depth)
-                    else:
-                        self.update_counts(counts, 'MATCHED_' + ALL_CLASSES, p, alabels, depth, strict=False)
-                        self.update_counts(counts, 'MATCHED_' + ALL_CLASSES_STRICT, p, alabels, depth)
-                        if a is not None and len(inds_to_predict) > 1:
-                            for ind, klass in enumerate(alabels):
-                                # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
-                                # self.update_counts(counts, 'MATCHED_' + cklass, p[ind], klass)
-                                cklass = tuple(['MATCHED_'] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
-                                self.update_counts(counts, cklass, p[ind], klass, depth)
+                for wetype in ['SINGLE', 'MULTI', 'ALL']:
+                    for matching in ['MATCHED', 'MISSING', 'ALL']:
+                        for p, a, x in zip(predicted_ys, sample.ys, sample.xs):
+                            if wetype != 'ALL' and x.attrs['mwe'] != (wetype == 'MULTI'):
+                                continue
+                            if matching != 'ALL' and x['token-embd'].startswith('MISSING_') != (matching == 'MISSING'):
+                                continue
+                            if not p:
+                                p = tuple([None] * len(inds_to_predict))
+                            alabels = tuple([l for ind, l in enumerate(a) if ind in inds_to_predict])
+                            # self.update_counts(counts, alabels, p, alabels)
+                            if depth == MAX_PSS_DEPTH and wetype == 'ALL' and matching == 'ALL':
+                                self.update_counts(counts, ALL_CLASSES, p, alabels, depth, strict=False)
+                                self.update_counts(counts, ALL_CLASSES_STRICT, p, alabels, depth)
+                                if a is not None and len(inds_to_predict) > 1:
+                                    for ind, klass in enumerate(alabels):
+                                        # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
+                                        # self.update_counts(counts, cklass, p[ind], klass)
+                                        cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                                        self.update_counts(counts, cklass, p[ind], klass, depth)
+                            self.update_counts(counts, '_'.join([matching, wetype]) + ALL_CLASSES, p, alabels, depth, strict=False)
+                            self.update_counts(counts, '_'.join([matching, wetype]) +  ALL_CLASSES_STRICT, p, alabels, depth)
+                            if a is not None and len(inds_to_predict) > 1:
+                                for ind, klass in enumerate(alabels):
+                                    # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
+                                    # self.update_counts(counts, 'MISSING_' + cklass, p[ind], klass)
+                                    cklass = tuple(['_'.join([matching, wetype])] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                                    self.update_counts(counts, cklass, p[ind], klass, depth)
 
 
         for klass, class_counts in counts.items():
@@ -177,6 +174,9 @@ class PSSClasifierEvaluator:
                     ('total', class_counts['total']),
                     ('correct/total', '%d / %d' % (class_counts['p_value_a_value_eq'], class_counts['total']))
                 ])
+                if class_scores[klass]['precision'] > 10 and (str(class_counts['p_value_a_value_eq'] / class_counts['total']*100) + '00')[:5] != (str(class_scores[klass]['precision']) + '00')[:5]:
+                    print('whoa')
+                # print(klass, precision, class_scores[klass]['precision'], class_scores[klass]['correct/total'], class_counts['p_value_a_value_eq']/class_counts['total'])
 
         def report(klass, display_name):
             print(' - %s precision: %2.2f' % (display_name, class_scores[klass]['precision']))

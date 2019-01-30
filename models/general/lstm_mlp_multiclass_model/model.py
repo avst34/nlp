@@ -29,11 +29,12 @@ class LstmMlpMulticlassModel(object):
     Sample = namedtuple('Sample', ['xs', 'ys', 'mask'])
 
     class SampleX:
-        def __init__(self, fields, hidden, neighbors=None, embeddings_override=None):
+        def __init__(self, fields, hidden, neighbors=None, embeddings_override=None, attrs=None):
             self.hidden = hidden
             self.fields = fields
             self.neighbors = neighbors or {}
             self.embeddings_override = embeddings_override or {}
+            self.attrs = attrs or {}
 
         def __getitem__(self, field):
             return self.fields[field]

@@ -1,3 +1,4 @@
+import json
 import os
 import random
 
@@ -32,17 +33,18 @@ def run():
 
     # tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
     # tasks = list(FASTTEXT_TASK_SETTINGS.keys())
-    tasks = [
-        'goldid.goldsyn', 'goldid.goldsyn.goldrole', 'goldid.goldsyn.goldfunc'
-    ]
-    task = random.choice(tasks)
+    tasks = {
+        'goldid.goldsyn': json.loads("""{"learning_rate": 0.06309573444801933, "lstm_dropout_p": 0.27, "use_ud_xpos": true, "use_ner": true, "grandparent_dropout_p": 0.3, "use_parent": true, "parent_dropout_p": 0.2, "allow_empty_prediction": false, "embd_type": "fasttext_en", "num_lstm_layers": 1, "use_func": false, "mlp_dropout_p": 0.3, "use_token_internal": false, "dynet_random_seed": null, "elmo_layer": 2, "use_role": false, "use_instance_embd": false, "prep_dropout_p": 0.2, "is_bilstm": true, "ud_deps_embd_dim": 25, "use_ud_dep": true, "labels_to_predict": ["supersense_role", "supersense_func"], "lstm_h_dim": 20, "use_prep": true, "mlp_layer_dim": 100, "labels_to_learn": ["supersense_role", "supersense_func"], "use_lexcat": true, "learning_rate_decay": 0.0001, "token_embd_dim": 300, "token_internal_embd_dim": 100, "update_lemmas_embd": false, "mlp_layers": 2, "epochs": 10, "lexcat_embd_dim": 3, "ner_embd_dim": 5, "use_govobj": false, "pss_embd_dim": 10, "mask_mwes": false, "update_token_embd": false, "govobj_config_embd_dim": 3, "ud_xpos_embd_dim": 5, "use_prep_onehot": false, "use_grandparent": true, "use_token": true, "mlp_activation": "relu"}"""),
+        'goldid.goldsyn.goldrole': json.loads("""{"use_instance_embd": false, "mask_mwes": false, "ud_xpos_embd_dim": 25, "use_func": false, "labels_to_predict": ["supersense_func"], "use_govobj": false, "prep_dropout_p": 0.2, "use_token": true, "token_internal_embd_dim": 25, "token_embd_dim": 300, "mlp_activation": "cube", "grandparent_dropout_p": 0.2, "lstm_dropout_p": 0.36, "use_token_internal": false, "mlp_dropout_p": 0.17, "elmo_layer": 0, "lexcat_embd_dim": 3, "ner_embd_dim": 10, "update_token_embd": true, "ud_deps_embd_dim": 5, "update_lemmas_embd": false, "dynet_random_seed": null, "use_ud_dep": true, "use_ud_xpos": false, "labels_to_learn": ["supersense_func"], "use_lexcat": true, "learning_rate_decay": 3.1622776601683795e-05, "govobj_config_embd_dim": 3, "use_role": true, "epochs": 10, "pss_embd_dim": 10, "allow_empty_prediction": false, "lstm_h_dim": 80, "parent_dropout_p": 0.3, "is_bilstm": true, "use_parent": true, "mlp_layers": 2, "use_prep": true, "mlp_layer_dim": 80, "learning_rate": 0.01, "use_grandparent": true, "use_ner": true, "use_prep_onehot": false, "num_lstm_layers": 1, "embd_type": "fasttext_en"}"""),
+        'goldid.goldsyn.goldfunc': json.loads("""{"use_govobj": false, "use_prep_onehot": false, "update_lemmas_embd": false, "ner_embd_dim": 10, "govobj_config_embd_dim": 3, "num_lstm_layers": 2, "embd_type": "fasttext_en", "use_token": true, "ud_deps_embd_dim": 5, "use_token_internal": false, "elmo_layer": 0, "parent_dropout_p": 0.2, "use_grandparent": true, "use_lexcat": true, "update_token_embd": false, "learning_rate": 0.15848931924611143, "dynet_random_seed": null, "use_ner": true, "is_bilstm": true, "use_func": true, "mlp_dropout_p": 0.16, "lstm_dropout_p": 0.39, "prep_dropout_p": 0.2, "allow_empty_prediction": false, "labels_to_learn": ["supersense_role"], "mask_mwes": false, "use_instance_embd": false, "lstm_h_dim": 100, "mlp_layer_dim": 100, "labels_to_predict": ["supersense_role"], "use_parent": true, "use_ud_xpos": false, "lexcat_embd_dim": 3, "pss_embd_dim": 5, "token_internal_embd_dim": 300, "mlp_layers": 3, "ud_xpos_embd_dim": 25, "use_role": false, "mlp_activation": "tanh", "epochs": 10, "learning_rate_decay": 0.0031622776601683794, "use_ud_dep": true, "token_embd_dim": 300, "grandparent_dropout_p": 0.3, "use_prep": true}""")
+    }
     # task = 'goldid.goldsyn'
-    for task in [task]:
+    for task, params in tasks.items():
         loader = StreusleLoader(load_elmo=True)
         train_records = loader.load_train()
         dev_records = loader.load_dev()
         test_records = loader.load_test()
-        chinese_test_records = StreusleLoader(load_elmo=True).load(conllulex_path=os.path.dirname(__file__) + '/../datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json', input_format='json')
+        # chinese_test_records = StreusleLoader(load_elmo=True).load(conllulex_path=os.path.dirname(__file__) + '/../datasets/streusle_v4/chinese/lp.eng.zh_pss.all.json', input_format='json')
         # records = StreusleLoader().load(conllulex_path='/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/chinese/lp.chinese.all.json', input_format='json')
         # train_records = records[0::3]
         # dev_records = records[1::3]
@@ -54,13 +56,13 @@ def run():
 
         train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
         dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
-        test_samples = [streusle_record_to_lstm_model_sample(r) for r in chinese_test_records]
+        test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
 
         test_features()
 
         tuner = LstmMlpSupersensesModelHyperparametersTuner(
             task_name=task,
-            results_csv_path=os.environ.get('RESULTS_PATH') or '/tmp/results.csv',
+            results_csv_path=os.environ.get('RESULTS_PATH') or '/tmp/eval.csv',
             samples=train_samples, # use all after testing
             validation_samples=dev_samples,
             test_samples=test_samples,
@@ -75,7 +77,7 @@ def run():
             dump_models=False
         )
 
-        best_params, best_results = tuner.tune(n_executions=1)
+        best_params, best_results = tuner.sample_execution(params=params)
     # predictor = best_results.predictor
     #
     # predictor.save('/tmp/predictor')
