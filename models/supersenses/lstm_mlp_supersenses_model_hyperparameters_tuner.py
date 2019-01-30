@@ -46,7 +46,8 @@ class LstmMlpSupersensesModelHyperparametersTuner:
                             sorted({k: scores[k] for k, v in scores.items()}.items()) + \
                             [(k, str(v)) for k, v in sorted(params.items())] + \
                             [("Hyperparams Json", json.dumps(params) if len(rows_tuples) == 0 else "")]
-                        rows_tuples.append(row_tuples)        headers = [x[0] for x in rows_tuples[0]]
+                        rows_tuples.append(row_tuples)
+                        headers = [x[0] for x in rows_tuples[0]]
         rows = [[x[1] for x in row_tuples] for row_tuples in rows_tuples]
         return headers, rows
 
