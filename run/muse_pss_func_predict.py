@@ -33,7 +33,8 @@ def run():
     # tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
     # tasks = list(FASTTEXT_TASK_SETTINGS.keys())
     tasks = [
-        'goldid.goldsyn', 'goldid.goldsyn.goldrole', 'goldid.goldsyn.goldfunc'
+        # 'goldid.goldsyn', 'goldid.goldsyn.goldrole', 'goldid.goldsyn.goldfunc'
+        'goldid.goldsyn'
     ]
     task = random.choice(tasks)
     # task = 'goldid.goldsyn'
