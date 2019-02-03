@@ -116,6 +116,8 @@ ELMO_FASTTEXT_MIN_TASK_SETTINGS = {
             PS(name='use_ner', values=[False]),
             PS(name='use_govobj', values=[False]),
             PS(name='use_lexcat', values=[False]),
+            PS(name='update_token_embd', values=[False]),
+            PS(name='epochs', values=[130]),
         ]
     ])
     for task, settings in ELMO_FASTTEXT_TASK_SETTINGS.items()
