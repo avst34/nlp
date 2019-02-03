@@ -102,3 +102,21 @@ ELMO_FASTTEXT_TASK_SETTINGS = {
     ])
     for task, settings in FASTTEXT_TASK_SETTINGS.items()
 }
+
+ELMO_FASTTEXT_MIN_TASK_SETTINGS = {
+    task: override_settings([
+        settings,
+        [
+            PS(name='use_parent', values=[False]),
+            PS(name='use_grandparent', values=[False]),
+            PS(name='use_token_internal', values=[False]),
+            PS(name='use_prep', values=[True]),
+            PS(name='use_ud_xpos', values=[False]),
+            PS(name='use_ud_dep', values=[False]),
+            PS(name='use_ner', values=[False]),
+            PS(name='use_govobj', values=[False]),
+            PS(name='use_lexcat', values=[False]),
+        ]
+    ])
+    for task, settings in ELMO_FASTTEXT_TASK_SETTINGS.items()
+}
