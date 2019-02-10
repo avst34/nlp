@@ -55,7 +55,8 @@ def run():
 
         train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
         dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
-        test_samples = [streusle_record_to_lstm_model_sample(r) for r in chinese_test_records]
+        test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
+        # test_samples = [streusle_record_to_lstm_model_sample(r) for r in chinese_test_records]
 
         test_features()
 
@@ -68,7 +69,7 @@ def run():
             show_progress=True,
             show_epoch_eval=True,
             tuner_domains=override_settings([
-                ELMO_FASTTEXT_MIN_TASK_SETTINGS[task],
+                ELMO_FASTTEXT_TASK_SETTINGS[task],
                 [
                     # PS(name='epochs', values=[10])
                 ]

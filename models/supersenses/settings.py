@@ -98,6 +98,7 @@ ELMO_FASTTEXT_TASK_SETTINGS = {
         settings,
         [
             PS(name='embd_type', values=['fasttext_en', 'elmo']),
+            PS(name='epochs', values=[130]),
         ]
     ])
     for task, settings in FASTTEXT_TASK_SETTINGS.items()
