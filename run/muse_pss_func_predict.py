@@ -69,9 +69,11 @@ def run():
             show_progress=True,
             show_epoch_eval=True,
             tuner_domains=override_settings([
-                ELMO_FASTTEXT_TASK_SETTINGS[task],
+                ELMO_FASTTEXT_MIN_TASK_SETTINGS[task],
                 [
                     # PS(name='epochs', values=[10])
+                    PS(name='mlp_layers', values=[0,1,2]),
+                    PS(name='num_lstm_layers', values=[0,1,2]),
                 ]
             ]),
             dump_models=False

@@ -174,13 +174,23 @@ class LstmMlpMulticlassModel(object):
     def _build_network_params(self):
         pc = dy.ParameterCollection()
 
+        embedded_input_dim = sum([self.get_embd_dim(field) for field in self.hyperparameters.lstm_input_fields])
+
+        if self.hyperparameters.num_lstm_layers > 0:
+            ctx_input_dim = self.hyperparameters.lstm_h_dim
+        else:
+            ctx_input_dim = embedded_input_dim
+
         mlp_input_dim = 0
         if self.hyperparameters.use_local:
-            mlp_input_dim += self.hyperparameters.lstm_h_dim
+            mlp_input_dim += ctx_input_dim
         mlp_input_dim += sum([self.get_embd_dim(field) for field in self.hyperparameters.mlp_input_fields])
-        mlp_input_dim += self.hyperparameters.lstm_h_dim * len(self.hyperparameters.token_neighbour_types)
+        mlp_input_dim += ctx_input_dim * len(self.hyperparameters.token_neighbour_types)
 
-        embedded_input_dim = sum([self.get_embd_dim(field) for field in self.hyperparameters.lstm_input_fields])
+        if self.hyperparameters.mlp_layers > 0:
+            mlp_output_dim = self.hyperparameters.mlp_layer_dim
+        else:
+            mlp_output_dim = mlp_input_dim
 
         self.params = ModelOptimizedParams(
             input_lookups={
@@ -199,12 +209,12 @@ class LstmMlpMulticlassModel(object):
             ],
             softmaxes=[
                 MLPLayerParams(
-                        W=pc.add_parameters((self.output_vocabulary.size(), self.hyperparameters.mlp_layer_dim)),
+                        W=pc.add_parameters((self.output_vocabulary.size(), mlp_output_dim)),
                         b=pc.add_parameters((self.output_vocabulary.size(),))
                 )
                 for _ in range(self.hyperparameters.n_labels_to_learn)
             ],
-            unknown_local=pc.add_parameters((self.hyperparameters.lstm_h_dim,)),
+            unknown_local=pc.add_parameters((ctx_input_dim,)),
             unknown_mlp_inputs={
                 field: pc.add_parameters((self.get_field_dim(field),))
                 for field in (self.hyperparameters.mlp_input_fields + self.hyperparameters.token_neighbour_types)
@@ -228,10 +238,13 @@ class LstmMlpMulticlassModel(object):
                                 raise Exception('Missing embedding vector for field: %s, word %s' % (field, word))
                             lookup_param.init_row(word_index, [0] * self.get_embd_dim(field))
 
-        if self.hyperparameters.is_bilstm:
-            self.lstm_builder = dy.BiRNNBuilder(self.hyperparameters.num_lstm_layers, embedded_input_dim, self.hyperparameters.lstm_h_dim, pc, dy.LSTMBuilder)
+        if self.hyperparameters.num_lstm_layers > 0:
+            if self.hyperparameters.is_bilstm:
+                self.lstm_builder = dy.BiRNNBuilder(self.hyperparameters.num_lstm_layers, embedded_input_dim, self.hyperparameters.lstm_h_dim, pc, dy.LSTMBuilder)
+            else:
+                self.lstm_builder = dy.LSTMBuilder(self.hyperparameters.num_lstm_layers, embedded_input_dim, self.hyperparameters.lstm_h_dim, pc)
         else:
-            self.lstm_builder = dy.LSTMBuilder(self.hyperparameters.num_lstm_layers, embedded_input_dim, self.hyperparameters.lstm_h_dim, pc)
+            self.lstm_builder = None
 
         return pc
 
@@ -312,59 +325,64 @@ class LstmMlpMulticlassModel(object):
             mlp_dropout_p = 0
             lstm_dropout_p = 0
 
-        self.lstm_builder.set_dropout(lstm_dropout_p)
-
         mask = self.build_mask(xs, external_mask=mask)
-        if not self.hyperparameters.is_bilstm:
-            cur_lstm_state = self.lstm_builder.initial_state()
-        else:
-            cur_lstm_state = self.lstm_builder
         embeddings = [
             dy.concatenate([
                 self.get_embd(token_data, field)
                 for field in self.hyperparameters.lstm_input_fields
             ]) if not token_data.hidden and
                   not(
-                      mask and mask[ind] and (
+                          mask and mask[ind] and (
                           not self.hyperparameters.use_local
                           or (
-                              apply_dropout and self.hyperparameters.local_dropout_p is not None
-                              and random.random() < self.hyperparameters.local_dropout_p
+                                  apply_dropout and self.hyperparameters.local_dropout_p is not None
+                                  and random.random() < self.hyperparameters.local_dropout_p
                           )
-                      )
+                  )
                   )
             else None
             for ind, token_data in enumerate(xs)
         ]
         assert max([ind for ind, x in enumerate(xs) if not x.hidden]) < min([ind for ind, x in enumerate(xs) if x.hidden] + [len(xs)])
-        lstm_outputs = cur_lstm_state.transduce([e for e in embeddings if e is not None])
-        lstm_outputs_and_hidden = []
-        oind = 0
-        for e in embeddings:
-            if e is None:
-                lstm_outputs_and_hidden.append(None)
+
+        if self.lstm_builder:
+            self.lstm_builder.set_dropout(lstm_dropout_p)
+            if not self.hyperparameters.is_bilstm:
+                cur_lstm_state = self.lstm_builder.initial_state()
             else:
-                lstm_outputs_and_hidden.append(lstm_outputs[oind])
-                oind += 1
-        assert oind == len(lstm_outputs)
+                cur_lstm_state = self.lstm_builder
+
+            lstm_outputs = cur_lstm_state.transduce([e for e in embeddings if e is not None])
+            lstm_outputs_and_hidden = []
+            oind = 0
+            for e in embeddings:
+                if e is None:
+                    lstm_outputs_and_hidden.append(None)
+                else:
+                    lstm_outputs_and_hidden.append(lstm_outputs[oind])
+                    oind += 1
+            assert oind == len(lstm_outputs)
+            ctx_inputs = lstm_outputs_and_hidden
+        else:
+            ctx_inputs = embeddings
 
         mlp_activation = get_activation_function(self.hyperparameters.mlp_activation)
         outputs = []
-        for ind, lstm_out in enumerate(lstm_outputs_and_hidden):
+        for ind, ctx_input in enumerate(ctx_inputs):
             if mask and not mask[ind]:
                 output = None
             else:
                 vecs = []
                 if self.hyperparameters.use_local:
-                    v = lstm_out if lstm_out is not None else dy.parameter(self.params.unknown_local)
+                    v = ctx_input if ctx_input is not None else dy.parameter(self.params.unknown_local)
                     vecs.append(v)
                 inp_token = xs[ind]
                 for neighbour_type in self.hyperparameters.token_neighbour_types:
                     neighbour_ind = xs[ind].neighbors.get(neighbour_type)
-                    if neighbour_ind is None or lstm_outputs_and_hidden[neighbour_ind] is None or (apply_dropout and random.random() < self.hyperparameters.mlp_input_dropouts.get(neighbour_type, -1)):
+                    if neighbour_ind is None or ctx_inputs[neighbour_ind] is None or (apply_dropout and random.random() < self.hyperparameters.mlp_input_dropouts.get(neighbour_type, -1)):
                         vecs.append(dy.parameter(self.params.unknown_mlp_inputs[neighbour_type]))
                     else:
-                        vecs.append(lstm_outputs_and_hidden[neighbour_ind])
+                        vecs.append(ctx_inputs[neighbour_ind])
 
                 vecs.extend([dy.lookup(
                                  self.params.input_lookups[field],
