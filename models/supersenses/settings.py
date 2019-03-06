@@ -108,6 +108,8 @@ ELMO_FASTTEXT_MIN_TASK_SETTINGS = {
     task: override_settings([
         settings,
         [
+            PS(name='use_lemma', values=[False]),
+            PS(name='use_capitalized_word_follows', values=[False]),
             PS(name='use_parent', values=[False]),
             PS(name='use_grandparent', values=[False]),
             PS(name='use_token_internal', values=[False]),

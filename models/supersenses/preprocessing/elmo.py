@@ -1,13 +1,15 @@
 import os
 import pickle
-
-from allennlp.commands.elmo import ElmoEmbedder
 import hashlib
-elmo = ElmoEmbedder()
 
+elmo = None
 
 
 def run_elmo(tokens, cache_dir=os.path.dirname(__file__) + '/elmo_cache'):
+    global elmo
+    if elmo is None:
+        from allennlp.commands.elmo import ElmoEmbedder
+        elmo = ElmoEmbedder()
     # print('run_elmo', tokens)
     hash = hashlib.md5(' '.join(tokens).encode('utf8')).digest().hex()
     fname = cache_dir +'/' + hash + '.elmo'

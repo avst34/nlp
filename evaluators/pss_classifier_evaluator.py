@@ -5,6 +5,10 @@ from utils import f1_score
 
 to_precentage = lambda s: int(s * 10000) / 100 if s is not None else None
 
+PREPS = ['from', 'in', 'to', 'at', 'than', 'about', 'for', 'by', 'before', 'inside', 'ago', 'against', 'until',
+         'with', 'as', 'through', 'over', 'except', 'outside', 'his', 'on', 'since', 'toward', 'under', 'between',
+         'among']
+
 class PSSClasifierEvaluator:
 
     ALL_CLASSES = '___ALL_CLASSES__'
@@ -131,32 +135,35 @@ class PSSClasifierEvaluator:
             for depth in range(1, MAX_PSS_DEPTH + 1):
                 for wetype in ['SINGLE', 'MULTI', 'ALL']:
                     for matching in ['MATCHED', 'MISSING', 'ALL']:
-                        for p, a, x in zip(predicted_ys, sample.ys, sample.xs):
-                            if wetype != 'ALL' and x.attrs['mwe'] != (wetype == 'MULTI'):
-                                continue
-                            if matching != 'ALL' and x['token-embd'].startswith('MISSING_') != (matching == 'MISSING'):
-                                continue
-                            if not p:
-                                p = tuple([None] * len(inds_to_predict))
-                            alabels = tuple([l for ind, l in enumerate(a) if ind in inds_to_predict])
-                            # self.update_counts(counts, alabels, p, alabels)
-                            if depth == MAX_PSS_DEPTH and wetype == 'ALL' and matching == 'ALL':
-                                self.update_counts(counts, ALL_CLASSES, p, alabels, depth, strict=False)
-                                self.update_counts(counts, ALL_CLASSES_STRICT, p, alabels, depth)
+                        for matched_prep in ['ISPREP', 'NOTPREP', 'ALL']:
+                            for p, a, x in zip(predicted_ys, sample.ys, sample.xs):
+                                if wetype != 'ALL' and x.attrs['mwe'] != (wetype == 'MULTI'):
+                                    continue
+                                if matching != 'ALL' and x['token-embd'].startswith('MISSING_') != (matching == 'MISSING'):
+                                    continue
+                                if matched_prep != 'ALL' and ((x['token-embd'].lower() in PREPS) != (matched_prep == 'ISPREP') or matching != 'MATCHED'):
+                                    continue
+                                if not p:
+                                    p = tuple([None] * len(inds_to_predict))
+                                alabels = tuple([l for ind, l in enumerate(a) if ind in inds_to_predict])
+                                # self.update_counts(counts, alabels, p, alabels)
+                                if depth == MAX_PSS_DEPTH and wetype == 'ALL' and matching == 'ALL' and matched_prep == 'ALL':
+                                    self.update_counts(counts, ALL_CLASSES, p, alabels, depth, strict=False)
+                                    self.update_counts(counts, ALL_CLASSES_STRICT, p, alabels, depth)
+                                    if a is not None and len(inds_to_predict) > 1:
+                                        for ind, klass in enumerate(alabels):
+                                            # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
+                                            # self.update_counts(counts, cklass, p[ind], klass)
+                                            cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                                            self.update_counts(counts, cklass, p[ind], klass, depth)
+                                self.update_counts(counts, '_'.join([matching, matched_prep, wetype]) + ALL_CLASSES, p, alabels, depth, strict=False)
+                                self.update_counts(counts, '_'.join([matching, matched_prep, wetype]) + ALL_CLASSES_STRICT, p, alabels, depth)
                                 if a is not None and len(inds_to_predict) > 1:
                                     for ind, klass in enumerate(alabels):
                                         # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
-                                        # self.update_counts(counts, cklass, p[ind], klass)
-                                        cklass = tuple(['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
+                                        # self.update_counts(counts, 'MISSING_' + cklass, p[ind], klass)
+                                        cklass = tuple(['_'.join([matching, matched_prep, wetype])] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
                                         self.update_counts(counts, cklass, p[ind], klass, depth)
-                            self.update_counts(counts, '_'.join([matching, wetype]) + ALL_CLASSES, p, alabels, depth, strict=False)
-                            self.update_counts(counts, '_'.join([matching, wetype]) +  ALL_CLASSES_STRICT, p, alabels, depth)
-                            if a is not None and len(inds_to_predict) > 1:
-                                for ind, klass in enumerate(alabels):
-                                    # cklass = tuple([alabels[i] if i == ind else '*' for i in range(len(inds_to_predict))])
-                                    # self.update_counts(counts, 'MISSING_' + cklass, p[ind], klass)
-                                    cklass = tuple(['_'.join([matching, wetype])] + ['-- All --' if i == ind else '*' for i in range(len(inds_to_predict))])
-                                    self.update_counts(counts, cklass, p[ind], klass, depth)
 
 
         for klass, class_counts in counts.items():

@@ -113,6 +113,7 @@ class LstmMlpSupersensesModel:
         def __init__(self,
                      labels_to_predict,
                      use_token,
+                     use_lemma,
                      use_prep,
                      prep_dropout_p,
                      update_token_embd,
@@ -125,6 +126,7 @@ class LstmMlpSupersensesModel:
                      use_prep_onehot,
                      use_govobj,
                      use_parent,
+                     use_capitalized_word_follows,
                      parent_dropout_p,
                      use_grandparent,
                      grandparent_dropout_p,
@@ -157,6 +159,8 @@ class LstmMlpSupersensesModel:
                      dynet_random_seed,
                      labels_to_learn=None,
                      ):
+            self.use_capitalized_word_follows = use_capitalized_word_follows
+            self.use_lemma = use_lemma
             self.elmo_layer = elmo_layer
             self.grandparent_dropout_p = grandparent_dropout_p
             self.parent_dropout_p = parent_dropout_p
@@ -253,7 +257,8 @@ class LstmMlpSupersensesModel:
                        'ud_xpos_embd_dim', 'ud_deps_embd_dim', 'spacy_ner_embd_dim', 'govobj_config_embd_dim',
                        'lexcat_embd_dim', 'update_token_embd', 'use_prep_onehot', 'use_token_internal',
                        'labels_to_predict', 'labels_to_learn', 'mask_by', 'mask_mwes', 'allow_empty_prediction', 'use_instance_embd',
-                       'use_role', 'use_func', 'pss_embd_dim', 'embd_type', 'use_prep', 'prep_dropout_p', 'parent_dropout_p', 'grandparent_dropout_p', 'elmo_layer']))
+                       'use_role', 'use_func', 'pss_embd_dim', 'embd_type', 'use_prep', 'prep_dropout_p', 'parent_dropout_p', 'grandparent_dropout_p', 'elmo_layer',
+                       'use_lemma', 'use_capitalized_word_follows']))
         )
 
     def _build_vocab_onehot_embd(self, vocab):

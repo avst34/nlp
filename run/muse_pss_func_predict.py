@@ -72,8 +72,9 @@ def run():
                 ELMO_FASTTEXT_MIN_TASK_SETTINGS[task],
                 [
                     # PS(name='epochs', values=[10])
-                    PS(name='mlp_layers', values=[0,1,2]),
-                    PS(name='num_lstm_layers', values=[0,1,2]),
+                    PS(name='mlp_layers', values=[1]),
+                    PS(name='num_lstm_layers', values=[0]),
+                    PS(name='mlp_layer_dim', values=[100]),
                 ]
             ]),
             dump_models=False
