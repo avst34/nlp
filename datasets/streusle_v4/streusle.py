@@ -332,8 +332,24 @@ class StreusleRecord:
 
 class StreusleLoader(object):
 
-    def __init__(self, load_elmo=False):
+    def __init__(self, load_elmo=False, syntax='gold', ident='gold', task_name=None):
         self.load_elmo = load_elmo
+        self.syntax = syntax
+        self.ident = ident
+        if task_name:
+            self.syntax = None
+            self.ident = None
+            if 'goldid' in task_name:
+                self.ident = 'gold'
+            if 'autoid' in task_name:
+                self.ident = 'auto'
+            if 'goldsyn' in task_name:
+                self.syntax = 'gold'
+            if 'autosyn' in task_name:
+                self.syntax = 'auto'
+
+        assert syntax in ['gold', 'auto']
+        assert ident in ['gold', 'auto']
 
     def load(self, conllulex_path=STREUSLE_DIR + '/streusle.conllulex', only_with_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET, input_format='conllulex'):
         assert input_format in ['conllulex', 'json']
@@ -358,13 +374,13 @@ class StreusleLoader(object):
         return records
 
     def load_train(self):
-        return self.load(STREUSLE_DIR + '/train/streusle.ud_train.goldid.goldsyn.json', input_format='json')
+        return self.load(STREUSLE_DIR + '/train/streusle.ud_train.' + self.ident + 'id.' + self.syntax + 'syn.json', input_format='json')
 
     def load_dev(self):
-        return self.load(STREUSLE_DIR + '/dev/streusle.ud_dev.goldid.goldsyn.json', input_format='json')
+        return self.load(STREUSLE_DIR + '/dev/streusle.ud_dev.' + self.ident + 'id.' + self.syntax + 'syn.json', input_format='json')
 
     def load_test(self):
-        return self.load(STREUSLE_DIR + '/test/streusle.ud_test.goldid.goldsyn.json', input_format='json')
+        return self.load(STREUSLE_DIR + '/test/streusle.ud_test.' + self.ident + 'id.' + self.syntax + 'syn.json', input_format='json')
 
     @staticmethod
     def get_dist(records, all_supersenses=supersense_repo.PREPOSITION_SUPERSENSES_SET):

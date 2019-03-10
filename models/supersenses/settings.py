@@ -4,22 +4,22 @@ PS = HyperparametersTuner.ParamSettings
 
 GOLD_ID_GOLD_PREP = override_settings([TUNER_DOMAINS, [
     PS(name='allow_empty_prediction', values=[False]),
-    PS(name='embd_type', values=['word2vec'])
+    PS(name='embd_type', values=['fasttext', 'elmo'])
 ]])
 
 GOLD_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
     PS(name='allow_empty_prediction', values=[False]),
-    PS(name='embd_type', values=['word2vec'])
+    PS(name='embd_type', values=['fasttext', 'elmo'])
 ]])
 
 AUTO_ID_GOLD_PREP = override_settings([TUNER_DOMAINS, [
-    PS(name='allow_empty_prediction', values=[False]),
-    PS(name='embd_type', values=['word2vec'])
+    PS(name='allow_empty_prediction', values=[True]),
+    PS(name='embd_type', values=['fasttext', 'elmo'])
 ]])
 
 AUTO_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
-    PS(name='allow_empty_prediction', values=[False]),
-    PS(name='embd_type', values=['word2vec'])
+    PS(name='allow_empty_prediction', values=[True]),
+    PS(name='embd_type', values=['fasttext', 'elmo'])
 ]])
 
 
