@@ -4,22 +4,22 @@ PS = HyperparametersTuner.ParamSettings
 
 GOLD_ID_GOLD_PREP = override_settings([TUNER_DOMAINS, [
     PS(name='allow_empty_prediction', values=[False]),
-    PS(name='embd_type', values=['fasttext', 'elmo'])
+    PS(name='embd_type', values=['fasttext_en', 'elmo'])
 ]])
 
 GOLD_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
     PS(name='allow_empty_prediction', values=[False]),
-    PS(name='embd_type', values=['fasttext', 'elmo'])
+    PS(name='embd_type', values=['fasttext_en', 'elmo'])
 ]])
 
 AUTO_ID_GOLD_PREP = override_settings([TUNER_DOMAINS, [
     PS(name='allow_empty_prediction', values=[True]),
-    PS(name='embd_type', values=['fasttext', 'elmo'])
+    PS(name='embd_type', values=['fasttext_en', 'elmo'])
 ]])
 
 AUTO_ID_AUTO_PREP = override_settings([TUNER_DOMAINS, [
     PS(name='allow_empty_prediction', values=[True]),
-    PS(name='embd_type', values=['fasttext', 'elmo'])
+    PS(name='embd_type', values=['fasttext_en', 'elmo'])
 ]])
 
 
