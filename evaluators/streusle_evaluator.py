@@ -1,8 +1,13 @@
+import numbers
+import sys
+import csv
 import os
 import json
 import time
 import subprocess
 from itertools import chain
+
+from statistics import mean, stdev
 
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 
@@ -12,6 +17,13 @@ STREUSLE_BASE = os.path.dirname(__file__) + '/../datasets/streusle_v4/release'
 
 gold_records = StreusleLoader().load(STREUSLE_BASE + '/streusle.conllulex')
 gold_record_by_id = {r.id: r for r in gold_records}
+
+def isfloat(x):
+    try:
+        float(x)
+        return True
+    except:
+        return False
 
 class StreusleEvaluator:
 
@@ -56,12 +68,12 @@ class StreusleEvaluator:
                     for k, v in kwargs.items():
                         setattr(self, k, v)
 
-            output = subprocess.check_output(['python', self.psseval_script_path, gold_fname, sys_fname])
+            output = subprocess.check_output([sys.executable, self.psseval_script_path, gold_fname, sys_fname])
             with open(output_tsv_path, 'wb') as output_f:
                 output_f.write(output)
             if all_depths:
                 for depth in [1,2,3]:
-                    output = subprocess.check_output(['python', self.psseval_script_path, gold_fname, sys_fname, '--depth', str(depth)])
+                    output = subprocess.check_output([sys.executable, self.psseval_script_path, gold_fname, sys_fname, '--depth', str(depth)])
                     with open(output_tsv_path.replace('.tsv', '.depth_' + str(depth) + '.tsv'), 'wb') as output_f:
                         output_f.write(output)
             return output
@@ -73,3 +85,38 @@ class StreusleEvaluator:
             if not keep_output_file and os.path.exists(output_tsv_path):
                 os.remove(output_tsv_path)
 
+    @staticmethod
+    def average_evaluations(csv_paths, out_csv_path):
+        tables = []
+        for csv_path in csv_paths:
+            with open(csv_path) as in_f:
+                tables.append(list(csv.reader(in_f)))
+
+        with open(out_csv_path, 'w') as out_f:
+            writer = csv.writer(out_f)
+            for rows in zip(*tables):
+                row = []
+                for cols in zip(*rows):
+                    if len(set(cols)) == 1:
+                        row.append(cols[0])
+                    else:
+                        assert all(isfloat(c) for c in cols)
+                        cols = [float(c) for c in cols]
+                        row.append("%f+-%f" % (mean(cols), stdev(cols)))
+                writer.writerow(row)
+
+
+if __name__ == '__main__':
+    from random import random
+    for i in range(1,4):
+        with open('/tmp/' + str(i) + '.csv', 'w') as f:
+            writer = csv.writer(f)
+            writer.writerow(['head1', 'head2', 'head3'])
+            writer.writerow([str(i + random() * 2 - 1) for i in range(1,4)])
+
+    StreusleEvaluator.average_evaluations(['/tmp/1.csv', '/tmp/2.csv', '/tmp/3.csv'], '/tmp/out.csv')
+
+    with open('/tmp/out.csv') as f:
+        lines = list(csv.reader(f))
+        for l in lines:
+            print(l)

@@ -82,6 +82,9 @@ class MostFrequentClassModel:
         r = [self.get_most_likely_y(x) if mask[ind] else tuple([None] * self.n_labels_to_predict) for ind, x in enumerate(sample_xs)]
         return r
 
+    def predict_dist(self, sample_xs, mask=None):
+        return None
+
     def save(self, base_path):
         with open(base_path + '.pickle', 'wb') as out_f:
             pickle.dump({

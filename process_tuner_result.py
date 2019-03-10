@@ -43,7 +43,6 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
                 'score': cur_score
             }
 
-
     for task, best_result in best_results_by_task.items():
     # for task, best_result in {'goldid.goldsyn': best_results_by_task['goldid.goldsyn']}.items():
         print("Best results for " + task + ": " + str(best_result['score']))
@@ -55,17 +54,23 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
 
         # params['epochs'] = 1
         model = LstmMlpSupersensesModel(LstmMlpSupersensesModel.HyperParameters(**params))
-        evaluate_model_on_task(task, model, streusle_record_to_lstm_model_sample, nn_output_dir)
+        evaluate_model_on_task(task, model, streusle_record_to_lstm_model_sample, nn_output_dir, n_times=5)
 
 def evaluate_most_frequent_baseline_model(output_dir):
-    mfc_output_dir = output_dir + '/mfc'
+    mfc_output_dir = output_dir + '/mf'
+    tasks = [idt + '.' + syn for idt in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
+    for task in tasks:
+        model = MostFrequentClassModel([], include_empty=False, n_labels_to_predict=2)
+        evaluate_model_on_task(task, model, streusle_record_to_most_frequent_class_model_sample, mfc_output_dir, load_elmo=False)
+
+    mfc_output_dir = output_dir + '/mf-prep'
     tasks = [idt + '.' + syn for idt in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
     for task in tasks:
         model = MostFrequentClassModel(['lemma'], include_empty=False, n_labels_to_predict=2)
-        evaluate_model_on_task(task, model, streusle_record_to_most_frequent_class_model_sample, mfc_output_dir)
+        evaluate_model_on_task(task, model, streusle_record_to_most_frequent_class_model_sample, mfc_output_dir, load_elmo=False)
 
-def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, save_model=False):
-    loader = StreusleLoader(load_elmo=True)
+def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, save_model=False, n_times=1, load_elmo=True):
+    loader = StreusleLoader(load_elmo=load_elmo)
 
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
@@ -80,29 +85,35 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, sa
     train_samples = [streusle_to_model_sample(r) for r in train_records]
     dev_samples = [streusle_to_model_sample(r) for r in dev_records]
 
-    fitted = False
-    try:
-        predictor = LstmMlpSupersensesModel.load(task_output + '/model')
-        fitted = True
-        print('Loaded existing predictor')
-    except:
-        fitted = False
+    out_files = {}
+    for t in range(n_times):
+        # try:
+        #     predictor = LstmMlpSupersensesModel.load(task_output + '/model')
+        #     fitted = True
+        #     print('Loaded existing predictor')
+        # except:
+        #     fitted = False
         predictor = model.fit(train_samples, dev_samples, show_progress=True)
-    print("Training done")
-    if save_model and fitted:
-        predictor.save(task_output + '/model')
-    print("Save model done")
-    evaluator = StreusleEvaluator(predictor)
-    for stype, records in [('train', train_records), ('dev', dev_records), ('test', test_records)]:
-        print('Evaluating ', task, stype)
-        gold_fname = task_output + '/' + task + '.' + stype + '.gold.json'
-        sys_fname = task_output + '/' + task + '.' + stype + '.sys.' + task.split('.')[0] + '.json'
-        evaluator.evaluate(records,
-                           output_tsv_path=task_output + '/' + task + '.' + stype + '.psseval.tsv',
-                           gold_fname_out=gold_fname,
-                           sys_fname_out=sys_fname,
-                           streusle_record_to_model_sample=streusle_to_model_sample,
-                           all_depths=True)
+        print("Training done")
+        # if save_model and fitted:
+        #     predictor.save(task_output + '/model')
+        # print("Save model done")
+        evaluator = StreusleEvaluator(predictor)
+        for stype, records in [('train', train_records), ('dev', dev_records), ('test', test_records)]:
+            print('Evaluating ', task, stype)
+            gold_fname = task_output + '/' + task + '.' + stype + '.gold.json'
+            sys_fname = task_output + '/' + task + '.' + stype + '.sys.' + str(t) + '.' + task.split('.')[0] + '.json'
+            out_tsv = task_output + '/' + task + '.' + stype + '.psseval.' + str(t) + '.tsv'
+            out_files[stype] = out_files.get(stype, [])
+            out_files[stype].append(out_tsv)
+            evaluator.evaluate(records,
+                               output_tsv_path=out_tsv,
+                               gold_fname_out=gold_fname,
+                               sys_fname_out=sys_fname,
+                               streusle_record_to_model_sample=streusle_to_model_sample,
+                               all_depths=True)
+    for stype, files in out_files.items():
+        StreusleEvaluator.average_evaluations(files, task_output + '/' + task + '.' + stype + '.sys.' + task.split('.')[0] + '.json')
     print("Evaluation done")
 
 
@@ -110,72 +121,82 @@ def parse_psseval(psseval_path):
     with open(psseval_path, 'r') as f:
         rows = [x.strip().split('\t') for x in f.readlines()]
     pf = lambda f: "%1.1f" % (float(f) * 100)
+    def ps(score):
+        if "+-" in score:
+            m, s = [float(x) for x in score.split('+-')]
+        else:
+            m, s = float(score), 0
+        return {
+            "mean": pf(m),
+            "std": pf(s)
+        }
+
     if 'autoid' in psseval_path:
         return {
             'all': {
                 'id': {
-                    'p': pf(rows[3][6]),
-                    'r': pf(rows[3][7]),
-                    'f': pf(rows[3][8])
+                    'p': ps(rows[3][6]),
+                    'r': ps(rows[3][7]),
+                    'f': ps(rows[3][8])
                 },
                 'role': {
-                    'p': pf(rows[3][10]),
-                    'r': pf(rows[3][11]),
-                    'f': pf(rows[3][12])
+                    'p': ps(rows[3][10]),
+                    'r': ps(rows[3][11]),
+                    'f': ps(rows[3][12])
                 },
                 'fxn': {
-                    'p': pf(rows[3][14]),
-                    'r': pf(rows[3][15]),
-                    'f': pf(rows[3][16])
+                    'p': ps(rows[3][14]),
+                    'r': ps(rows[3][15]),
+                    'f': ps(rows[3][16])
                 },
                 'role_fxn': {
-                    'p': pf(rows[3][18]),
-                    'r': pf(rows[3][19]),
-                    'f': pf(rows[3][20])
+                    'p': ps(rows[3][18]),
+                    'r': ps(rows[3][19]),
+                    'f': ps(rows[3][20])
                 },
             },
             'mwe': {
                 'id': {
-                    'p': pf(rows[8][6]),
-                    'r': pf(rows[8][7]),
-                    'f': pf(rows[8][8])
+                    'p': ps(rows[8][6]),
+                    'r': ps(rows[8][7]),
+                    'f': ps(rows[8][8])
                 },
                 'role': {
-                    'p': pf(rows[8][10]),
-                    'r': pf(rows[8][11]),
-                    'f': pf(rows[8][12])
+                    'p': ps(rows[8][10]),
+                    'r': ps(rows[8][11]),
+                    'f': ps(rows[8][12])
                 },
                 'fxn': {
-                    'p': pf(rows[8][14]),
-                    'r': pf(rows[8][15]),
-                    'f': pf(rows[8][16])
+                    'p': ps(rows[8][14]),
+                    'r': ps(rows[8][15]),
+                    'f': ps(rows[8][16])
                 },
                 'role_fxn': {
-                    'p': pf(rows[8][18]),
-                    'r': pf(rows[8][19]),
-                    'f': pf(rows[8][20])
+                    'p': ps(rows[8][18]),
+                    'r': ps(rows[8][19]),
+                    'f': ps(rows[8][20])
                 },
             },
             'mwp': {
                 'id': {
-                    'p': pf(rows[13][6]),
-                    'r': pf(rows[13][7]),
-                    'f': pf(rows[13][8])
+                    'p': ps(rows[13][6]),
+                    'r': ps(rows[13][7]),
+                    'f': ps(rows[13][8])
                 },
                 'role': {
-                    'p': pf(rows[13][10]),
-                    'r': pf(rows[13][11]),
-                    'f': pf(rows[13][12])
+                    'p': ps(rows[13][10]),
+                    'r': ps(rows[13][11]),
+                    'f': ps(rows[13][12])
                 },
                 'fxn': {
-                    'p': pf(rows[13][14]),
-                    'r': pf(rows[13][15]),
-                    'f': pf(rows[13][16])
+                    'p': ps(rows[13][14]),
+                    'r': ps(rows[13][15]),
+                    'f': ps(rows[13][16])
                 },
                 'role_fxn': {
-                    'p': pf(rows[13][18]),
-                    'r': pf(rows[13][19]),
-                    'f': pf(rows[13][20])
+                    'p': ps(rows[13][18]),
+                    'r': ps(rows[13][19]),
+                    'f': ps(rows[13][20])
                 },
             }
         }
@@ -184,35 +205,35 @@ def parse_psseval(psseval_path):
         return {
             'all': {
                 'role': {
-                    'acc': pf(rows[3][2])
+                    'acc': ps(rows[3][2])
                 },
                 'fxn': {
-                    'acc': pf(rows[3][3])
+                    'acc': ps(rows[3][3])
                 },
                 'role_fxn': {
-                    'acc': pf(rows[3][4])
+                    'acc': ps(rows[3][4])
                 },
             },
             'mwe': {
                 'role': {
-                    'acc': pf(rows[8][2])
+                    'acc': ps(rows[8][2])
                 },
                 'fxn': {
-                    'acc': pf(rows[8][3])
+                    'acc': ps(rows[8][3])
                 },
                 'role_fxn': {
-                    'acc': pf(rows[8][4])
+                    'acc': ps(rows[8][4])
                 },
             },
             'mwp': {
                 'role': {
-                    'acc': pf(rows[13][2])
+                    'acc': ps(rows[13][2])
                 },
                 'fxn': {
-                    'acc': pf(rows[13][3])
+                    'acc': ps(rows[13][3])
                 },
                 'role_fxn': {
-                    'acc': pf(rows[13][4])
+                    'acc': ps(rows[13][4])
                 },
             }
         }
@@ -354,8 +375,8 @@ if __name__ == '__main__':
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    process_tuner_results(path, output_dir)
-    # evaluate_most_frequent_baseline_model(output_dir)
+    # process_tuner_results(path, output_dir)
+    evaluate_most_frequent_baseline_model(output_dir)
     # build_confusion_matrices(output_dir)
     # template_input_path = output_dir + '/template_input.json'
     # build_template_input(output_dir, template_input_path)
