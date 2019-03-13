@@ -68,6 +68,7 @@ class LstmMlpMulticlassModel(object):
                      mlp_dropout_p,
                      lstm_dropout_p,
                      epochs,
+                     trainer,
                      learning_rate,
                      learning_rate_decay,
                      n_labels_to_learn,
@@ -76,6 +77,7 @@ class LstmMlpMulticlassModel(object):
                      use_local,
                      local_dropout_p,
                      mlp_input_dropouts):
+            self.trainer = trainer
             self.mlp_input_dropouts = mlp_input_dropouts
             self.local_dropout_p = local_dropout_p
             self.use_local = use_local
@@ -100,6 +102,8 @@ class LstmMlpMulticlassModel(object):
             self.is_bilstm = is_bilstm
             self.mlp_dropout_p = mlp_dropout_p
             self.epochs = epochs
+
+            assert self.trainer in ['sgd', 'adam']
 
     def __init__(self,
                  input_vocabularies=None,
@@ -151,9 +155,9 @@ class LstmMlpMulticlassModel(object):
                 if embd_vec_dim != given_dim:
                     raise Exception("Input field '%s': Mismatch between given embedding vector size (%d) and given embedding size (%d)" % (field, embd_vec_dim, given_dim))
 
-    def get_field_dim(self, field):
+    def get_field_dim(self, field, ctx_input_dim):
         if field in self.hyperparameters.token_neighbour_types:
-            return self.hyperparameters.lstm_h_dim
+            return ctx_input_dim
         else:
             return self.get_embd_dim(field)
 
@@ -216,7 +220,7 @@ class LstmMlpMulticlassModel(object):
             ],
             unknown_local=pc.add_parameters((ctx_input_dim,)),
             unknown_mlp_inputs={
-                field: pc.add_parameters((self.get_field_dim(field),))
+                field: pc.add_parameters((self.get_field_dim(field, ctx_input_dim),))
                 for field in (self.hyperparameters.mlp_input_fields + self.hyperparameters.token_neighbour_types)
             }
         )
@@ -456,7 +460,12 @@ class LstmMlpMulticlassModel(object):
         best_epoch = None
         model_file_path = '/tmp/_m_' + str(random.randrange(10000))
         try:
-            trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
+            if self.hyperparameters.trainer == 'sgd':
+                trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
+            elif self.hyperparameters.trainer == 'adam':
+                trainer = dy.AdamTrainer(self.pc)
+            else:
+                raise Error('Unknown trainer:' + self.hyperparameters.trainer)
             for epoch in range(1, self.hyperparameters.epochs + 1):
                 if np.isinf(trainer.learning_rate):
                     break

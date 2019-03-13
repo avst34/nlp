@@ -152,6 +152,7 @@ class LstmMlpSupersensesModel:
                      mlp_dropout_p,
                      lstm_dropout_p,
                      epochs,
+                     trainer,
                      learning_rate,
                      learning_rate_decay,
                      mask_mwes,
@@ -159,6 +160,7 @@ class LstmMlpSupersensesModel:
                      dynet_random_seed,
                      labels_to_learn=None,
                      ):
+            self.trainer = trainer
             self.use_capitalized_word_follows = use_capitalized_word_follows
             self.use_lemma = use_lemma
             self.elmo_layer = elmo_layer
@@ -210,6 +212,7 @@ class LstmMlpSupersensesModel:
             self.labels_to_learn = self.labels_to_learn or self.labels_to_predict
 
             assert self.embd_type in ['word2vec', 'muse', 'muse_dict', 'fasttext_en', 'elmo']
+            assert self.trainer in ['sgd', 'adam']
             assert elmo_layer in [0,1,2]
             assert all([l in self.labels_to_learn for l in self.labels_to_predict])
             assert all([label in [LstmMlpSupersensesModel.SUPERSENSE_FUNC, LstmMlpSupersensesModel.SUPERSENSE_ROLE] for label in (labels_to_predict or [])]), labels_to_predict
