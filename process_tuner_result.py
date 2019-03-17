@@ -21,7 +21,7 @@ from utils import csv_to_objs
 STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/release'
 
 
-def process_tuner_results(tuner_results_csv_path, output_dir=None):
+def process_tuner_results(tuner_results_csv_path, output_dir=None, task_to_process=None):
     nn_output_dir = output_dir + '/nn'
     results = csv_to_objs(tuner_results_csv_path)
     execution_params = {}
@@ -34,6 +34,8 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
         if result['Best Epoch'] != 'Yes':
             continue
         task_key = result['Task']
+        if task_to_process and task_key != task_to_process:
+            continue
         best_score = best_results_by_task.get(task_key, {}).get('score', 0)
         cur_score = float(result['Tuner Score'])
         if cur_score > best_score:
@@ -54,7 +56,7 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
         if not params.get("trainer"):
             params["trainer"] = "sgd"
 
-        params['epochs'] = 1
+        # params['epochs'] = 1
         model = LstmMlpSupersensesModel(LstmMlpSupersensesModel.HyperParameters(**params))
         evaluate_model_on_task(task, model, streusle_record_to_lstm_model_sample, nn_output_dir, n_times=5)
 
@@ -383,8 +385,13 @@ if __name__ == '__main__':
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    process_tuner_results(path, output_dir)
+    if len(sys.argv) > 2:
+        task = sys.argv[2]
+    else:
+        task =None
+
+    process_tuner_results(path, output_dir, task_to_process=task)
     # evaluate_most_frequent_baseline_model(output_dir)
     # build_confusion_matrices(output_dir)
-    template_input_path = output_dir + '/template_input.json'
-    build_template_input(output_dir, template_input_path)
+    # template_input_path = output_dir + '/template_input.json'
+    # build_template_input(output_dir, template_input_path)
