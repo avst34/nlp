@@ -8,6 +8,6 @@ SRC_BASE=/cs/usr/aviramstern/lab/nlp_prod
 
 # DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 export PYTHONPATH=$SRC_BASE
-while true; do
-    /cs/labs/oabend/aviramstern/python_phoenix/bin/python3 -u $SRC_BASE/process_tuner_result.py /cs/labs/oabend/aviramstern/full_model.csv $1
-done
+#while true; do
+/cs/labs/oabend/aviramstern/python_phoenix/bin/python3 -u $SRC_BASE/process_tuner_result.py /cs/labs/oabend/aviramstern/full_model.csv $1
+#done
