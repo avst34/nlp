@@ -384,7 +384,7 @@ if __name__ == '__main__':
         os.mkdir(output_dir)
 
     # process_tuner_results(path, output_dir)
-    # evaluate_most_frequent_baseline_model(output_dir)
+    evaluate_most_frequent_baseline_model(output_dir)
     # build_confusion_matrices(output_dir)
     template_input_path = output_dir + '/template_input.json'
     build_template_input(output_dir, template_input_path)
