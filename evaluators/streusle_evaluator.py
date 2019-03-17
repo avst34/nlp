@@ -41,7 +41,7 @@ class StreusleEvaluator:
             keep_output_file = True
         else:
             keep_output_file = False
-            output_tsv_path = 'output_' + rand + '.json'
+            output_tsv_path = 'output_' + rand + '.tsv'
 
         try:
             with open(sys_fname, 'w') as sys_f:
@@ -90,19 +90,21 @@ class StreusleEvaluator:
         tables = []
         for csv_path in csv_paths:
             with open(csv_path) as in_f:
-                tables.append(list(csv.reader(in_f)))
+                tables.append(list(csv.reader(in_f, delimiter='\t')))
 
         with open(out_csv_path, 'w') as out_f:
-            writer = csv.writer(out_f)
+            writer = csv.writer(out_f, delimiter='\t')
             for rows in zip(*tables):
                 row = []
                 for cols in zip(*rows):
                     if len(set(cols)) == 1:
                         row.append(cols[0])
                     else:
-                        assert all(isfloat(c) for c in cols)
-                        cols = [float(c) for c in cols]
-                        row.append("%f+-%f" % (mean(cols), stdev(cols)))
+                        if all(isfloat(c) for c in cols):
+                            cols = [float(c) for c in cols]
+                            row.append("%f+-%f" % (mean(cols), stdev(cols)))
+                        else:
+                            row.append(';'.join(cols))
                 writer.writerow(row)
 
 

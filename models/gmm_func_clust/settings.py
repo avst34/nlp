@@ -58,7 +58,6 @@ GOV_OBJ_ROLE = override_settings([TUNER_DOMAINS, [
     PS(name='use_prep', values=[False]),
 ]])
 
-
 TASK_SETTINGS = {
     'gov.func': GOV_FUNC,
     'gov.role': GOV_ROLE,

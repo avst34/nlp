@@ -7,7 +7,7 @@ from hyperparameters_tuner import override_settings
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
-from models.supersenses.settings import TASK_SETTINGS
+from models.supersenses.settings import TASK_SETTINGS, ELMO_MIN_NELSON
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 
 evaluator = PSSClasifierEvaluator()
@@ -34,6 +34,7 @@ def run():
     # tasks = ['goldid.goldsyn']
     task = random.choice(tasks)
     for task in [task]:
+        print("Task:", task)
         loader = StreusleLoader(load_elmo=False, task_name=task)
         train_records = loader.load_train()
         dev_records = loader.load_dev()
@@ -59,6 +60,7 @@ def run():
             show_epoch_eval=True,
             tuner_domains=override_settings([
                 TASK_SETTINGS[task],
+                # ELMO_MIN_NELSON,
                 [
                     # PS(name='epochs', values=[1])
                 ]

@@ -48,11 +48,13 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None):
         print("Best results for " + task + ": " + str(best_result['score']))
         params = execution_params[best_result['execution_id']]
         params['allow_empty_prediction'] = False
-        if not params.get("use_lexcat"):
-            params["use_lexcat"] = True
-            params["lexcat_embd_dim"] = 3
+        # if not params.get("use_lexcat"):
+        #     params["use_lexcat"] = True
+        #     params["lexcat_embd_dim"] = 3
+        if not params.get("trainer"):
+            params["trainer"] = "sgd"
 
-        # params['epochs'] = 1
+        params['epochs'] = 1
         model = LstmMlpSupersensesModel(LstmMlpSupersensesModel.HyperParameters(**params))
         evaluate_model_on_task(task, model, streusle_record_to_lstm_model_sample, nn_output_dir, n_times=5)
 
@@ -84,7 +86,7 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, sa
     test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
     train_samples = [streusle_to_model_sample(r) for r in train_records]
     dev_samples = [streusle_to_model_sample(r) for r in dev_records]
-
+    test_samples = [streusle_to_model_sample(r) for r in test_records]
     out_files = {}
     for t in range(n_times):
         # try:
@@ -93,7 +95,7 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, sa
         #     print('Loaded existing predictor')
         # except:
         #     fitted = False
-        predictor = model.fit(train_samples, dev_samples, show_progress=True)
+        predictor = model.fit(train_samples, dev_samples, test_samples, show_progress=True)
         print("Training done")
         # if save_model and fitted:
         #     predictor.save(task_output + '/model')
@@ -113,7 +115,7 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, sa
                                streusle_record_to_model_sample=streusle_to_model_sample,
                                all_depths=True)
     for stype, files in out_files.items():
-        StreusleEvaluator.average_evaluations(files, task_output + '/' + task + '.' + stype + '.sys.' + task.split('.')[0] + '.json')
+        StreusleEvaluator.average_evaluations(files, task_output + '/' + task + '.' + stype + '.psseval.tsv')
     print("Evaluation done")
 
 
@@ -240,15 +242,21 @@ def parse_psseval(psseval_path):
 
 
 def build_template_input(results_dir, json_output_path):
-    mtypes = ['nn', 'mfc']
+    mtypes = ['nn', 'mf', 'mf-prep']
     stypes = ['train', 'dev', 'test']
-    tasks = [idt + '.' + syn for idt in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
+    tasks = [idt + '.' + syn for idt in [
+        'autoid',
+        'goldid']
+             for syn in ['autosyn', 'goldsyn']]
     d = {}
     for mtype in mtypes:
         for stype in stypes:
             for task in tasks:
                 hp_file_path = results_dir + '/' + mtype + '/' + task + '/model.hp'
-                evl = parse_psseval(results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.psseval.tsv')
+                try:
+                    evl = parse_psseval(results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.psseval.tsv')
+                except:
+                    continue
 
                 f_task = task.replace('.', '_')
                 d[mtype] = d.get(mtype) or {}
@@ -369,14 +377,14 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         path = sys.argv[1]
     else:
-        path = r'c:\temp\results.csv'
+        path = r'/cs/labs/oabend/aviramstern/full_model.csv'
 
     output_dir = os.path.dirname(path) + '/best_results'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
     # process_tuner_results(path, output_dir)
-    evaluate_most_frequent_baseline_model(output_dir)
+    # evaluate_most_frequent_baseline_model(output_dir)
     # build_confusion_matrices(output_dir)
-    # template_input_path = output_dir + '/template_input.json'
-    # build_template_input(output_dir, template_input_path)
+    template_input_path = output_dir + '/template_input.json'
+    build_template_input(output_dir, template_input_path)
