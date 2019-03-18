@@ -390,8 +390,10 @@ if __name__ == '__main__':
     else:
         task =None
 
-    process_tuner_results(path, output_dir, task_to_process=task)
-    # evaluate_most_frequent_baseline_model(output_dir)
-    # build_confusion_matrices(output_dir)
-    # template_input_path = output_dir + '/template_input.json'
-    # build_template_input(output_dir, template_input_path)
+    if task != 'template_params':
+        process_tuner_results(path, output_dir, task_to_process=task)
+    else:
+        # evaluate_most_frequent_baseline_model(output_dir)
+        # build_confusion_matrices(output_dir)
+        template_input_path = output_dir + '/template_input.json'
+        build_template_input(output_dir, template_input_path)
