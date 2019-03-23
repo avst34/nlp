@@ -30,8 +30,8 @@ def print_samples_statistics(name, samples):
 
 def run():
 
-    tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
-    # tasks = ['goldid.goldsyn']
+    # tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
+    tasks = ['goldid.goldsyn']
     task = random.choice(tasks)
     for task in [task]:
         print("Task:", task)
@@ -59,8 +59,8 @@ def run():
             show_progress=True,
             show_epoch_eval=True,
             tuner_domains=override_settings([
-                TASK_SETTINGS[task],
-                # ELMO_MIN_NELSON,
+                # TASK_SETTINGS[task],
+                ELMO_MIN_NELSON,
                 [
                     # PS(name='epochs', values=[1])
                 ]
