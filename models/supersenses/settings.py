@@ -129,7 +129,7 @@ ELMO_FASTTEXT_MIN_TASK_SETTINGS = {
 ELMO_MIN_NELSON = override_settings([
     ELMO_FASTTEXT_MIN_TASK_SETTINGS['goldid.goldsyn'],
     {
-        PS(name='embd_type', values=['elmo']),
+        PS(name='embd_type', values=['elmo', 'fasttext_en']),
         PS(name='elmo_layer', values=[1]),
         PS(name='trainer', values=['adam']),
         PS(name='learning_rate', values=['0.001']),
@@ -146,6 +146,7 @@ ELMO_MIN_NELSON = override_settings([
         PS(name='use_lexcat', values=[False]),
         PS(name='update_token_embd', values=[False]),
         PS(name='epochs', values=[130]),
-
+        PS(name='mlp_layers', values=[0]),
+        PS(name='num_lstm_layers', values=[0]),
     }
 ])
