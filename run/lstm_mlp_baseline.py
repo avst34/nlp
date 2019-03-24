@@ -1,4 +1,5 @@
 import os
+import json
 import random
 
 from datasets.streusle_v4 import StreusleLoader
@@ -35,7 +36,7 @@ def run():
     task = random.choice(tasks)
     for task in [task]:
         print("Task:", task)
-        loader = StreusleLoader(load_elmo=False, task_name=task)
+        loader = StreusleLoader(load_elmo=True, task_name=task)
         train_records = loader.load_train()
         dev_records = loader.load_dev()
         test_records = loader.load_test()

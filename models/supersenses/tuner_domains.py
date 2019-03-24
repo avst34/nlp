@@ -90,7 +90,8 @@ TUNER_DOMAINS_TESTING = [
     PS(name='epochs', values=[1]),
     PS(name='validation_split', values=[0.3]),
     PS(name='learning_rate', values=[1]),
-    PS(name='learning_rate_decay', values=[0])
+    PS(name='learning_rate_decay', values=[0]),
+    PS(name='prep_dropout_p', values=[0])
 ]
 
 # TUNER_DOMAINS = TUNER_DOMAINS_TESTING
