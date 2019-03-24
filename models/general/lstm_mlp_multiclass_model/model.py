@@ -282,7 +282,7 @@ class LstmMlpMulticlassModel(object):
 
         embd = None
         _embd = token_data.embeddings_override.get(field)
-        if _embd:
+        if _embd is not None:
             embd = dy.inputTensor(_embd)
         else:
             if self.input_vocabularies[field].has_word(token_data[field]):
