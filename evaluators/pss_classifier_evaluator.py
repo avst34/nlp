@@ -181,9 +181,6 @@ class PSSClasifierEvaluator:
                     ('total', class_counts['total']),
                     ('correct/total', '%d / %d' % (class_counts['p_value_a_value_eq'], class_counts['total']))
                 ])
-                if class_scores[klass]['precision'] > 10 and (str(class_counts['p_value_a_value_eq'] / class_counts['total']*100) + '00')[:5] != (str(class_scores[klass]['precision']) + '00')[:5]:
-                    print('whoa')
-                # print(klass, precision, class_scores[klass]['precision'], class_scores[klass]['correct/total'], class_counts['p_value_a_value_eq']/class_counts['total'])
 
         def report(klass, display_name):
             print(' - %s precision: %2.2f' % (display_name, class_scores[klass]['precision']))

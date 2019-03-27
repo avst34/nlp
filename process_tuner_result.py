@@ -21,9 +21,43 @@ from utils import csv_to_objs
 STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/release'
 
 
-def process_tuner_results(tuner_results_csv_path, output_dir=None, task_to_process=None):
+filters = {
+    "all": {},
+    "elmo_nosyn": {
+        "embd_type": "elmo",
+        "use_capitalized_word_follows": False,
+        "use_ud_xpos": False,
+        "use_ud_dep": False,
+        "use_ner": False,
+        "use_govobj": False,
+        "use_lexcat": False,
+    },
+    "elmo_syn": {
+        "embd_type": "elmo"
+    },
+    "fasttext_nosyn": {
+        "embd_type": "fasttext_en",
+        "use_capitalized_word_follows": False,
+        "use_ud_xpos": False,
+        "use_ud_dep": False,
+        "use_ner": False,
+        "use_govobj": False,
+        "use_lexcat": False,
+    },
+    "fasttext_syn": {
+        "embd_type": "fasttext_en",
+    },
+}
+
+def does_filter_match(filter, row):
+    for k, v in filter.items():
+        if row[k] != str(v):
+            return False
+    return True
+
+def process_tuner_results(tuner_results_csv_paths, output_dir=None, task_to_process=None, filter=None):
     nn_output_dir = output_dir + '/nn'
-    results = csv_to_objs(tuner_results_csv_path)
+    results = [x for p in tuner_results_csv_paths for x in csv_to_objs(p)]
     execution_params = {}
     for result in results:
         if result['Hyperparams Json']:
@@ -35,6 +69,8 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None, task_to_proce
             continue
         task_key = result['Task']
         if task_to_process and task_key != task_to_process:
+            continue
+        if filter and not does_filter_match(filters[filter], result):
             continue
         best_score = best_results_by_task.get(task_key, {}).get('score', 0)
         cur_score = float(result['Tuner Score'])
@@ -58,7 +94,7 @@ def process_tuner_results(tuner_results_csv_path, output_dir=None, task_to_proce
 
         # params['epochs'] = 1
         model = LstmMlpSupersensesModel(LstmMlpSupersensesModel.HyperParameters(**params))
-        evaluate_model_on_task(task, model, streusle_record_to_lstm_model_sample, nn_output_dir, n_times=5)
+        evaluate_model_on_task(task, model, streusle_record_to_lstm_model_sample, nn_output_dir, n_times=5, suffix=(".%s" % filter) if filter and filter != 'all' else "")
 
 def evaluate_most_frequent_baseline_model(output_dir):
     mfc_output_dir = output_dir + '/mf'
@@ -73,15 +109,18 @@ def evaluate_most_frequent_baseline_model(output_dir):
         model = MostFrequentClassModel(['lemma'], include_empty=False, n_labels_to_predict=2)
         evaluate_model_on_task(task, model, streusle_record_to_most_frequent_class_model_sample, mfc_output_dir, load_elmo=False)
 
-def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, save_model=False, n_times=1, load_elmo=True):
+def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, save_model=False, n_times=1, load_elmo=True, suffix=""):
     loader = StreusleLoader(load_elmo=load_elmo)
 
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    task_output = output_dir + '/' + task
+    task_output = output_dir + '/' + task + suffix
     if not os.path.exists(task_output):
         os.mkdir(task_output)
+
+    with open(task_output + '/hp.json', 'w') as f:
+        json.dump(model.hyperparameters.__dict__, f, indent=2)
 
     train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
     dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
@@ -254,37 +293,38 @@ def build_template_input(results_dir, json_output_path):
     for mtype in mtypes:
         for stype in stypes:
             for task in tasks:
-                hp_file_path = results_dir + '/' + mtype + '/' + task + '/model.hp'
-                try:
-                    evl = parse_psseval(results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.psseval.tsv')
-                except:
-                    continue
+                for filter in filters:
+                    hp_file_path = results_dir + '/' + mtype + '/' + task + '/model.hp'
+                    try:
+                        evl = parse_psseval(results_dir + '/' + mtype + '/' + task + (".%s" % filter) if filter and filter != 'all' else "" + '/' + task + '.' + stype + '.psseval.tsv')
+                    except:
+                        continue
 
-                f_task = task.replace('.', '_')
-                d[mtype] = d.get(mtype) or {}
-                d[mtype][f_task] = d[mtype].get(f_task) or {}
-                d[mtype][f_task][stype] = {}
-                d[mtype][f_task][stype]['psseval'] = evl
+                    f_task = (task + (".%s" % filter) if filter and filter != 'all' else "").replace('.', '_')
+                    d[mtype] = d.get(mtype) or {}
+                    d[mtype][f_task] = d[mtype].get(f_task) or {}
+                    d[mtype][f_task][stype] = {}
+                    d[mtype][f_task][stype]['psseval'] = evl
 
-                for depth in [1,2,3]:
-                    p = results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.psseval.depth_' + str(depth) + '.tsv'
-                    if os.path.exists(p):
-                        evl = parse_psseval(p)
-                        d[mtype][f_task][stype]['psseval_depth_' + str(depth)] = evl
+                    for depth in [1,2,3]:
+                        p = results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.psseval.depth_' + str(depth) + '.tsv'
+                        if os.path.exists(p):
+                            evl = parse_psseval(p)
+                            d[mtype][f_task][stype]['psseval_depth_' + str(depth)] = evl
 
-                def format_hp(val):
-                    conv = {str(10**i): '10^{%d}' % i for i in range(-10, 0)}
-                    conv.update({'false': 'No', 'False': 'No', 'true': 'Yes', 'True': 'Yes'})
-                    if str(val) in conv:
-                        return conv[str(val)]
-                    elif type(val) != float or int(val) == val:
-                        return val
-                    else:
-                        return int(val * 100) / 100
+                    def format_hp(val):
+                        conv = {str(10**i): '10^{%d}' % i for i in range(-10, 0)}
+                        conv.update({'false': 'No', 'False': 'No', 'true': 'Yes', 'True': 'Yes'})
+                        if str(val) in conv:
+                            return conv[str(val)]
+                        elif type(val) != float or int(val) == val:
+                            return val
+                        else:
+                            return int(val * 100) / 100
 
-                if os.path.exists(hp_file_path):
-                    with open(hp_file_path) as hp_file:
-                        d[mtype][f_task]['hp'] = {hp: format_hp(val) for hp, val in json.load(hp_file).items()}
+                    if os.path.exists(hp_file_path):
+                        with open(hp_file_path) as hp_file:
+                            d[mtype][f_task]['hp'] = {hp: format_hp(val) for hp, val in json.load(hp_file).items()}
 
 
     with open(json_output_path, 'w') as f:
@@ -381,17 +421,16 @@ if __name__ == '__main__':
     else:
         path = r'/cs/labs/oabend/aviramstern/full_model.csv'
 
-    output_dir = os.path.dirname(path) + '/best_results'
+    output_dir = os.environ.get('BEST_RESULTS_PATH') or r'/cs/labs/oabend/aviramstern/best_results'
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    if len(sys.argv) > 2:
-        task = sys.argv[2]
-    else:
-        task =None
+    task = sys.argv[-2]
+    filter = sys.argv[-1]
+    csvs = sys.argv[1:-2]
 
     if task != 'template_params':
-        process_tuner_results(path, output_dir, task_to_process=task)
+        process_tuner_results(csvs, output_dir, task_to_process=task, filter=filter)
     else:
         # evaluate_most_frequent_baseline_model(output_dir)
         # build_confusion_matrices(output_dir)
