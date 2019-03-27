@@ -29,7 +29,10 @@ def print_samples_statistics(name, samples):
           )
 
 
-def run():
+def run(all_syntax=False):
+
+    if all_syntax:
+        print("Using all syntax features!")
 
     tasks = ['.'.join([id, syn]) for id in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
     # tasks = ['goldid.goldsyn']
@@ -65,6 +68,14 @@ def run():
                 [
                     PS(name='embd_type', values=["elmo"]),
                     PS(name='elmo_layer', values=[1]),
+                ],
+                [] if not all_syntax else [
+                    PS(name='use_capitalized_word_follows', values=[True]),
+                    PS(name='use_ud_xpos', values=[True]),
+                    PS(name='use_ud_dep', values=[True]),
+                    PS(name='use_ner', values=[True]),
+                    PS(name='use_govobj', values=[True]),
+                    PS(name='use_lexcat', values=[True]),
                 ]
             ]),
             dump_models=False
@@ -118,4 +129,6 @@ def run():
     # # evaluator.evaluate(ll_samples, examples_to_show=5)
 
 if __name__ == '__main__':
-    run()
+    import sys
+    all_syntax = len(sys.argv) and sys.argv[-1] == 'all_syntax'
+    run(all_syntax)
