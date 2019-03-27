@@ -8,7 +8,7 @@ from hyperparameters_tuner import override_settings
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
-from models.supersenses.settings import TASK_SETTINGS, ELMO_MIN_NELSON
+from models.supersenses.settings import TASK_SETTINGS, ELMO_MIN_NELSON, PS
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 
 evaluator = PSSClasifierEvaluator()
