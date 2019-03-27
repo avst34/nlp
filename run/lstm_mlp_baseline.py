@@ -63,7 +63,8 @@ def run():
                 TASK_SETTINGS[task],
                 # ELMO_MIN_NELSON,
                 [
-                    # PS(name='epochs', values=[1])
+                    PS(name='embd_type', values=["elmo"]),
+                    PS(name='elmo_layer', values=[1]),
                 ]
             ]),
             dump_models=False
