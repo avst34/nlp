@@ -429,6 +429,10 @@ if __name__ == '__main__':
     filter = sys.argv[-1]
     csvs = sys.argv[1:-2]
 
+    print("task", task)
+    print("filter", filter)
+    print("csvs", csvs)
+
     if task != 'template_params':
         process_tuner_results(csvs, output_dir, task_to_process=task, filter=filter)
     else:
