@@ -429,6 +429,7 @@ if __name__ == '__main__':
     filter = sys.argv[-1]
     csvs = sys.argv[2:-2]
 
+    print(sys.argv)
     print("task", task)
     print("filter", filter)
     print("csvs", csvs)
