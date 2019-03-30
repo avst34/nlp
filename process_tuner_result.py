@@ -23,6 +23,14 @@ STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/lab/nlp/
 
 filters = {
     "all": {},
+    "full_syntax": {
+        "use_capitalized_word_follows": True,
+        "use_ud_xpos": True,
+        "use_ud_dep": True,
+        "use_ner": True,
+        "use_govobj": True,
+        "use_lexcat": True
+    },
     "elmo_nosyn": {
         "embd_type": "elmo",
         "use_capitalized_word_follows": False,
