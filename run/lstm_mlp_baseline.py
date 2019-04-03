@@ -67,6 +67,7 @@ def run(all_syntax=False):
                 # ELMO_MIN_NELSON,
                 [
                     PS(name='embd_type', values=["elmo"]),
+                    PS(name='use_lemma', values=[False]),
                     PS(name='elmo_layer', values=[1]),
                 ],
                 [] if not all_syntax else [

@@ -59,7 +59,7 @@ TUNER_DOMAINS_TUNING = [
     PS(name='lstm_dropout_p', values=np.arange(.51, step=.01)),
     PS(name='epochs', values=[130]),
     PS(name='trainer', values=['adam', 'sgd']),
-    PS(name='learning_rate', values=list(np.logspace(-2, 0, 6)) + [0.001]),
+    PS(name='learning_rate', values=list([0.001, 0.1, 0.15, 0.2])),
     PS(name='learning_rate_decay', values=np.r_[0, np.logspace(-5, -1, 9)]),
     PS(name='mask_mwes', values=[False]),
     PS(name='allow_empty_prediction', values=[True, False]),

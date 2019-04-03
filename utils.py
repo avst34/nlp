@@ -26,7 +26,7 @@ def csv_to_objs(csv_file_path):
                 keys = row
             else:
                 if row:
-                    objs.append({k: row[i] for i, k in enumerate(keys)})
+                    yield {k: row[i] for i, k in enumerate(keys)}
     return objs
 
 def parse_conll(conll):

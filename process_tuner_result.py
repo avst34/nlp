@@ -65,12 +65,13 @@ def does_filter_match(filter, row):
 
 def process_tuner_results(tuner_results_csv_paths, output_dir=None, task_to_process=None, filter=None):
     nn_output_dir = output_dir + '/nn'
-    results = [x for p in tuner_results_csv_paths for x in csv_to_objs(p)]
+    results = (x for p in tuner_results_csv_paths for x in csv_to_objs(p))
     execution_params = {}
     for result in results:
         if result['Hyperparams Json']:
             execution_params[result['Execution ID']] = json.loads(result['Hyperparams Json'])
 
+    results = (x for p in tuner_results_csv_paths for x in csv_to_objs(p))
     best_results_by_task = {}
     for result in results:
         if result['Best Epoch'] != 'Yes':
@@ -117,7 +118,7 @@ def evaluate_most_frequent_baseline_model(output_dir):
         model = MostFrequentClassModel(['lemma'], include_empty=False, n_labels_to_predict=2)
         evaluate_model_on_task(task, model, streusle_record_to_most_frequent_class_model_sample, mfc_output_dir, load_elmo=False)
 
-def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, save_model=False, n_times=1, load_elmo=True, suffix=""):
+def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, save_model=False, n_times=1, load_elmo=True, suffix="", already_evaluated=False):
     loader = StreusleLoader(load_elmo=load_elmo)
 
     if not os.path.exists(output_dir):
@@ -127,15 +128,25 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, sa
     if not os.path.exists(task_output):
         os.mkdir(task_output)
 
-    with open(task_output + '/hp.json', 'w') as f:
-        json.dump(model.hyperparameters.__dict__, f, indent=2)
+    if not already_evaluated:
+        with open(task_output + '/hp.json', 'w') as f:
+            json.dump(model.hyperparameters.__dict__, f, indent=2)
 
-    train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
-    dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
-    test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
-    train_samples = [streusle_to_model_sample(r) for r in train_records]
-    dev_samples = [streusle_to_model_sample(r) for r in dev_records]
-    test_samples = [streusle_to_model_sample(r) for r in test_records]
+        train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
+        dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
+        test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
+        train_samples = [streusle_to_model_sample(r) for r in train_records]
+        dev_samples = [streusle_to_model_sample(r) for r in dev_records]
+        test_samples = [streusle_to_model_sample(r) for r in test_records]
+    else:
+        train_records = []
+        dev_records = []
+        test_records = []
+        train_samples = []
+        dev_samples = []
+        test_samples = []
+
+
     out_files = {}
     for t in range(n_times):
         # try:
@@ -144,8 +155,10 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, sa
         #     print('Loaded existing predictor')
         # except:
         #     fitted = False
-        predictor = model.fit(train_samples, dev_samples, test_samples, show_progress=True)
-        print("Training done")
+        predictor = model
+        if not already_evaluated:
+            predictor = model.fit(train_samples, dev_samples, test_samples, show_progress=True)
+            print("Training done")
         # if save_model and fitted:
         #     predictor.save(task_output + '/model')
         # print("Save model done")
@@ -157,12 +170,13 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, sa
             out_tsv = task_output + '/' + task + '.' + stype + '.psseval.' + str(t) + '.tsv'
             out_files[stype] = out_files.get(stype, [])
             out_files[stype].append(out_tsv)
-            evaluator.evaluate(records,
-                               output_tsv_path=out_tsv,
-                               gold_fname_out=gold_fname,
-                               sys_fname_out=sys_fname,
-                               streusle_record_to_model_sample=streusle_to_model_sample,
-                               all_depths=True)
+            if not already_evaluated:
+                evaluator.evaluate(records,
+                                   output_tsv_path=out_tsv,
+                                   gold_fname_out=gold_fname,
+                                   sys_fname_out=sys_fname,
+                                   streusle_record_to_model_sample=streusle_to_model_sample,
+                                   all_depths=True)
     for stype, files in out_files.items():
         StreusleEvaluator.average_evaluations(files, task_output + '/' + task + '.' + stype + '.psseval.tsv')
     print("Evaluation done")
