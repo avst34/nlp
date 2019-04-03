@@ -304,11 +304,13 @@ def build_template_input(results_dir, json_output_path):
                 for filter in filters:
                     hp_file_path = results_dir + '/' + mtype + '/' + task + '/model.hp'
                     try:
-                        evl = parse_psseval(results_dir + '/' + mtype + '/' + task + (".%s" % filter) if filter and filter != 'all' else "" + '/' + task + '.' + stype + '.psseval.tsv')
+                        evl = parse_psseval(results_dir + '/' + mtype + '/' + task + ((".%s" % filter) if filter and filter != 'all' else "") + '/' + task + '.' + stype + '.psseval.tsv')
                     except:
+                        import traceback
+                        traceback.print_exc()
                         continue
 
-                    f_task = (task + (".%s" % filter) if filter and filter != 'all' else "").replace('.', '_')
+                    f_task = (task + ((".%s" % filter) if filter and filter != 'all' else "")).replace('.', '_')
                     d[mtype] = d.get(mtype) or {}
                     d[mtype][f_task] = d[mtype].get(f_task) or {}
                     d[mtype][f_task][stype] = {}
@@ -448,4 +450,5 @@ if __name__ == '__main__':
         # evaluate_most_frequent_baseline_model(output_dir)
         # build_confusion_matrices(output_dir)
         template_input_path = output_dir + '/template_input.json'
+        print("template_input_path", template_input_path)
         build_template_input(output_dir, template_input_path)

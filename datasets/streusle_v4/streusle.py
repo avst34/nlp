@@ -6,8 +6,6 @@ from collections import namedtuple, defaultdict
 from functools import reduce
 from itertools import chain
 
-import h5py
-
 import supersense_repo
 from models.supersenses.preprocessing.elmo import run_elmo
 from vocabulary import VocabularyBuilder

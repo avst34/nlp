@@ -119,6 +119,27 @@ LEXCAT embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.lex
 \end{table*}
 
 
+\begin{table}[]
+\setlength{\tabcolsep}{10pt} % Default value: 6pt
+\renewcommand{\arraystretch}{1.5}
+\newcommand{\score}[2]{#1{ ($\pm$#2)}}
+\newcommand{\acc}[1]{\multicolumn{3}{c|}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
+\newcommand{\accl}[1]{\multicolumn{3}{c}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
+\centering
+\begin{tabular}{|c|cc|cc|}
+
+\hline
+\multirow{2}{*}{\backslashbox{Embeddings}{Syntax}}   & \multicolumn{2}{|c|}{\textbf{w/o Syntax}} & \multicolumn{2}{|c|}{\textbf{w/ Syntax}}  \\
+& Role & Func. & Role & Func. \\ \hline
+\textbf{fastText} &  \score{ {{nn.goldid_goldsyn_fasttext_nosyn.test.psseval.all.role.acc.mean}} }{ {{nn.goldid_goldsyn_fasttext_nosyn.test.psseval.all.role.acc.std}} }     &  \score{ {{nn.goldid_goldsyn_fasttext_nosyn.test.psseval.all.fxn.acc.mean}} }{ {{nn.goldid_goldsyn_fasttext_nosyn.test.psseval.all.fxn.acc.std}} } &  \score{ {{nn.goldid_goldsyn_fasttext_syn.test.psseval.all.role.acc.mean}} }{ {{nn.goldid_goldsyn_fasttext_syn.test.psseval.all.role.acc.std}} }     &  \score{ {{nn.goldid_goldsyn_fasttext_syn.test.psseval.all.fxn.acc.mean}} }{ {{nn.goldid_goldsyn_fasttext_syn.test.psseval.all.fxn.acc.std}} } \\ \hline
+\textbf{ELMo} &  \score{ {{nn.goldid_goldsyn_elmo_nosyn.test.psseval.all.role.acc.mean}} }{ {{nn.goldid_goldsyn_elmo_nosyn.test.psseval.all.role.acc.std}} }     &  \score{ {{nn.goldid_goldsyn_elmo_nosyn.test.psseval.all.fxn.acc.mean}} }{ {{nn.goldid_goldsyn_elmo_nosyn.test.psseval.all.fxn.acc.std}} } &  \score{ {{nn.goldid_goldsyn_elmo_syn.test.psseval.all.role.acc.mean}} }{ {{nn.goldid_goldsyn_elmo_syn.test.psseval.all.role.acc.std}} }     &  \score{ {{nn.goldid_goldsyn_elmo_syn.test.psseval.all.fxn.acc.mean}} }{ {{nn.goldid_goldsyn_elmo_syn.test.psseval.all.fxn.acc.std}} } \\ \hline
+\end{tabular}
+\caption{Average role and func. prediction accuracy scores for the 4 models variations corresponding to the selection of word embeddings and use of syntax, in the gold-id/gold-syntax setting.}
+
+\end{table}
+
+
+
 \begin{table}[h]\centering\small
 \begin{tabular}{lccc}
         & Labels    & Scene  & Function \\
