@@ -35,7 +35,7 @@ DebugParams = namedtuple('DebugParams', [
 
 class ModelOptimizedParams:
 
-    def __init__(self, word_embeddings, p1_mlp, p2_mlps, w, verb_ss_embeddings, noun_ss_embeddings, debug):
+    def __init__(self, word_embeddings, p1_mlp, p2_mlps, w, verb_ss_embeddings, noun_ss_embeddings, pss_lookup, debug):
         self.p1_mlp = p1_mlp
         self.p2_mlps = p2_mlps
         self.w = w
@@ -43,6 +43,7 @@ class ModelOptimizedParams:
         self.debug = debug
         self.verb_ss_embeddings = verb_ss_embeddings
         self.noun_ss_embeddings = noun_ss_embeddings
+        self.pss_lookup = pss_lookup
 
 
 MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
@@ -116,10 +117,14 @@ class HCPDModel(object):
                      update_embeddings=True,
                      trainer="SimpleSGDTrainer",
                      use_pss=False,
+                     pss_embd_dim=5,
+                     pss_embd_type='lookup',
                      use_verb_noun_ss=False,
                      fallback_to_lemmas=False,
                      epochs=100
                      ):
+            self.pss_embd_type = pss_embd_type
+            self.pss_embd_dim = pss_embd_dim
             self.p1_mlp_layers = p1_mlp_layers
             self.p2_mlp_layers = p2_mlp_layers
             self.p1_vec_dim = p1_vec_dim
@@ -137,6 +142,8 @@ class HCPDModel(object):
             self.fallback_to_lemmas = fallback_to_lemmas
             self.verb_ss_embedding_dim = verb_ss_embedding_dim
             self.noun_ss_embedding_dim = noun_ss_embedding_dim
+
+            assert self.pss_embd_type in ['lookup', 'binary']
 
     def __init__(self,
                  words_vocab=vocabs.WORDS,
@@ -161,7 +168,7 @@ class HCPDModel(object):
         self.word_embeddings = word_embeddings
 
         self.hyperparameters = hyperparameters
-        self.test_set_evaluation = None
+        self.dev_set_evaluation = None
         self.train_set_evaluation = None
         self.pc = self._build_network_params()
 
@@ -172,7 +179,11 @@ class HCPDModel(object):
         self.p1_vec_inp_dim = self.get_word_embd_dim() * 2 \
                                    + self.wordnet_hypernyms_vocab.size()
         if hp.use_pss:
-            self.p1_vec_inp_dim += self.pss_vocab.size() * 2
+            if hp.pss_embd_type == 'lookup':
+                pss_dim = hp.pss_embd_dim
+            else:
+                pss_dim = self.pss_vocab.size()
+            self.p1_vec_inp_dim += pss_dim * 2
         if hp.use_verb_noun_ss:
             self.p1_vec_inp_dim += hp.noun_ss_embedding_dim
 
@@ -206,6 +217,8 @@ class HCPDModel(object):
             w=pc.add_parameters((1, hp.p2_vec_dim)),
             verb_ss_embeddings=pc.add_lookup_parameters((self.verb_ss_vocab.size(), hp.verb_ss_embedding_dim)),
             noun_ss_embeddings=pc.add_lookup_parameters((self.noun_ss_vocab.size(), hp.noun_ss_embedding_dim)),
+
+            pss_lookup=pc.add_lookup_parameters((self.pss_vocab.size(), hp.pss_embd_dim)),
 
             debug=DebugParams(
                 W_debug_vec=pc.add_parameters((hp.p2_vec_dim, hp.p2_vec_dim)),
@@ -260,13 +273,21 @@ class HCPDModel(object):
             ])
         return pv
 
+    def get_pss_vec(self, pss):
+        if self.hyperparameters.pss_embd_type == 'lookup':
+            return dy.lookup(self.params.pss_lookup, self.pss_vocab.get_index(pss))
+        elif self.hyperparameters.pss_embd_type == 'binary':
+            return dy.inputTensor(self._get_binary_vec(self.pss_vocab, get_pss_hierarchy(pss)))
+        else:
+            raise Exception("Unknown PSS embedding type: " + self.hyperparameters.pss_embd_type)
+
     def _build_prep_vec(self, pp):
         pv = dy.lookup(self.params.word_embeddings, self.words_vocab.get_index(pp.word), update=self.hyperparameters.update_embeddings)
         if self.hyperparameters.use_pss:
             pv = dy.concatenate([
                 pv,
-                dy.inputTensor(self._get_binary_vec(self.pss_vocab, get_pss_hierarchy(pp.pss_role))),
-                dy.inputTensor(self._get_binary_vec(self.pss_vocab, get_pss_hierarchy(pp.pss_func)))
+                self.get_pss_vec(pp.pss_role),
+                self.get_pss_vec(pp.pss_func)
             ])
         return pv
 
@@ -348,6 +369,7 @@ class HCPDModel(object):
         return loss_role + loss_func
 
     def fit(self, samples, validation_samples, additional_validation_sets=None, show_progress=True, show_sample_predictions=False, resume=False):
+        print("Training size: %d, validation size: %d" % (len(samples), len(validation_samples)))
         additional_validation_sets = additional_validation_sets or {}
         if not resume:
             self.pc = self._build_network_params()
@@ -384,7 +406,8 @@ class HCPDModel(object):
                 BATCH_SIZE = 500 if len(train) > 10000 else 20
                 batches = [train[batch_ind::int(math.ceil(len(train)/BATCH_SIZE))] for batch_ind in range(int(math.ceil(len(train)/BATCH_SIZE)))]
                 for batch_ind, batch in enumerate(batches):
-                    _build_loss = random.choice([self._build_loss, build_loss])
+                    _build_loss = self._build_loss
+                    # _build_loss = random.choice([self._build_loss, build_loss])
                     dy.renew_cg(immediate_compute=True, check_validity=True)
                     losses = []
                     for sample in batch:
@@ -425,7 +448,7 @@ class HCPDModel(object):
                     self.pc.save(model_file_path)
 
             self.train_set_evaluation = {'acc': train_acc, 'best_epoch': best_epoch}
-            self.test_set_evaluation = {'acc': best_test_acc, 'best_epoch': best_epoch}
+            self.dev_set_evaluation = {'acc': best_test_acc, 'best_epoch': best_epoch}
 
             print('--------------------------------------------')
             print('Training is complete (%d samples, %d epochs, best epoch - %d acc %1.2f)' % (len(train), self.hyperparameters.epochs, best_epoch, best_test_acc))

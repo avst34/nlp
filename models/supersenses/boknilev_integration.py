@@ -1,10 +1,10 @@
 from models.supersenses.embeddings import TOKENS_WORD2VEC, LEMMAS_WORD2VEC
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
+from models.supersenses.preprocessing.elmo import run_elmo
 from word2vec import Word2VecModel
 
-w2v = Word2VecModel.load_google_model()
-
 def boknilev_record_to_lstm_model_sample_xs(record):
+    elmo_vecs = run_elmo(record["tokens"])
     return [LstmMlpSupersensesModel.SampleX(
                 token=record['tokens'][ind],
                 ind=ind,
@@ -20,7 +20,12 @@ def boknilev_record_to_lstm_model_sample_xs(record):
                 govobj_config=record['preprocessing']['govobj'][ind]['config'],
                 identified_for_pss=ind in [pp['ind'] for pp in record['pps']],
                 lexcat=None,
-                token_word2vec=w2v.get(record['tokens'][ind]) if record['tokens'][ind] not in TOKENS_WORD2VEC else None,
-                lemma_word2vec=w2v.get(record['preprocessing']['lemma'][ind]) if record['preprocessing']['lemma'][ind] not in LEMMAS_WORD2VEC else None
+                role=None,
+                func=None,
+                hidden=None,
+                token_embd=elmo_vecs,
+                lemma_embd=elmo_vecs,
+                ud_grandparent_ind_override=None,
+                mwe_start_ind=None
             ) for ind in range(len(record['tokens']))
     ]

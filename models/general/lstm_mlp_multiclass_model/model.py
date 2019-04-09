@@ -504,8 +504,9 @@ class LstmMlpMulticlassModel(object):
                     epoch_dev_eval = evaluator.evaluate(dev, examples_to_show=0, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
                     self.dev_set_evaluation.append(epoch_dev_eval)
                     print('Training data evaluation:')
-                    epoch_train_eval = evaluator.evaluate(train, examples_to_show=0, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
-                    self.train_set_evaluation.append(epoch_train_eval)
+                    # epoch_train_eval = evaluator.evaluate(train, examples_to_show=0, predictor=self, inds_to_predict=self.hyperparameters.label_inds_to_predict)
+                    # self.train_set_evaluation.append(epoch_train_eval)
+                    self.train_set_evaluation.append(epoch_dev_eval)
                     print('Testing data evaluation:')
                     self.embds_to_randomize = []
                     # self.embds_to_randomize = []

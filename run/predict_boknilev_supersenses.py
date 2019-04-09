@@ -13,12 +13,14 @@ import json
 evaluator = PSSClasifierEvaluator()
 
 def run():
-    loader = StreusleLoader()
-    STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/release'
-    task = 'goldid.goldsyn'
-    train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
-    dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
-    test_records = loader.load(STREUSLE_BASE + '/test/streusle.ud_test.' + task + '.json', input_format='json')
+    btrain, bdev, btest = load_boknilev()
+    all_samples = btrain + bdev + btest
+
+    task = 'goldid.autosyn'
+    loader = StreusleLoader(load_elmo=True, task_name=task)
+    train_records = loader.load_train()
+    dev_records = loader.load_dev()
+    test_records = loader.load_test()
 
     train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
     dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
@@ -26,54 +28,65 @@ def run():
 
     test_features()
 
-    GOLD_ID_AUTO_PREP = json.loads("""{
-  "mask_mwes": false,
-  "learning_rate_decay": 0.0001,
-  "lstm_h_dim": 100,
-  "mlp_layers": 2,
-  "is_bilstm": true,
-  "num_lstm_layers": 2,
-  "dynet_random_seed": "7564313",
-  "use_ud_xpos": true,
-  "ner_embd_dim": 10,
-  "allow_empty_prediction": false,
-  "learning_rate": 0.15848931924611143,
-  "mlp_activation": "relu",
-  "use_lexcat": true,
-  "use_govobj": true,
-  "token_embd_dim": 300,
-  "update_lemmas_embd": true,
-  "govobj_config_embd_dim": 3,
-  "ud_deps_embd_dim": 10,
-  "mlp_layer_dim": 100,
-  "mlp_dropout_p": 0.37,
-  "ud_xpos_embd_dim": 25,
-  "use_ner": true,
-  "update_token_embd": false,
-  "epochs": 1,
-  "lstm_dropout_p": 0.38,
-  "use_ud_dep": true,
-  "lexcat_embd_dim": 3,
-  "use_prep_onehot": false,
-  "use_token": true,
-  "use_token_internal": true,
-  "token_internal_embd_dim": 10,
-  "labels_to_predict": [
-    "supersense_role",
-    "supersense_func"
-  ]
-}""")
+    GOLD_ID_AUTO_PREP = {
+ 'allow_empty_prediction': False,
+ 'dynet_random_seed': 'None',
+ 'elmo_layer': 1,
+ 'embd_type': 'elmo',
+ 'epochs': 130,
+ 'govobj_config_embd_dim': 3,
+ 'grandparent_dropout_p': 0.0,
+ 'is_bilstm': True,
+ 'labels_to_learn': ('supersense_role', 'supersense_func'),
+ 'labels_to_predict': ('supersense_role', 'supersense_func'),
+ 'learning_rate': 0.2,
+ 'learning_rate_decay': 0.0001,
+ 'lexcat_embd_dim': 3,
+ 'lstm_dropout_p': 0.42,
+ 'lstm_h_dim': 200,
+ 'mask_mwes': False,
+ 'mlp_activation': 'relu',
+ 'mlp_dropout_p': 0.14,
+ 'mlp_layer_dim': 200,
+ 'mlp_layers': 2,
+ 'ner_embd_dim': 10,
+ 'num_lstm_layers': 1,
+ 'parent_dropout_p': 0.0,
+ 'prep_dropout_p': 0.01,
+ 'pss_embd_dim': 5,
+ 'token_embd_dim': 300,
+ 'token_internal_embd_dim': 10,
+ 'trainer': 'sgd',
+ 'ud_deps_embd_dim': 10,
+ 'ud_xpos_embd_dim': 25,
+ 'update_lemmas_embd': False,
+ 'update_token_embd': True,
+ 'use_capitalized_word_follows': True,
+ 'use_func': False,
+ 'use_govobj': True,
+ 'use_grandparent': False,
+ 'use_instance_embd': False,
+ 'use_lemma': False,
+ 'use_lexcat': True,
+ 'use_ner': False,
+ 'use_parent': False,
+ 'use_prep': True,
+ 'use_prep_onehot': False,
+ 'use_role': False,
+ 'use_token': True,
+ 'use_token_internal': True,
+ 'use_ud_dep': False,
+ 'use_ud_xpos': False,
+ }
 
     print('Training model..')
     model = LstmMlpSupersensesModel(
         hyperparameters=LstmMlpSupersensesModel.HyperParameters(**GOLD_ID_AUTO_PREP),
     )
-    predictor = model.fit(train_samples, dev_samples)
+    predictor = model.fit(train_samples, dev_samples, test_samples)
     evaluator = PSSClasifierEvaluator(predictor.model)
     evaluator.evaluate([model.sample_to_lowlevel(s) for s in test_samples])
 
-    btrain, bdev, btest = load_boknilev()
-    all_samples = btrain + bdev + btest
     predictions = {}
     for ind, sample in enumerate(all_samples):
         print("%d/%d" % (ind, len(all_samples)))
