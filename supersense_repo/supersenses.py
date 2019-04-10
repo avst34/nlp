@@ -34,12 +34,19 @@ def get_pss_hierarchy(pss):
     return psses
 
 def get_pss_by_depth(pss, depth):
-    assert depth > 0
+    assert depth >= 0
+    if depth == 0:
+        return True
     heirarchy = get_pss_hierarchy(pss)[::-1]
     if depth > len(heirarchy):
         return heirarchy[-1]
     else:
         return heirarchy[depth - 1]
+
+
+def hierarchical_dist(ss1, ss2):
+    return next((MAX_PSS_DEPTH - depth for depth in range(MAX_PSS_DEPTH, -1, -1) if pss_equal(ss1, ss2, depth)))
+
 
 def pss_equal(pss1, pss2, depth):
     assert pss1 in PREPOSITION_SUPERSENSES_SET and pss2 in PREPOSITION_SUPERSENSES_SET, (pss1, pss2)

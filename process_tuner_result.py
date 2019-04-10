@@ -16,6 +16,7 @@ from models.general.simple_conditional_multiclass_model.streusle_integration imp
     streusle_record_to_most_frequent_class_model_sample
 from models.supersenses.lstm_mlp_supersenses_model import LstmMlpSupersensesModel
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
+from supersense_repo import hierarchical_dist
 from utils import csv_to_objs
 
 STREUSLE_BASE = os.environ.get('STREUSLE_BASE') or '/cs/usr/aviramstern/lab/nlp/datasets/streusle_v4/release'
@@ -337,6 +338,16 @@ def build_template_input(results_dir, json_output_path):
                             evl = parse_psseval(p)
                             d[mtype][f_task][stype]['psseval_depth_' + str(depth)] = evl
 
+                    def format_hdists(hdists):
+                        return {k: {"n": v["n"], "p": "%2.2f" % (v["p"] * 100)} for k, v in hdists.items()}
+
+                    if mtype == "nn":
+                        d[mtype][f_task][stype]['hdists'] = format_hdists(
+                            json.load(
+                                open(results_dir + '/' + mtype + '/' + task + '/' + task + '.' + stype + '.hdist.json')
+                            )
+                        )
+
                     def format_hp(val):
                         conv = {str(10**i): '10^{%d}' % i for i in range(-10, 0)}
                         conv.update({'false': 'No', 'False': 'No', 'true': 'Yes', 'True': 'Yes'})
@@ -420,9 +431,28 @@ def build_confusion_matrix(sysf_path, goldf_path, depth):
     return mats
 
 
+def compute_hierarchical_distance(conf_mat):
+    hdist_d = {}
+    for pss_type in ['role', 'fxn']:
+        tmat = conf_mat["all"][pss_type]
+        for gold_ss in tmat:
+            for sys_ss in tmat[gold_ss]:
+                hdist = hierarchical_dist(gold_ss.replace('p.', ''), sys_ss.replace('p.', ''))
+                hdist_d[hdist] = hdist_d.get(hdist, 0)
+                hdist_d[hdist] += tmat[gold_ss][sys_ss]["n"]
+
+    total = sum(hdist_d.values())
+    for hdist, n in hdist_d.items():
+        hdist_d[hdist] = {
+            "n": n,
+            "p": n/total
+        }
+    return hdist_d
+
 
 def build_confusion_matrices(results_dir):
-    mtypes = ['nn', 'mfc']
+    # mtypes = ['nn', 'mfc']
+    mtypes = ['nn']
     stypes = ['train', 'dev', 'test']
     tasks = [idt + '.' + syn for idt in ['autoid', 'goldid'] for syn in ['autosyn', 'goldsyn']]
     depths = [1,2,3,4]
@@ -434,8 +464,12 @@ def build_confusion_matrices(results_dir):
                 for depth in depths:
                     task_output = output_dir + '/' + task
                     gold_fname = task_output + '/' + task + '.' + stype + '.gold.json'
-                    sys_fname = task_output + '/' + task + '.' + stype + '.sys.' + task.split('.')[0] + '.json'
+                    sys_fname = task_output + '/' + task + '.' + stype + '.sys.0.' + task.split('.')[0] + '.json'
                     conf = build_confusion_matrix(sys_fname, gold_fname, depth)
+                    if depth == 4:
+                        hdists = compute_hierarchical_distance(conf)
+                        with open(task_output + '/' + task + '.' + stype + '.hdist.json', 'w') as hdists_f:
+                            json.dump(hdists, hdists_f, indent=2, sort_keys=True)
                     with open(task_output + '/' + task + '.' + stype + '.conf.depth_' + str(depth) + '.json', 'w') as conf_f:
                         json.dump(conf, conf_f, indent=2, sort_keys=True)
 
@@ -463,7 +497,7 @@ if __name__ == '__main__':
         process_tuner_results(csvs, output_dir, task_to_process=task, filter=filter)
     else:
         # evaluate_most_frequent_baseline_model(output_dir)
-        # build_confusion_matrices(output_dir)
+        build_confusion_matrices(output_dir)
         template_input_path = output_dir + '/template_input.json'
         print("template_input_path", template_input_path)
         build_template_input(output_dir, template_input_path)

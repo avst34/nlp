@@ -86,7 +86,7 @@ LEXCAT embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.lex
 \end{table*}
 
 
-\begin{table*}[]
+\begin{table*}[]\label{tab:pssresults}
     \newcommand{\score}[2]{#1{\tiny ($\pm$#2)}}
     \newcommand{\acc}[1]{\multicolumn{3}{c|}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
     \newcommand{\accl}[1]{\multicolumn{3}{c}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
