@@ -23,8 +23,8 @@ def boknilev_record_to_lstm_model_sample_xs(record):
                 role=None,
                 func=None,
                 hidden=None,
-                token_embd=elmo_vecs,
-                lemma_embd=elmo_vecs,
+                token_embd=elmo_vecs[ind],
+                lemma_embd=elmo_vecs[ind],
                 ud_grandparent_ind_override=None,
                 mwe_start_ind=None
             ) for ind in range(len(record['tokens']))

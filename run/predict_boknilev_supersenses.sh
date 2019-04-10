@@ -9,6 +9,4 @@
 SRC_BASE=/cs/usr/aviramstern/lab/nlp_prod
 
 export PYTHONPATH=$SRC_BASE
-while true; do
-    /cs/usr/aviramstern/lab/python_phoenix/bin/python3 -u  $SRC_BASE/run/predict_boknilev_supersenses.py
-done
+/cs/usr/aviramstern/lab/python_phoenix/bin/python3 -u  $SRC_BASE/run/predict_boknilev_supersenses.py
