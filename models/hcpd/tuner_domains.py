@@ -28,7 +28,7 @@ TUNER_DOMAINS_TUNING = [
     PS(name='learning_rate_decay', values=[0]),
     PS(name='update_embeddings', values=[True]),
     PS(name='fallback_to_lemmas', values=[True, False]),
-    PS(name='trainer', values=["SimpleSGDTrainer"]),
+    PS(name='trainer', values=["SimpleSGDTrainer", "AdagradTrainer"]),
     PS(name='epochs', values=[100])
 ]
 
