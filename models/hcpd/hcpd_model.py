@@ -394,7 +394,7 @@ class HCPDModel(object):
         model_file_path = '/tmp/_m_' + str(random.randrange(10000))
         try:
             # trainer = dy.SimpleSGDTrainer(self.pc, learning_rate=self.hyperparameters.learning_rate)
-            trainer = getattr(dy, self.hyperparameters.trainer)(self.pc, self.hyperparameters.learning_rate)
+            trainer = getattr(dy, self.hyperparameters.trainer)(self.pc, learning_rate=self.hyperparameters.learning_rate)
             for epoch in range(1, self.hyperparameters.epochs + 1):
                 if np.isinf(trainer.learning_rate):
                     break

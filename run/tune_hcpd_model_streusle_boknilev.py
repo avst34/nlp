@@ -127,11 +127,11 @@ model = Tuner(
     validation_samples=None,
     results_csv_path=sys.argv[-1],
     tuner_domains=override_settings([
-        TUNER_DOMAINS,
-        # ELMO_MIN_NELSON,
-        [
-            PS(name='pss_embd_type', values=["lookup"]),
-        ]
+        TUNER_DOMAINS
+        # ,
+        # [
+        #     PS(name='trainer', values=["AdagradTrainer"]),
+        # ]
     ])
 )
 model.tune(1)
