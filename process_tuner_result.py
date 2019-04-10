@@ -129,8 +129,9 @@ def evaluate_model_on_task(task, model, streusle_to_model_sample, output_dir, sa
         os.mkdir(task_output)
 
     if not already_evaluated:
-        with open(task_output + '/hp.json', 'w') as f:
-            json.dump(model.hyperparameters.__dict__, f, indent=2)
+        if "hyperparameters" in dir(model):
+            with open(task_output + '/hp.json', 'w') as f:
+                json.dump(model.hyperparameters.__dict__, f, indent=2)
 
         train_records = loader.load(STREUSLE_BASE + '/train/streusle.ud_train.' + task + '.json', input_format='json')
         dev_records = loader.load(STREUSLE_BASE + '/dev/streusle.ud_dev.' + task + '.json', input_format='json')
