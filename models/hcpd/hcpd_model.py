@@ -35,7 +35,7 @@ DebugParams = namedtuple('DebugParams', [
 
 class ModelOptimizedParams:
 
-    def __init__(self, word_embeddings, p1_mlp, p2_mlps, w, verb_ss_embeddings, noun_ss_embeddings, pss_lookup, debug):
+    def __init__(self, word_embeddings, p1_mlp, p2_mlps, w, verb_ss_embeddings, noun_ss_embeddings, pss_lookup, pss_mask, debug):
         self.p1_mlp = p1_mlp
         self.p2_mlps = p2_mlps
         self.w = w
@@ -44,6 +44,7 @@ class ModelOptimizedParams:
         self.verb_ss_embeddings = verb_ss_embeddings
         self.noun_ss_embeddings = noun_ss_embeddings
         self.pss_lookup = pss_lookup
+        self.pss_mask = pss_mask
 
 
 MLPLayerParams = namedtuple('MLPParams', ['W', 'b'])
@@ -117,12 +118,14 @@ class HCPDModel(object):
                      update_embeddings=True,
                      trainer="SimpleSGDTrainer",
                      use_pss=False,
+                     mask_pss=False,
                      pss_embd_dim=5,
                      pss_embd_type='lookup',
                      use_verb_noun_ss=False,
                      fallback_to_lemmas=False,
                      epochs=100
                      ):
+            self.mask_pss = mask_pss
             self.pss_embd_type = pss_embd_type
             self.pss_embd_dim = pss_embd_dim
             self.p1_mlp_layers = p1_mlp_layers
@@ -219,7 +222,7 @@ class HCPDModel(object):
             noun_ss_embeddings=pc.add_lookup_parameters((self.noun_ss_vocab.size(), hp.noun_ss_embedding_dim)),
 
             pss_lookup=pc.add_lookup_parameters((self.pss_vocab.size(), hp.pss_embd_dim)),
-
+            pss_mask=pc.add_parameters((1, hp.pss_embd_dim)),
             debug=DebugParams(
                 W_debug_vec=pc.add_parameters((hp.p2_vec_dim, hp.p2_vec_dim)),
                 W_pss_role=pc.add_parameters((self.pss_vocab.size(), hp.p2_vec_dim)),
@@ -286,8 +289,8 @@ class HCPDModel(object):
         if self.hyperparameters.use_pss:
             pv = dy.concatenate([
                 pv,
-                self.get_pss_vec(pp.pss_role),
-                self.get_pss_vec(pp.pss_func)
+                self.get_pss_vec(pp.pss_role) if not self.hyperparameters.mask_pss else self.params.pss_mask,
+                self.get_pss_vec(pp.pss_func) if not self.hyperparameters.mask_pss else self.params.pss_mask
             ])
         return pv
 

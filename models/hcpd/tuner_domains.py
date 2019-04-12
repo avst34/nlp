@@ -18,6 +18,7 @@ TUNER_DOMAINS_TUNING = [
     # PS(name='activation', values=['tanh', 'cube', 'rectify']),
     PS(name='activation', values=['tanh']),
     PS(name='use_pss', values=[True, False]),
+    PS(name='mask_pss', values=[True, False]),
     PS(name='pss_embd_dim', values=[5, 10, 20, 50]),
     PS(name='pss_embd_type', values=['lookup', 'binary']),
     # PS(name='use_verb_noun_ss', values=[True, False]),

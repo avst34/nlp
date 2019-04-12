@@ -70,7 +70,8 @@ class Tuner(HCPDModelTuner):
 
     def _execute(self, hyperparameters):
         # modes = ['mix_scale_data', 'pipeline']
-        modes = ['mix_scale_data']
+        # modes = ['mix_scale_data']
+        modes = ['pipeline']
         datasets = ['boknilev', 'streusle']
         mode = random.choice(modes)
         dataset = random.choice(datasets)
@@ -90,16 +91,18 @@ class Tuner(HCPDModelTuner):
         model = HCPDModel(
             hyperparameters=HCPDModel.HyperParameters(**hyperparameters)
         )
-
+        model.hyperparameters.epochs = 1
         print('mode:', mode, 'dataset:', dataset)
         if mode == 'mix_scale_data':
             model.fit(train, validation_samples=dev, show_progress=True)
         elif mode == 'pipeline':
-            # print('training with boknilev')
-            # model.fit(train_samples_boknilev, validation_samples=dev_samples_boknilev)
-            # print('training with streusle')
-            # model.fit(train_samples_streusle, validation_samples=dev_samples_streusle, resume=True)
-            raise Exception("not supported")
+            print('training with boknilev')
+            model.hyperparameters.mask_pss = True
+            model.fit(train_samples_boknilev, validation_samples=dev_samples_boknilev)
+            print('training with streusle')
+            model.hyperparameters.mask_pss = False
+            model.fit(train_samples_streusle, validation_samples=dev_samples_streusle, resume=True)
+            # raise Exception("not supported")
         else:
             raise Exception('No such mode:' + mode)
 
