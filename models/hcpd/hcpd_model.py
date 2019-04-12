@@ -222,7 +222,7 @@ class HCPDModel(object):
             noun_ss_embeddings=pc.add_lookup_parameters((self.noun_ss_vocab.size(), hp.noun_ss_embedding_dim)),
 
             pss_lookup=pc.add_lookup_parameters((self.pss_vocab.size(), hp.pss_embd_dim)),
-            pss_mask=pc.add_parameters((1, hp.pss_embd_dim)),
+            pss_mask=pc.add_parameters((hp.pss_embd_dim,)),
             debug=DebugParams(
                 W_debug_vec=pc.add_parameters((hp.p2_vec_dim, hp.p2_vec_dim)),
                 W_pss_role=pc.add_parameters((self.pss_vocab.size(), hp.p2_vec_dim)),
