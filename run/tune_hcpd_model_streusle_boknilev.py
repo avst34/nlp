@@ -67,7 +67,6 @@ class Tuner(HCPDModelTuner):
         rows = [[x[1] for x in row_tuples] for row_tuples in rows_tuples]
         return headers, rows
 
-
     def _execute(self, hyperparameters):
         # modes = ['mix_scale_data', 'pipeline']
         # modes = ['mix_scale_data']
@@ -87,11 +86,10 @@ class Tuner(HCPDModelTuner):
         else:
             raise Exception("Unknown dataset: " + dataset)
 
-
         model = HCPDModel(
             hyperparameters=HCPDModel.HyperParameters(**hyperparameters)
         )
-        model.hyperparameters.epochs = 1
+
         print('mode:', mode, 'dataset:', dataset)
         if mode == 'mix_scale_data':
             model.fit(train, validation_samples=dev, show_progress=True)
