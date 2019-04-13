@@ -69,8 +69,8 @@ class Tuner(HCPDModelTuner):
 
     def _execute(self, hyperparameters):
         # modes = ['mix_scale_data', 'pipeline']
-        # modes = ['mix_scale_data']
-        modes = ['pipeline']
+        modes = ['mix_scale_data']
+        # modes = ['pipeline']
         datasets = ['boknilev', 'streusle']
         mode = random.choice(modes)
         dataset = random.choice(datasets)
