@@ -1,4 +1,5 @@
 import json
+import os
 import math
 import random
 import sys
@@ -90,6 +91,8 @@ class Tuner(HCPDModelTuner):
             hyperparameters=HCPDModel.HyperParameters(**hyperparameters)
         )
 
+        model.hyperparameters.epochs = 1
+
         print('mode:', mode, 'dataset:', dataset)
         if mode == 'mix_scale_data':
             model.fit(train, validation_samples=dev, show_progress=True)
@@ -104,6 +107,9 @@ class Tuner(HCPDModelTuner):
         else:
             raise Exception('No such mode:' + mode)
 
+        csv_name = 'pss' if model.hyperparameters.use_pss else 'nopss' + '_' + dataset + '.csv'
+        base = os.path.dirname(sys.argv[-1]) + '/'
+
         return HyperparametersTuner.ExecutionResult(
             result_data={
                 'mode': mode,
@@ -112,9 +118,9 @@ class Tuner(HCPDModelTuner):
                     'train': self.tuner_results_getter(model.train_set_evaluation),
                     'dev': self.tuner_results_getter(model.dev_set_evaluation),
                     'dev_boknilev':  PPAttEvaluator(model).evaluate(dev_samples_boknilev, examples_to_show=0),
-                    'test_boknilev':  PPAttEvaluator(model).evaluate(test_samples_boknilev, examples_to_show=0),
+                    'test_boknilev':  PPAttEvaluator(model).evaluate(test_samples_boknilev, examples_to_show=0, predictions_csv_path=base + 'ptbtest_' + csv_name),
                     'dev_streusle':  PPAttEvaluator(model).evaluate(dev_samples_streusle, examples_to_show=0),
-                    'test_streusle':  PPAttEvaluator(model).evaluate(test_samples_streusle, examples_to_show=0),
+                    'test_streusle':  PPAttEvaluator(model).evaluate(test_samples_streusle, examples_to_show=0, predictions_csv_path=base + 'streusletest_' + csv_name),
                 }
             },
             score=self.tuner_score_getter(model.dev_set_evaluation),
