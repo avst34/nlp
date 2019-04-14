@@ -135,6 +135,14 @@ model = Tuner(
         # ]
     ])
 )
-model.tune(1)
+# model.tune(1)
+model.sample_execution(params=json.loads(random.sample([
+    """
+    {"mask_pss": false, "learning_rate": 0.1, "p1_mlp_layers": 1, "p2_vec_dim": 100, "use_pss": false, "dropout_p": 0.5, "update_embeddings": true, "fallback_to_lemmas": false, "pss_embd_type": "binary", "p2_mlp_layers": 1, "epochs": 100, "pss_embd_dim": 5, "p1_vec_dim": 100, "max_head_distance": 5, "use_verb_noun_ss": false, "learning_rate_decay": 0, "trainer": "SimpleSGDTrainer", "activation": "tanh"}
+    """,
+    """
+    {"mask_pss": false, "dropout_p": 0.5, "fallback_to_lemmas": true, "activation": "tanh", "update_embeddings": true, "pss_embd_type": "lookup", "epochs": 100, "trainer": "SimpleSGDTrainer", "use_pss": true, "max_head_distance": 5, "p1_mlp_layers": 1, "p2_mlp_layers": 1, "p1_vec_dim": 100, "pss_embd_dim": 50, "learning_rate": 0.1, "learning_rate_decay": 0, "use_verb_noun_ss": false, "p2_vec_dim": 100}
+    """
+], 1)[0]))
 print("Done tuning")
 
