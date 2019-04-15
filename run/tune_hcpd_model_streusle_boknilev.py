@@ -107,7 +107,7 @@ class Tuner(HCPDModelTuner):
         else:
             raise Exception('No such mode:' + mode)
 
-        csv_name = 'pss' if model.hyperparameters.use_pss else 'nopss' + '_' + dataset + '.csv'
+        csv_name = ('pss' if model.hyperparameters.use_pss else 'nopss') + '_' + dataset + '.csv'
         base = os.path.dirname(sys.argv[-1]) + '/'
 
         return HyperparametersTuner.ExecutionResult(
