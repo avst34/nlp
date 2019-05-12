@@ -3,8 +3,7 @@ import os
 
 from datasets.streusle_v4.chinese.attach_eng import align_lpp_amr, attach_eng
 from datasets.streusle_v4.chinese.corenlp import run_corenlp
-from models.supersenses.embeddings.muse_streusle_dict import zh_en
-from supersense_repo import SUPERSENSES_SET, get_supersense_type
+from supersense_repo import PREPOSITION_SUPERSENSES_SET, get_supersense_type
 from supersense_repo.constants import TYPES
 
 
@@ -20,7 +19,7 @@ def fix_ss(full_ss):
 
     for k, ss in sss.items():
         found = False
-        for pss in SUPERSENSES_SET:
+        for pss in PREPOSITION_SUPERSENSES_SET:
             if ss.replace('/','').lower() == pss.replace('/','').lower():
                 sss[k] = pss
                 found = True
@@ -106,6 +105,16 @@ def build_chinese_streusle_json(txt_path=os.path.dirname(__file__) + '/lpp_zho.t
         sents.append(sent)
     return sents
 
+
+def drop_alignemnt_dups(zh_sent, alignment):
+    algn = {}
+    for ind_from, ind_to in alignment.items():
+        if ind_to not in algn.values() or ":" not in zh_sent[[x for x in algn if algn[x] == ind_to][0] - 1]:
+            algn[ind_from] = ind_to
+    rev_algn = {v: k for k, v in algn.items()}
+    return algn, rev_algn
+
+
 def build_translated_chinese_streusle_json(txt_path=os.path.dirname(__file__) + '/lpp_zho.txt'):
     # with open(txt_path, 'r') as f:
     #     text = f.read().replace('\r\n', '\n')
@@ -126,6 +135,8 @@ def build_translated_chinese_streusle_json(txt_path=os.path.dirname(__file__) + 
     assert len(alignments) == len(zh_sents) and len(alignments) == len(eng_sents)
     sents = []
     for ind, (zh_sent, eng_sent, alignment, rev_alignment) in enumerate(zip(zh_sents, eng_sents, alignments, rev_alignments)):
+        print(ind)
+        alignment, rev_alignment = drop_alignemnt_dups(zh_sent, alignment)
         zh_tokens_with_pss = zh_sent
         zh_tokens = [t if ":" not in t else t[:t.index(':')] for t in zh_tokens_with_pss]
         en_tokens = eng_sent
