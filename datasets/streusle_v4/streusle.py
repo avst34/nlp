@@ -230,7 +230,7 @@ class StreusleRecord:
             eind = 0
             for tok in self.data['toks']:
                 if tok.get('hidden'):
-                    elmo_embeddings.append(None)
+                    elmo_embeddings.append([None]*3)
                 else:
                     elmo_embeddings.append(_elmo_embeddings[eind])
                     eind += 1

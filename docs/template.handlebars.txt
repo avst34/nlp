@@ -26,9 +26,12 @@ LEXCAT embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.lex
         Token internal embd. dimension & {{ nn.autoid_autosyn.hp.token_internal_embd_dim }} & {{ nn.autoid_goldsyn.hp.token_internal_embd_dim }} & {{ nn.goldid_autosyn.hp.token_internal_embd_dim }} & {{ nn.goldid_goldsyn.hp.token_internal_embd_dim }} \\
         Update token Word2vec embd.?  & {{ nn.autoid_autosyn.hp.update_token_embd }} & {{ nn.autoid_goldsyn.hp.update_token_embd }} & {{ nn.goldid_autosyn.hp.update_token_embd }} & {{ nn.goldid_goldsyn.hp.update_token_embd }} \\
         Update lemma Word2vec embd.?  & {{ nn.autoid_autosyn.hp.update_lemmas_embd }} & {{ nn.autoid_goldsyn.hp.update_lemmas_embd }} & {{ nn.goldid_autosyn.hp.update_lemmas_embd }} & {{ nn.goldid_goldsyn.hp.update_lemmas_embd }} \\
+        MLP layers  & {{ nn.autoid_autosyn.hp.mlp_layers }} & {{ nn.autoid_goldsyn.hp.mlp_layers }} & {{ nn.goldid_autosyn.hp.mlp_layers }} & {{ nn.goldid_goldsyn.hp.mlp_layers }} \\
         MLP layer dimension  & {{ nn.autoid_autosyn.hp.mlp_layer_dim }} & {{ nn.autoid_goldsyn.hp.mlp_layer_dim }} & {{ nn.goldid_autosyn.hp.mlp_layer_dim }} & {{ nn.goldid_goldsyn.hp.mlp_layer_dim }} \\
         MLP activation  & {{ nn.autoid_autosyn.hp.mlp_activation }} & {{ nn.autoid_goldsyn.hp.mlp_activation }} & {{ nn.goldid_autosyn.hp.mlp_activation }} & {{ nn.goldid_goldsyn.hp.mlp_activation }} \\
-        BiLSTM hidden layer dimension  & {{ nn.autoid_autosyn.hp.lstm_h_dim }} & {{ nn.autoid_goldsyn.hp.lstm_h_dim }} & {{ nn.goldid_autosyn.hp.lstm_h_dim }} & {{ nn.goldid_goldsyn.hp.lstm_h_dim }} \\
+        LSTM layers  & {{ nn.autoid_autosyn.hp.num_lstm_layers }} & {{ nn.autoid_goldsyn.hp.num_lstm_layers }} & {{ nn.goldid_autosyn.hp.num_lstm_layers }} & {{ nn.goldid_goldsyn.hp.num_lstm_layers }} \\
+        LSTM hidden layer dimension  & {{ nn.autoid_autosyn.hp.lstm_h_dim }} & {{ nn.autoid_goldsyn.hp.lstm_h_dim }} & {{ nn.goldid_autosyn.hp.lstm_h_dim }} & {{ nn.goldid_goldsyn.hp.lstm_h_dim }} \\
+        Is BiLSTM? & {{ nn.autoid_autosyn.hp.is_bilstm }} & {{ nn.autoid_goldsyn.hp.is_bilstm }} & {{ nn.goldid_autosyn.hp.is_bilstm }} & {{ nn.goldid_goldsyn.hp.is_bilstm }} \\
         MLP Dropout Prob.  & {{ nn.autoid_autosyn.hp.mlp_dropout_p }} & {{ nn.autoid_goldsyn.hp.mlp_dropout_p }} & {{ nn.goldid_autosyn.hp.mlp_dropout_p }} & {{ nn.goldid_goldsyn.hp.mlp_dropout_p }} \\
         LSTM Dropout Prob.  & {{ nn.autoid_autosyn.hp.lstm_dropout_p }} & {{ nn.autoid_goldsyn.hp.lstm_dropout_p }} & {{ nn.goldid_autosyn.hp.lstm_dropout_p }} & {{ nn.goldid_goldsyn.hp.lstm_dropout_p }} \\
         Learning rate  & {{ nn.autoid_autosyn.hp.learning_rate }} & {{ nn.autoid_goldsyn.hp.learning_rate }} & {{ nn.goldid_autosyn.hp.learning_rate }} & {{ nn.goldid_goldsyn.hp.learning_rate }} \\
@@ -39,6 +42,40 @@ LEXCAT embedding vector dimension - autoid.autosyn - {{ nn.autoid_autosyn.hp.lex
         GOVOBJ-CONFIG embd. dimension  & {{ nn.autoid_autosyn.hp.govobj_config_embd_dim }} & {{ nn.autoid_goldsyn.hp.govobj_config_embd_dim }} & {{ nn.goldid_autosyn.hp.govobj_config_embd_dim }} & {{ nn.goldid_goldsyn.hp.govobj_config_embd_dim }} \\
         LEXCAT embd. dimension  & {{ nn.autoid_autosyn.hp.lexcat_embd_dim }} & {{ nn.autoid_goldsyn.hp.lexcat_embd_dim }} & {{ nn.goldid_autosyn.hp.lexcat_embd_dim }} & {{ nn.goldid_goldsyn.hp.lexcat_embd_dim }} \\
 
+		\bottomrule
+	\end{tabular}
+	\caption{\label{tab:hyperparams}
+        Selected hyperparameters of the neural system for each of the four settings. With the exception of the external Word2vec embeddings dimension (which is fixed), the parameters were tuned using random grid search.
+	}
+
+\end{table}
+
+\begin{table}[]
+  \small
+	\centering
+	\begin{tabular}{@{}l|cccc@{}}
+		\toprule
+		Hyperparam. & Auto ID/Auto Parse & Auto ID/Gold Parse & Gold ID/Auto Parse & Gold ID/Gold Parse\\
+		\midrule
+        Embedding Method & {{ nn.autoid_autosyn.hp.embd_type }} & {{ nn.autoid_goldsyn.hp.embd_type }} & {{ nn.goldid_autosyn.hp.embd_type }} & {{ nn.goldid_goldsyn.hp.embd_type }} \\
+        ELMo layer & {{ nn.autoid_autosyn.hp.elmo_layer }} & {{ nn.autoid_goldsyn.hp.elmo_layer }} & {{ nn.goldid_autosyn.hp.elmo_layer }} & {{ nn.goldid_goldsyn.hp.elmo_layer }} \\
+        Token internal embd. dimension & {{ nn.autoid_autosyn.hp.token_internal_embd_dim }} & {{ nn.autoid_goldsyn.hp.token_internal_embd_dim }} & {{ nn.goldid_autosyn.hp.token_internal_embd_dim }} & {{ nn.goldid_goldsyn.hp.token_internal_embd_dim }} \\
+        Use Gov-Obj? & {{ nn.autoid_autosyn.hp.use_govobj }} & {{ nn.autoid_goldsyn.hp.use_govobj }} & {{ nn.goldid_autosyn.hp.use_govobj }} & {{ nn.goldid_goldsyn.hp.use_govobj }} \\
+        POS embd. dimension  & {{ nn.autoid_autosyn.hp.ud_xpos_embd_dim }} & {{ nn.autoid_goldsyn.hp.ud_xpos_embd_dim }} & {{ nn.goldid_autosyn.hp.ud_xpos_embd_dim }} & {{ nn.goldid_goldsyn.hp.ud_xpos_embd_dim }} \\
+        UD dependencies embd. dimension  & {{ nn.autoid_autosyn.hp.ud_deps_embd_dim }} & {{ nn.autoid_goldsyn.hp.ud_deps_embd_dim }} & {{ nn.goldid_autosyn.hp.ud_deps_embd_dim }} & {{ nn.goldid_goldsyn.hp.ud_deps_embd_dim }} \\
+        NER  embd. dimension  & {{ nn.autoid_autosyn.hp.ner_embd_dim }} & {{ nn.autoid_goldsyn.hp.ner_embd_dim }} & {{ nn.goldid_autosyn.hp.ner_embd_dim }} & {{ nn.goldid_goldsyn.hp.ner_embd_dim }} \\
+        GOVOBJ-CONFIG embd. dimension  & {{ nn.autoid_autosyn.hp.govobj_config_embd_dim }} & {{ nn.autoid_goldsyn.hp.govobj_config_embd_dim }} & {{ nn.goldid_autosyn.hp.govobj_config_embd_dim }} & {{ nn.goldid_goldsyn.hp.govobj_config_embd_dim }} \\
+        LEXCAT embd. dimension  & {{ nn.autoid_autosyn.hp.lexcat_embd_dim }} & {{ nn.autoid_goldsyn.hp.lexcat_embd_dim }} & {{ nn.goldid_autosyn.hp.lexcat_embd_dim }} & {{ nn.goldid_goldsyn.hp.lexcat_embd_dim }} \\
+        MLP layers  & {{ nn.autoid_autosyn.hp.mlp_layers }} & {{ nn.autoid_goldsyn.hp.mlp_layers }} & {{ nn.goldid_autosyn.hp.mlp_layers }} & {{ nn.goldid_goldsyn.hp.mlp_layers }} \\
+        MLP layer dimension  & {{ nn.autoid_autosyn.hp.mlp_layer_dim }} & {{ nn.autoid_goldsyn.hp.mlp_layer_dim }} & {{ nn.goldid_autosyn.hp.mlp_layer_dim }} & {{ nn.goldid_goldsyn.hp.mlp_layer_dim }} \\
+        MLP activation  & {{ nn.autoid_autosyn.hp.mlp_activation }} & {{ nn.autoid_goldsyn.hp.mlp_activation }} & {{ nn.goldid_autosyn.hp.mlp_activation }} & {{ nn.goldid_goldsyn.hp.mlp_activation }} \\
+        MLP Dropout Prob.  & {{ nn.autoid_autosyn.hp.mlp_dropout_p }} & {{ nn.autoid_goldsyn.hp.mlp_dropout_p }} & {{ nn.goldid_autosyn.hp.mlp_dropout_p }} & {{ nn.goldid_goldsyn.hp.mlp_dropout_p }} \\
+        LSTM layers  & {{ nn.autoid_autosyn.hp.num_lstm_layers }} & {{ nn.autoid_goldsyn.hp.num_lstm_layers }} & {{ nn.goldid_autosyn.hp.num_lstm_layers }} & {{ nn.goldid_goldsyn.hp.num_lstm_layers }} \\
+        LSTM hidden layer dimension  & {{ nn.autoid_autosyn.hp.lstm_h_dim }} & {{ nn.autoid_goldsyn.hp.lstm_h_dim }} & {{ nn.goldid_autosyn.hp.lstm_h_dim }} & {{ nn.goldid_goldsyn.hp.lstm_h_dim }} \\
+        Is BiLSTM? & {{ nn.autoid_autosyn.hp.is_bilstm }} & {{ nn.autoid_goldsyn.hp.is_bilstm }} & {{ nn.goldid_autosyn.hp.is_bilstm }} & {{ nn.goldid_goldsyn.hp.is_bilstm }} \\
+        LSTM Dropout Prob.  & {{ nn.autoid_autosyn.hp.lstm_dropout_p }} & {{ nn.autoid_goldsyn.hp.lstm_dropout_p }} & {{ nn.goldid_autosyn.hp.lstm_dropout_p }} & {{ nn.goldid_goldsyn.hp.lstm_dropout_p }} \\
+        Learning rate  & {{ nn.autoid_autosyn.hp.learning_rate }} & {{ nn.autoid_goldsyn.hp.learning_rate }} & {{ nn.goldid_autosyn.hp.learning_rate }} & {{ nn.goldid_goldsyn.hp.learning_rate }} \\
+        Learning rate decay  & {{ nn.autoid_autosyn.hp.learning_rate_decay }} & {{ nn.autoid_goldsyn.hp.learning_rate_decay }} & {{ nn.goldid_autosyn.hp.learning_rate_decay }} & {{ nn.goldid_goldsyn.hp.learning_rate_decay }} \\
 		\bottomrule
 	\end{tabular}
 	\caption{\label{tab:hyperparams}

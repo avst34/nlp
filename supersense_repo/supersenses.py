@@ -9,10 +9,10 @@ SUPERSENSES_SET = NOUN_SUPERSENSES_SET.union(PREPOSITION_SUPERSENSES_SET).union(
 
 def get_supersense_type(supersense):
     ss_type = None
-    if supersense in NOUN_SUPERSENSES_SET:
-        ss_type = constants.TYPES.NOUN_SUPERSENSE
-    elif supersense in PREPOSITION_SUPERSENSES_SET:
+    if supersense in PREPOSITION_SUPERSENSES_SET:
         ss_type = constants.TYPES.PREPOSITION_SUPERSENSE
+    elif supersense in NOUN_SUPERSENSES_SET:
+        ss_type = constants.TYPES.NOUN_SUPERSENSE
     elif supersense in VERB_SUPERSENSES_SET:
         ss_type = constants.TYPES.VERB_SUPERSENSE
     else:

@@ -306,6 +306,41 @@ def parse_psseval(psseval_path):
         }
 
 
+def process_hp(hp):
+    def format_hp(val):
+        conv = {str(10**i): '10^{%d}' % i for i in range(-10, 0)}
+        conv.update({'false': 'No', 'False': 'No', 'true': 'Yes', 'True': 'Yes'})
+        if type(val) is str:
+            val = val.replace('elmo', 'ELMo')
+        if str(val) in conv:
+            return conv[str(val)]
+        elif type(val) != float or int(val) == val:
+            return val
+        else:
+            return int(val * 100) / 100
+
+
+    if not hp['use_token_internal']:
+        hp['token_internal_embd_dim'] = 0
+    if not hp['use_ud_xpos']:
+        hp['ud_xpos_embd_dim'] = 0
+    if not hp['use_ud_dep']:
+        hp['ud_deps_embd_dim'] = 0
+    if not hp['use_ner']:
+        hp['ner_embd_dim'] = 0
+    if not hp['use_govobj']:
+        hp['govobj_config_embd_dim'] = 0
+    if hp['num_lstm_layers'] == 0:
+        hp['lstm_h_dim'] = "-"
+        hp['is_bilstm'] = "-"
+        hp['lstm_dropout_p'] = "-"
+    if hp['mlp_layers'] == 0:
+        hp['mlp_layer_dim'] = "-"
+        hp['mlp_activation'] = "-"
+        hp['mlp_dropout_p'] = "-"
+
+    return {hp: format_hp(val) for hp, val in hp.items()}
+
 def build_template_input(results_dir, json_output_path):
     mtypes = ['nn', 'mf', 'mf-prep']
     stypes = ['train', 'dev', 'test']
@@ -318,7 +353,7 @@ def build_template_input(results_dir, json_output_path):
         for stype in stypes:
             for task in tasks:
                 for filter in filters:
-                    hp_file_path = results_dir + '/' + mtype + '/' + task + '/model.hp'
+                    hp_file_path = results_dir + '/' + mtype + '/' + task + '/hp.json'
                     try:
                         evl = parse_psseval(results_dir + '/' + mtype + '/' + task + ((".%s" % filter) if filter and filter != 'all' else "") + '/' + task + '.' + stype + '.psseval.tsv')
                     except:
@@ -348,20 +383,9 @@ def build_template_input(results_dir, json_output_path):
                             )
                         )
 
-                    def format_hp(val):
-                        conv = {str(10**i): '10^{%d}' % i for i in range(-10, 0)}
-                        conv.update({'false': 'No', 'False': 'No', 'true': 'Yes', 'True': 'Yes'})
-                        if str(val) in conv:
-                            return conv[str(val)]
-                        elif type(val) != float or int(val) == val:
-                            return val
-                        else:
-                            return int(val * 100) / 100
-
-                    if os.path.exists(hp_file_path):
+                    if os.path.exists(hp_file_path) and open(hp_file_path).read():
                         with open(hp_file_path) as hp_file:
-                            d[mtype][f_task]['hp'] = {hp: format_hp(val) for hp, val in json.load(hp_file).items()}
-
+                            d[mtype][f_task]['hp'] = process_hp(json.load(hp_file))
 
     with open(json_output_path, 'w') as f:
         json.dump(d, f, indent=2)
@@ -497,7 +521,7 @@ if __name__ == '__main__':
         process_tuner_results(csvs, output_dir, task_to_process=task, filter=filter)
     else:
         # evaluate_most_frequent_baseline_model(output_dir)
-        build_confusion_matrices(output_dir)
+        # build_confusion_matrices(output_dir)
         template_input_path = output_dir + '/template_input.json'
         print("template_input_path", template_input_path)
         build_template_input(output_dir, template_input_path)

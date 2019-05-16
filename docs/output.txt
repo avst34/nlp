@@ -1,18 +1,18 @@
-Token internal embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-Update token WORD2VEC embedding? - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-Update lemma WORD2VEC embedding? - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-MLP layer dimension - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-MLP activation - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-BiLSTM hidden layer dimension - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-MLP Dropout Prob. - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-LSTM Dropout Prob. - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-Learning rate - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-Learning rate decay - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-XPOS embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-UD dependencies embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-NER  embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-GOVOBJ-CONFIG embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
-LEXCAT embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid.autosyn - , goldid.goldsyn - 
+Token internal embedding vector dimension - autoid.autosyn - 0, autoid.goldsyn - 0, goldid.autosyn - 10, goldid.goldsyn - 0
+Update token WORD2VEC embedding? - autoid.autosyn - Yes, autoid.goldsyn - No, goldid.autosyn - Yes, goldid.goldsyn - Yes
+Update lemma WORD2VEC embedding? - autoid.autosyn - No, autoid.goldsyn - No, goldid.autosyn - No, goldid.goldsyn - No
+MLP layer dimension - autoid.autosyn - 100, autoid.goldsyn - -, goldid.autosyn - 200, goldid.goldsyn - 200
+MLP activation - autoid.autosyn - tanh, autoid.goldsyn - -, goldid.autosyn - relu, goldid.goldsyn - relu
+BiLSTM hidden layer dimension - autoid.autosyn - 200, autoid.goldsyn - 200, goldid.autosyn - 200, goldid.goldsyn - 200
+MLP Dropout Prob. - autoid.autosyn - 0.46, autoid.goldsyn - -, goldid.autosyn - 0.14, goldid.goldsyn - 0.34
+LSTM Dropout Prob. - autoid.autosyn - 0.49, autoid.goldsyn - 0.43, goldid.autosyn - 0.42, goldid.goldsyn - 0.4
+Learning rate - autoid.autosyn - 0.15, autoid.goldsyn - 0.15, goldid.autosyn - 0.2, goldid.goldsyn - 10^{-1}
+Learning rate decay - autoid.autosyn - 0, autoid.goldsyn - 0, goldid.autosyn - 10^{-4}, goldid.goldsyn - 0
+XPOS embedding vector dimension - autoid.autosyn - 0, autoid.goldsyn - 0, goldid.autosyn - 0, goldid.goldsyn - 10
+UD dependencies embedding vector dimension - autoid.autosyn - 0, autoid.goldsyn - 5, goldid.autosyn - 0, goldid.goldsyn - 0
+NER  embedding vector dimension - autoid.autosyn - 0, autoid.goldsyn - 5, goldid.autosyn - 0, goldid.goldsyn - 5
+GOVOBJ-CONFIG embedding vector dimension - autoid.autosyn - 0, autoid.goldsyn - 3, goldid.autosyn - 3, goldid.goldsyn - 3
+LEXCAT embedding vector dimension - autoid.autosyn - 3, autoid.goldsyn - 3, goldid.autosyn - 3, goldid.goldsyn - 3
 
 
 \begin{table}[]
@@ -23,22 +23,59 @@ LEXCAT embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid
 		Hyperparam. & Auto ID/Auto Parse & Auto ID/Gold Parse & Gold ID/Auto Parse & Gold ID/Gold Parse\\
 		\midrule
         External Word2vec embd. dimension & 300 & 300 & 300 & 300 \\
-        Token internal embd. dimension &  &  &  &  \\
-        Update token Word2vec embd.?  &  &  &  &  \\
-        Update lemma Word2vec embd.?  &  &  &  &  \\
-        MLP layer dimension  &  &  &  &  \\
-        MLP activation  &  &  &  &  \\
-        BiLSTM hidden layer dimension  &  &  &  &  \\
-        MLP Dropout Prob.  &  &  &  &  \\
-        LSTM Dropout Prob.  &  &  &  &  \\
-        Learning rate  &  &  &  &  \\
-        Learning rate decay  &  &  &  &  \\
-        POS embd. dimension  &  &  &  &  \\
-        UD dependencies embd. dimension  &  &  &  &  \\
-        NER  embd. dimension  &  &  &  &  \\
-        GOVOBJ-CONFIG embd. dimension  &  &  &  &  \\
-        LEXCAT embd. dimension  &  &  &  &  \\
+        Token internal embd. dimension & 0 & 0 & 10 & 0 \\
+        Update token Word2vec embd.?  & Yes & No & Yes & Yes \\
+        Update lemma Word2vec embd.?  & No & No & No & No \\
+        MLP layers  & 2 & 0 & 2 & 2 \\
+        MLP layer dimension  & 100 & - & 200 & 200 \\
+        MLP activation  & tanh & - & relu & relu \\
+        LSTM layers  & 1 & 2 & 1 & 2 \\
+        LSTM hidden layer dimension  & 200 & 200 & 200 & 200 \\
+        Is BiLSTM? & Yes & Yes & Yes & Yes \\
+        MLP Dropout Prob.  & 0.46 & - & 0.14 & 0.34 \\
+        LSTM Dropout Prob.  & 0.49 & 0.43 & 0.42 & 0.4 \\
+        Learning rate  & 0.15 & 0.15 & 0.2 & 10^{-1} \\
+        Learning rate decay  & 0 & 0 & 10^{-4} & 0 \\
+        POS embd. dimension  & 0 & 0 & 0 & 10 \\
+        UD dependencies embd. dimension  & 0 & 5 & 0 & 0 \\
+        NER  embd. dimension  & 0 & 5 & 0 & 5 \\
+        GOVOBJ-CONFIG embd. dimension  & 0 & 3 & 3 & 3 \\
+        LEXCAT embd. dimension  & 3 & 3 & 3 & 3 \\
 
+		\bottomrule
+	\end{tabular}
+	\caption{\label{tab:hyperparams}
+        Selected hyperparameters of the neural system for each of the four settings. With the exception of the external Word2vec embeddings dimension (which is fixed), the parameters were tuned using random grid search.
+	}
+
+\end{table}
+
+\begin{table}[]
+  \small
+	\centering
+	\begin{tabular}{@{}l|cccc@{}}
+		\toprule
+		Hyperparam. & Auto ID/Auto Parse & Auto ID/Gold Parse & Gold ID/Auto Parse & Gold ID/Gold Parse\\
+		\midrule
+        Embedding Method & ELMo & ELMo & ELMo & ELMo \\
+        ELMo layer & 1 & 1 & 1 & 1 \\
+        Token internal embd. dimension & 0 & 0 & 10 & 0 \\
+        Use Gov-Obj? & No & Yes & Yes & Yes \\
+        POS embd. dimension  & 0 & 0 & 0 & 10 \\
+        UD dependencies embd. dimension  & 0 & 5 & 0 & 0 \\
+        NER  embd. dimension  & 0 & 5 & 0 & 5 \\
+        GOVOBJ-CONFIG embd. dimension  & 0 & 3 & 3 & 3 \\
+        LEXCAT embd. dimension  & 3 & 3 & 3 & 3 \\
+        MLP layers  & 2 & 0 & 2 & 2 \\
+        MLP layer dimension  & 100 & - & 200 & 200 \\
+        MLP activation  & tanh & - & relu & relu \\
+        MLP Dropout Prob.  & 0.46 & - & 0.14 & 0.34 \\
+        LSTM layers  & 1 & 2 & 1 & 2 \\
+        LSTM hidden layer dimension  & 200 & 200 & 200 & 200 \\
+        Is BiLSTM? & Yes & Yes & Yes & Yes \\
+        LSTM Dropout Prob.  & 0.49 & 0.43 & 0.42 & 0.4 \\
+        Learning rate  & 0.15 & 0.15 & 0.2 & 10^{-1} \\
+        Learning rate decay  & 0 & 0 & 10^{-4} & 0 \\
 		\bottomrule
 	\end{tabular}
 	\caption{\label{tab:hyperparams}
@@ -56,8 +93,8 @@ LEXCAT embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid
         & Role & Func. & Exact & \multicolumn{3}{c}{Role} & \multicolumn{3}{c}{Func.} & \multicolumn{3}{c}{Exact} \\
         & Acc. & Acc. &  Acc. & P & R & F & P & R & F & P & R & F  \\
         \midrule
-        Neural: gold syntax  & 32.8 \pm 3.1 & 41.3 \pm 5.4 & 21.5 \pm 3.0 &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  \\
-        Neural: auto syntax & 27.3 \pm 2.6 & 40.1 \pm 5.4 & 17.3 \pm 4.1 &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  \\
+        Neural: gold syntax  & 79.5 \pm 0.6 & 86.8 \pm 0.9 & 75.7 \pm 0.6 & 68.6 \pm 1.0 & 69.2 \pm 1.0 & 68.9 \pm 1.0 & 75.5 \pm 0.6 & 76.1 \pm 0.6 & 75.8 \pm 0.6 & 65.2 \pm 1.0 & 65.7 \pm 1.0 & 65.4 \pm 1.0 \\
+        Neural: auto syntax & 77.5 \pm 1.2 & 85.9 \pm 0.9 & 74.0 \pm 1.4 & 66.4 \pm 0.8 & 66.2 \pm 0.9 & 66.3 \pm 0.9 & 74.9 \pm 0.6 & 74.8 \pm 0.5 & 74.8 \pm 0.6 & 63.6 \pm 0.6 & 63.5 \pm 0.6 & 63.6 \pm 0.6 \\
         MF & 15.8 \pm 0.0 & 19.8 \pm 0.0 & 14.8 \pm 0.0 & 14.3 \pm 0.0 & 14.4 \pm 0.0 & 14.3 \pm 0.0 & 16.5 \pm 0.0 & 16.7 \pm 0.0 & 16.6 \pm 0.0 & 13.2 \pm 0.0 & 13.3 \pm 0.0 & 13.3 \pm 0.0 \\
         MF-Prep & 40.6 \pm  0.0 & 53.3 \pm  0.0 & 37.9 \pm  0.0 & 37.0 \pm  0.0 & 37.3 \pm  0.0 & 37.1 \pm  0.0 & 49.8 \pm  0.0 & 50.2 \pm  0.0 & 50.0 \pm  0.0 & 34.3 \pm  0.0 & 34.6 \pm  0.0 & 34.4 \pm  0.0 \\
         \bottomrule
@@ -70,14 +107,14 @@ LEXCAT embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid
 	\begin{tabular}{@{}lcccc<{\hspace{5pt}}ccc|ccc|ccc@{}}
 		%\toprule
                           &        & \multicolumn{3}{c}{\textbf{Gold ID}} & \multicolumn{9}{c}{\textbf{Auto ID}}                                                                                                                     \\
-            \cmidrule(r){3-5}\cmidrule(l){6-14}
+        \cmidrule(r){3-5}\cmidrule(l){6-14}
                           &         & \textit{Role}                        & \textit{Func.} & \textit{Full} & \multicolumn{3}{c}{\textit{Role}} & \multicolumn{3}{c}{\textit{Func.}} & \multicolumn{3}{c}{\textit{Full}}              \\
                           & \textbf{Syntax}       & Acc.                                 & Acc.           & Acc.          & P                                 & R                                  & F    & P    & R    & F    & P    & R    & F    \\
 		\midrule
         MF & N/A  & 15.8 & 19.8 & 14.8 & 14.3 & 14.4 & 14.3 & 16.5 & 16.7 & 16.6 & 13.2 & 13.3 & 13.3 \\
         MF-Prep & N/A  & 40.6 & 53.3 & 37.9 & 37.0 & 37.3 & 37.1 & 49.8 & 50.2 & 50.0 & 34.3 & 34.6 & 34.4 \\
-        Neural        & gold & 32.8 \pm 3.1 & 41.3 \pm 5.4 & 21.5 \pm 3.0 &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  \\
-        Neural        & auto & 27.3 \pm 2.6 & 40.1 \pm 5.4 & 17.3 \pm 4.1 &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  &  \pm  \\
+        Neural        & gold & 79.5 \pm 0.6 & 86.8 \pm 0.9 & 75.7 \pm 0.6 & 68.6 \pm 1.0 & 69.2 \pm 1.0 & 68.9 \pm 1.0 & 75.5 \pm 0.6 & 76.1 \pm 0.6 & 75.8 \pm 0.6 & 65.2 \pm 1.0 & 65.7 \pm 1.0 & 65.4 \pm 1.0 \\
+        Neural        & auto & 77.5 \pm 1.2 & 85.9 \pm 0.9 & 74.0 \pm 1.4 & 66.4 \pm 0.8 & 66.2 \pm 0.9 & 66.3 \pm 0.9 & 74.9 \pm 0.6 & 74.8 \pm 0.5 & 74.8 \pm 0.6 & 63.6 \pm 0.6 & 63.5 \pm 0.6 & 63.6 \pm 0.6 \\
 		%\bottomrule
 	\end{tabular}
 	\caption{\label{tab:overall} Overall performance of SNACS disambiguation systems on the test set. Results are reported for the role supersense ({\it Role}), the function supersense ({\it Func.}), and their conjunction ({\it Full}). All figures are percentages.
@@ -86,10 +123,12 @@ LEXCAT embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid
 \end{table*}
 
 
-\begin{table*}[]
+\begin{table*}[]\label{tab:pssresults}
     \newcommand{\score}[2]{#1{\tiny ($\pm$#2)}}
-    \newcommand{\acc}[1]{\multicolumn{3}{c|}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} 14.3 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
-    \newcommand{\accl}[1]{\multicolumn{3}{c}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} 14.3 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
+    \newcommand{\acc}[1]{\multicolumn{3}{c|}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
+    \newcommand{\accl}[1]{\multicolumn{3}{c}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
+    \newcommand{\accs}[1]{\multicolumn{3}{c|}{\textcolor{gray}{\rule[2pt]{0.3in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.3in}{0.5pt}}}}
+    \newcommand{\accsl}[1]{\multicolumn{3}{c}{\textcolor{gray}{\rule[2pt]{0.3in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.3in}{0.5pt}}}}
 
 	\centering\footnotesize
     \setlength{\tabcolsep}{1pt} % Default value: 6pt
@@ -99,23 +138,42 @@ LEXCAT embedding vector dimension - autoid.autosyn - , autoid.goldsyn - , goldid
                           & &          & \multicolumn{3}{c}{\textit{Role}} & \multicolumn{3}{c}{\textit{Func.}} & \multicolumn{3}{c}{\textit{Full}}              \\
                           & \textbf{Syntax} & \textbf{ID}       & P                                 & R                                  & F    & P    & R    & F    & P    & R    & F    \\
 		\midrule
-        \multirow{2}{*}{MF} & \multirow{2}{*}{N/A} & gold & \acc{14.3} & \acc{14.3} & \accl{14.3} \\
+        \multirow{2}{*}{MF} & \multirow{2}{*}{N/A} & gold & \acc{ 15.8 } & \acc{ 19.8 } & \accl{ 14.8 } \\
           &   & auto & 14.3 & 14.4 & 14.3 & 16.5 & 16.7 & 16.6 & 13.2 & 13.3 & 13.3 \\
         \midrule
-        \multirow{2}{*}{MF-Prep} & \multirow{2}{*}{N/A} & gold & \acc{37.0} & \acc{49.8} & \accl{34.3} \\
-         &  & auto & 37.0 & 37.3 & 37.1 & 49.8 & 50.2 & 50.0 & 34.3 & 34.6 & 34.4 \\
-        \midrule
-        \multirow{4}{*}{Neural}        & \multirow{2}{*}{gold} & gold &  \acc{\score{12.3}{4.5}}  &  \acc{\score{12.3}{4.5}}  &  \accl{\score{12.3}{4.5}}  \\
-         &   & auto & \score{12.3}{4.5} & \score{12.3}{4.5} & \score{12.3}{4.5} &  \score{12.3}{4.5} & \score{12.3}{4.5} &  \score{12.3}{4.5} & \score{12.3}{4.5} & \score{12.3}{4.5} &  \score{12.3}{4.5} \\
-         \cmidrule{2-12}                & \multirow{2}{*}{auto} & gold & \acc{\score{12.3}{4.5}}  &  \acc{\score{12.3}{4.5}}  &  \accl{\score{12.3}{4.5}}  \\
-                 &   & auto & \score{12.3}{4.5} & \score{12.3}{4.5} & \score{12.3}{4.5} &  \score{12.3}{4.5} & \score{12.3}{4.5} &  \score{12.3}{4.5} & \score{12.3}{4.5} & \score{12.3}{4.5} &  \score{12.3}{4.5} \\
-        \midrule
+        \multirow{2}{*}{MF-Prep} & \multirow{2}{*}{N/A} & gold & \acc{ 40.6 } & \acc{ 53.3 } & \accl{ 37.9 } \\
+          &   & auto & 37.0 & 37.3 & 37.1 & 49.8 & 50.2 & 50.0 & 34.3 & 34.6 & 34.4 \\        \midrule
+        \multirow{4}{*}{Neural}        & \multirow{2}{*}{gold} & gold & \accs{\score{ 79.5 }{ 0.6 } }& \accs{\score{ 86.8 }{ 0.9 } }& \accsl{\score{ 75.7 }{ 0.6 } }\\
+         &   & auto & \score{ 68.6 }{ 1.0 } & \score{ 69.2 }{ 1.0 } & \score{ 68.9 }{ 1.0 } & \score{ 75.5 }{ 0.6 } & \score{ 76.1 }{ 0.6 } & \score{ 75.8 }{ 0.6 } & \score{ 65.2 }{ 1.0 } & \score{ 65.7 }{ 1.0 } & \score{ 65.4 }{ 1.0 } \\
+         \cmidrule{2-12}                & \multirow{2}{*}{auto} & gold & \accs{\score{ 77.5 }{ 1.2 } } & \accs{\score{ 85.9 }{ 0.9 } }& \accsl{\score{ 74.0 }{ 1.4 } }\\
+         &   & auto & \score{ 66.4 }{ 0.8 } & \score{ 66.2 }{ 0.9 } & \score{ 66.3 }{ 0.9 } & \score{ 74.9 }{ 0.6 } & \score{ 74.8 }{ 0.5 } & \score{ 74.8 }{ 0.6 } & \score{ 63.6 }{ 0.6 } & \score{ 63.5 }{ 0.6 } & \score{ 63.6 }{ 0.6 } \\
+         \midrule
 % 		\bottomrule
 	\end{tabular}
 	\caption{\label{tab:overall} Overall performance of SNACS disambiguation systems on the test set. Results are reported for the role supersense ({\it Role}), the function supersense ({\it Func.}), and their conjunction ({\it Full}). All figures are percentages.
     \textit{Left:} Accuracies with gold standard target identification (480 targets).
     \textit{Right:} Precision, recall, and $F_1$ with automatic target identification (section \ref{sec:ident}).} %For automatic identification, the unlabeled precision, recall and F-score are reported ({\it ID}).}
 \end{table*}
+
+
+\begin{table}[]
+\setlength{\tabcolsep}{10pt} % Default value: 6pt
+\renewcommand{\arraystretch}{1.5}
+\newcommand{\score}[2]{#1{ ($\pm$#2)}}
+\newcommand{\acc}[1]{\multicolumn{3}{c|}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
+\newcommand{\accl}[1]{\multicolumn{3}{c}{\textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}} #1 \textcolor{gray}{\rule[2pt]{0.5in}{0.5pt}}}}
+\centering
+\begin{tabular}{|c|cc|cc|}
+
+\hline
+\multirow{2}{*}{\backslashbox{Embeddings}{Syntax}}   & \multicolumn{2}{|c|}{\textbf{w/o Syntax}} & \multicolumn{2}{|c|}{\textbf{w/ Syntax}}  \\
+& Role & Func. & Role & Func. \\ \hline
+\textbf{fastText} &  \score{ 41.1 }{ 0.5 }     &  \score{ 54.0 }{ 0.5 } &  \score{ 70.9 }{ 1.6 }     &  \score{ 82.5 }{ 0.8 } \\ \hline
+\textbf{ELMo} &  \score{ 78.0 }{ 1.7 }     &  \score{ 86.4 }{ 1.3 } &  \score{ 79.5 }{ 0.6 }     &  \score{ 86.8 }{ 0.9 } \\ \hline
+\end{tabular}
+\caption{Average role and func. prediction accuracy scores for the 4 models variations corresponding to the selection of word embeddings and use of syntax, in the gold-id/gold-syntax setting.}
+
+\end{table}
 
 
 

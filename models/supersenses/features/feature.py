@@ -78,7 +78,7 @@ class Feature(object):
 
     def extract_embedding(self, tok):
         embd = self.embedding_extractor(tok) if self.embedding_extractor else self.embeddings.get(tok)
-        assert not(embd is False or embd is None) or self.embeddings != embeddings.INSTANCE
+        assert tok.hidden or not(embd is False or embd is None) or self.embeddings != embeddings.INSTANCE
         assert embd is False or embd is None or len(embd) == self.dim, "%d != %d" % (len(embd), self.dim)
         return embd
 

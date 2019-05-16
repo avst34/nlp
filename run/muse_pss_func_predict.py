@@ -7,7 +7,8 @@ from hyperparameters_tuner import override_settings
 from models.supersenses.features.features_test import test_features
 from models.supersenses.lstm_mlp_supersenses_model_hyperparameters_tuner import \
     LstmMlpSupersensesModelHyperparametersTuner
-from models.supersenses.settings import ELMO_FASTTEXT_TASK_SETTINGS, PS, ELMO_FASTTEXT_MIN_TASK_SETTINGS
+from models.supersenses.settings import ELMO_FASTTEXT_TASK_SETTINGS, PS, ELMO_FASTTEXT_MIN_TASK_SETTINGS, \
+    CHINESE_TASK_SETTINGS
 from models.supersenses.streusle_integration import streusle_record_to_lstm_model_sample
 
 evaluator = PSSClasifierEvaluator()
@@ -55,8 +56,8 @@ def run():
 
         train_samples = [streusle_record_to_lstm_model_sample(r) for r in train_records]
         dev_samples = [streusle_record_to_lstm_model_sample(r) for r in dev_records]
-        test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
-        # test_samples = [streusle_record_to_lstm_model_sample(r) for r in chinese_test_records]
+        # test_samples = [streusle_record_to_lstm_model_sample(r) for r in test_records]
+        test_samples = [streusle_record_to_lstm_model_sample(r) for r in chinese_test_records]
 
         test_features()
 
@@ -69,12 +70,13 @@ def run():
             show_progress=True,
             show_epoch_eval=True,
             tuner_domains=override_settings([
-                ELMO_FASTTEXT_MIN_TASK_SETTINGS[task],
+                CHINESE_TASK_SETTINGS[task],
                 [
-                    # PS(name='epochs', values=[10])
-                    PS(name='mlp_layers', values=[1]),
-                    PS(name='num_lstm_layers', values=[0]),
-                    PS(name='mlp_layer_dim', values=[100]),
+                    # PS(name='epochs', values=[10]),
+                    # PS(name='embd_type', values=['elmo'])
+                    # PS(name='mlp_layers', values=[1]),
+                    # PS(name='num_lstm_layers', values=[0]),
+                    # PS(name='mlp_layer_dim', values=[100]),
                 ]
             ]),
             dump_models=False
