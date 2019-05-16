@@ -5,9 +5,33 @@ from utils import f1_score
 
 to_precentage = lambda s: int(s * 10000) / 100 if s is not None else None
 
-PREPS = ['from', 'in', 'to', 'at', 'than', 'about', 'for', 'by', 'before', 'inside', 'ago', 'against', 'until',
-         'with', 'as', 'through', 'over', 'except', 'outside', 'his', 'on', 'since', 'toward', 'under', 'between',
-         'among']
+PREPS = """over
+with
+inside
+at
+by
+among
+until
+ago
+as
+than
+except
+from
+for
+because
+about
+through
+to
+against
+outside
+in
+on
+toward
+between
+under
+since
+before
+""".split('\n')
 
 class PSSClasifierEvaluator:
 
