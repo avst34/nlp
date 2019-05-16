@@ -30,8 +30,7 @@ toward
 between
 under
 since
-before
-""".split('\n')
+before""".split('\n')
 
 class PSSClasifierEvaluator:
 
