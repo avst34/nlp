@@ -9,7 +9,8 @@ def streusle_record_to_most_frequent_class_model_sample(record, class_names=None
                 "token": tagged_token.token,
                 "lemma": tagged_token.lemma,
                 "pos": tagged_token.ud_xpos,
-                "identified_for_pss": tagged_token.identified_for_pss
+                "identified_for_pss": tagged_token.identified_for_pss,
+                "is_mwe": tagged_token.is_part_of_mwe
             }
             for tagged_token in record.tagged_tokens
         ],

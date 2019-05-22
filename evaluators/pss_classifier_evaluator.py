@@ -112,7 +112,7 @@ class PSSClasifierEvaluator:
         ALL_CLASSES = PSSClasifierEvaluator.ALL_CLASSES
         ALL_CLASSES_STRICT = PSSClasifierEvaluator.ALL_CLASSES_STRICT
         predictor = predictor or self.predictor
-        predictor.reset_embd_counts()
+        # predictor.reset_embd_counts()
         counts = {
             # ALL_CLASSES: {
             #     'p_none_a_none': 0,
@@ -160,11 +160,13 @@ class PSSClasifierEvaluator:
                     for matching in ['MATCHED', 'MISSING', 'ALL']:
                         for matched_prep in ['ISPREP', 'NOTPREP', 'ALL']:
                             for p, a, x in zip(predicted_ys, sample.ys, sample.xs):
-                                if wetype != 'ALL' and x.attrs['mwe'] != (wetype == 'MULTI'):
+                                is_mwe = x.attrs['mwe'] if 'attrs' in dir(x) else x['is_mwe']
+                                if wetype != 'ALL' and is_mwe != (wetype == 'MULTI'):
                                     continue
-                                if matching != 'ALL' and x['token-embd'].startswith('MISSING_') != (matching == 'MISSING'):
+                                token = x.get('token-embd', x).get('token')
+                                if matching != 'ALL' and token.startswith('MISSING_') != (matching == 'MISSING'):
                                     continue
-                                if matched_prep != 'ALL' and ((x['token-embd'].lower() in PREPS) != (matched_prep == 'ISPREP') or matching != 'MATCHED'):
+                                if matched_prep != 'ALL' and ((token.lower() in PREPS) != (matched_prep == 'ISPREP') or matching != 'MATCHED'):
                                     continue
                                 if not p:
                                     p = tuple([None] * len(inds_to_predict))
@@ -223,7 +225,7 @@ class PSSClasifierEvaluator:
               )
         report(ALL_CLASSES, 'All Classes')
         report(ALL_CLASSES_STRICT, 'All Classes (strict)')
-        predictor.report_embd_counts()
+        #predictor.report_embd_counts()
         return {
             'precision': total_precision,
             'recall': total_recall,

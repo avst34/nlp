@@ -1,0 +1,29 @@
+\begin{table}[]
+    % \setlength{\tabcolsep}{6pt} % Default value: 6pt
+    \newcommand\Tstrut{\rule{0pt}{2.6ex}}       % "top" strut
+    \newcommand\Bstrut{\rule[-0.9ex]{0pt}{0pt}} % "bottom" strut
+    \newcommand{\TBstrut}{\Tstrut\Bstrut} % top&bottom struts
+
+    \renewcommand{\arraystretch}{1}
+    \newcommand{\score}[2]{#1 {\footnotesize ($\pm$#2)}}
+    \newcolumntype{C}{c}
+    \centering
+    \begin{tabular}{*{9}{C}}
+         \toprule
+         System    & \multicolumn{2}{C}{STREUSLE acc.} & \multicolumn{6}{C}{Chinese acc.}  \\ \cmidrule(lr){4-9}
+                   &    \multicolumn{2}{C}{} & \multicolumn{2}{C}{All (518)}      & \multicolumn{2}{C}{Aligned (147)} & \multicolumn{2}{C}{Aligned To Prep. (98)} \\
+         \cmidrule(lr){2-3}
+         \cmidrule(lr){4-5}
+         \cmidrule(lr){6-7}
+         \cmidrule(lr){8-9}
+                                    & Role & Fxn.     & Role  & Fxn.   & Role  & Fxn.  & Role  &  Fxn. \Bstrut \\
+         \hline
+
+         MF-Prep & {{ mf_prep.streusle_test_acc.role }} & {{ mf_prep.streusle_test_acc.fxn }} & {{ mf_prep.zh_all_acc.role }} & {{ mf_prep.zh_all_acc.fxn }} & {{ mf_prep.zh_aligned_acc.role }} & {{ mf_prep.zh_aligned_acc.fxn }} & {{ mf_prep.zh_aligned_prep_acc.role }} & {{ mf_prep.zh_aligned_prep_acc.fxn }}  \Tstrut \\
+         Neural  & {{ nn.streusle_test_acc.role }} & {{ nn.streusle_test_acc.fxn }} & {{ nn.zh_all_acc.role }} & {{ nn.zh_all_acc.fxn }} & {{ nn.zh_aligned_acc.role }} & {{ nn.zh_aligned_acc.fxn }} & {{ nn.zh_aligned_prep_acc.role }} & {{ nn.zh_aligned_prep_acc.fxn }}  \\
+         Neural + MF-Prep  & - & - & {{ nn_mf.zh_all_acc.role }} & {{ nn_mf.zh_all_acc.fxn }} & - & - & - & - \\
+         \bottomrule
+    \end{tabular}
+    \caption{PP-Attachment disambiguation accuracy of the best performing model in each setting (average and standard deviation over 5 different training instances).}
+    \label{tab:chineseresults}
+\end{table}
