@@ -112,6 +112,7 @@ CHINESE_TASK_SETTINGS = {
             PS(name='epochs', values=[130]),
             PS(name='use_ud_xpos', values=[False, True]),
             PS(name='use_govobj', values=[False]),
+            PS(name='use_lexcat', values=[False]),
             PS(name='use_parent', values=[True]),
             PS(name='use_grandparent', values=[True]),
             PS(name='use_token_internal', values=[False, True]),

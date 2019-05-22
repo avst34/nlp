@@ -39,6 +39,9 @@ class LstmMlpMulticlassModel(object):
         def __getitem__(self, field):
             return self.fields[field]
 
+        def get(self, field, default=None):
+            return self.fields.get(field, default)
+
         def items(self):
             return self.fields.items()
 

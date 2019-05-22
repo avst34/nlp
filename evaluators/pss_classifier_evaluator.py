@@ -163,7 +163,7 @@ class PSSClasifierEvaluator:
                                 is_mwe = x.attrs['mwe'] if 'attrs' in dir(x) else x['is_mwe']
                                 if wetype != 'ALL' and is_mwe != (wetype == 'MULTI'):
                                     continue
-                                token = x.get('token-embd', x).get('token')
+                                token = x.get('token-embd', x.get('token'))
                                 if matching != 'ALL' and token.startswith('MISSING_') != (matching == 'MISSING'):
                                     continue
                                 if matched_prep != 'ALL' and ((token.lower() in PREPS) != (matched_prep == 'ISPREP') or matching != 'MATCHED'):

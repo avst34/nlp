@@ -27,3 +27,36 @@
     \caption{PP-Attachment disambiguation accuracy of the best performing model in each setting (average and standard deviation over 5 different training instances).}
     \label{tab:chineseresults}
 \end{table}
+
+\begin{table}[]
+  \small
+	\centering
+	\begin{tabular}{@{}l|c@{}}
+		\toprule
+		Hyperparam. & Value \\
+		\midrule
+        Embedding Method & {{ nn.hp.embd_type }} \\
+        ELMo layer & {{ nn.hp.elmo_layer }} \\
+        Token internal embd. dimension & {{ nn.hp.token_internal_embd_dim }} \\
+        Use Parent? & {{ nn.hp.use_parent}} \\
+        Use Grandparent? & {{ nn.hp.use_grandparent}} \\
+        POS embd. dimension  & {{ nn.hp.ud_xpos_embd_dim }} \\
+        UD dependencies embd. dimension  & {{ nn.hp.ud_deps_embd_dim }} \\
+        NER  embd. dimension  & {{ nn.hp.ner_embd_dim }} \\
+        MLP layers  & {{ nn.hp.mlp_layers }} \\
+        MLP layer dimension  & {{ nn.hp.mlp_layer_dim }} \\
+        MLP activation  & {{ nn.hp.mlp_activation }} \\
+        MLP Dropout Prob.  & {{ nn.hp.mlp_dropout_p }} \\
+        LSTM layers  & {{ nn.hp.num_lstm_layers }} \\
+        LSTM hidden layer dimension  & {{ nn.hp.lstm_h_dim }} \\
+        Is BiLSTM? & {{ nn.hp.is_bilstm }} \\
+        LSTM Dropout Prob.  & {{ nn.hp.lstm_dropout_p }} \\
+        Learning rate  & {{ nn.hp.learning_rate }} \\
+        Learning rate decay  & {{ nn.hp.learning_rate_decay }} \\
+		\bottomrule
+	\end{tabular}
+	\caption{\label{tab:hyperparams}
+        Selected hyperparameters of the neural system, tuned on the STREUSLE development set.
+	}
+
+\end{table}

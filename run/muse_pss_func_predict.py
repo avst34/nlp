@@ -35,12 +35,13 @@ def run():
     # tasks = list(FASTTEXT_TASK_SETTINGS.keys())
     tasks = [
         # 'goldid.goldsyn', 'goldid.goldsyn.goldrole', 'goldid.goldsyn.goldfunc'
-        'goldid.goldsyn'
+        # 'goldid.goldsyn'
+        'goldid.autosyn'
     ]
     task = random.choice(tasks)
     # task = 'goldid.goldsyn'
     for task in [task]:
-        loader = StreusleLoader(load_elmo=True)
+        loader = StreusleLoader(load_elmo=True, syntax='auto')
         train_records = loader.load_train()
         dev_records = loader.load_dev()
         test_records = loader.load_test()
@@ -72,7 +73,7 @@ def run():
             tuner_domains=override_settings([
                 CHINESE_TASK_SETTINGS[task],
                 [
-                    # PS(name='epochs', values=[10]),
+                    PS(name='epochs', values=[1]),
                     # PS(name='embd_type', values=['elmo'])
                     # PS(name='mlp_layers', values=[1]),
                     # PS(name='num_lstm_layers', values=[0]),
