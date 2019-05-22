@@ -24,7 +24,7 @@
          Neural + MF-Prep  & - & - & {{ nn_mf.zh_all_acc.role }} & {{ nn_mf.zh_all_acc.fxn }} & - & - & - & - \\
          \bottomrule
     \end{tabular}
-    \caption{PP-Attachment disambiguation accuracy of the best performing model in each setting (average and standard deviation over 5 different training instances).}
+    \caption{PSS disambiguation accuracy of the MF-Prep baseline, the neural model, and a combined model, on the STREUSLE test set, and the Chinese corpus. For Chinese, we also report the accuracy over the subset of prepositions that received and alignment, and the subset which was aligned to English prepositions.}
     \label{tab:chineseresults}
 \end{table}
 
